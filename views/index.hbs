@@ -1,0 +1,226 @@
+<!-- Banner Area -->
+<section class="banner-area fullscreen relative" style="background: url({{#if banner.background_image}}{{banner.background_image}}{{else}}https://homepilatesstudio.com/uploads/website/home-banner.webp{{/if}}) center; background-size: cover;">
+  <div class="overlay overlay-bg"></div>
+  <div class="container-fluid">
+    <div class="row fullscreen d-flex align-items-center" style="height: 919px;">
+      <div class="banner-content">
+        <p class="banner-text1">{{#if banner.title_line1}}{{banner.title_line1}}{{else}}The heaven of{{/if}}</p>
+        <p class="banner-text2">{{#if banner.title_line2}}{{banner.title_line2}}{{else}}PILATES{{/if}}</p>
+        <p class="banner-text3">{{#if banner.subtitle}}{{banner.subtitle}}{{else}}Restructure your body and mind{{/if}}</p>
+        <p class="banner-text4">{{#if banner.tagline}}{{banner.tagline}}{{else}}Established since 2015{{/if}}</p>
+      </div>
+      <div class="banner-socials">
+        <a href="{{#if banner.instagram_url}}{{banner.instagram_url}}{{else}}https://www.instagram.com/home_pilates_studio{{/if}}" target="_blank" class="btn-basic">
+          <i class="fi fi-brands-instagram"></i>
+        </a>
+        <a href="{{#if banner.location_url}}{{banner.location_url}}{{else}}https://maps.app.goo.gl/8V99Pyg82etrUswj9{{/if}}" target="_blank" class="btn-basic">
+          <i class="fi fi-rs-marker"></i>
+        </a>
+      </div>
+      <div class="banner-chat">
+        <a href="https://wa.me/{{#if banner.whatsapp_number}}{{banner.whatsapp_number}}{{else}}6287822282068{{/if}}" target="_blank" class="btn-basic">
+          <i class="fi fi-brands-whatsapp"></i> {{#if banner.whatsapp_text}}{{banner.whatsapp_text}}{{else}}Chat with Admin{{/if}}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- About Section -->
+<section class="about-area section-gap" style="background-color: {{#if colors.about.background_color}}{{colors.about.background_color}}{{else}}#F0CEC3{{/if}};">
+  <div class="container">
+    <div class="row justify-content-between align-items-center">
+      <div class="col-lg-6 about-right">
+        <img class="img-fluid" width="400" height="400" src="{{#if about.logo_image}}{{about.logo_image}}{{else}}/images/logo.png{{/if}}" loading="lazy" alt="Logo Image">
+      </div>
+      <div class="col-lg-6 about-left">
+        <h1 class="font-italic mb-5" style="font-size: 64px; font-weight: 400; color: {{#if about.title_color}}{{about.title_color}}{{else}}#514f34{{/if}};">
+          <span style="color: {{#if about.title_color_highlight}}{{about.title_color_highlight}}{{else}}#a05a3f{{/if}};">{{#if about.title_highlight}}{{about.title_highlight}}{{else}}About{{/if}}</span> Home Pilates <strong>Studio</strong>
+        </h1>
+        <h3>{{#if about.subtitle}}{{about.subtitle}}{{else}}Reason Why You Need Us{{/if}}</h3>
+        <p>
+        </p><ul class="px-4" style="line-height: 2;">
+          {{#if about.reason_1}}<li>{{about.reason_1}}</li>{{else}}<li>Need help on back ache and perfect body posture?</li>{{/if}}
+          {{#if about.reason_2}}<li>{{about.reason_2}}</li>{{else}}<li>Want to get better balance and strenth of your body core</li>{{/if}}
+          {{#if about.reason_3}}<li>{{about.reason_3}}</li>{{else}}<li>Want to try how to refresh the mind and better body composition?</li>{{/if}}
+          {{#if about.reason_4}}<li>{{about.reason_4}}</li>{{else}}<li>Trained by certified trainers</li>{{/if}}
+        </ul>
+        <p></p>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Team Section -->
+<section class="team-area section-gap" style="background-color: {{#if colors.teachers.background_color}}{{colors.teachers.background_color}}{{else}}#ffffff{{/if}};">
+  <div class="container">
+    <div class="row d-flex justify-content-center">
+      <div class="col-lg-12">
+        <div class="section-title-wrap text-center">
+          <h1>{{#if sectionSettings.teachers.title}}{{sectionSettings.teachers.title}}{{else}}Our Teacher{{/if}}</h1>
+          <p>{{#if sectionSettings.teachers.subtitle}}{{sectionSettings.teachers.subtitle}}{{else}}Enjoy the ultimate class experience from highly experienced certified teachers!{{/if}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="row justify-content-center d-flex align-items-center">
+      {{#each teachers}}
+      <div class="col-md-4 col-lg-4 single-team">
+        <div class="thumb">
+          <img class="rounded-circle" src="{{this.image_url}}" loading="lazy" alt="{{this.name}}">
+        </div>
+        <div class="meta-text mt-30 text-center">
+          <h4>{{this.name}}</h4>
+          <p>{{this.position}}</p>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    <div class="row d-flex justify-content-center">
+      <a href="trainer" class="btn btn-basic">See Their Expertise</a>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testomial-area section-gap" style="background: {{#if colors.testimonials.background_color}}{{colors.testimonials.background_color}}{{else}}#F0E9D6{{/if}};">
+  <div class="container">
+    <div class="row d-flex justify-content-center">
+      <div class="col-lg-12">
+        <div class="section-title-wrap text-center">
+          <h1>{{#if sectionSettings.testimonials.title}}{{sectionSettings.testimonials.title}}{{else}}What Our Client Says About Us{{/if}}</h1>
+          <p>{{#if sectionSettings.testimonials.subtitle}}{{sectionSettings.testimonials.subtitle}}{{else}}How our class change them{{/if}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="swiper testimonialsSwiper mb-5">
+      <div class="swiper-wrapper">
+        {{#each testimonials}}
+        <div class="swiper-slide">
+          <div class="single-testimonial item">
+            <h1><i class="fi-rs-quote-right"></i></h1>
+            <h2>{{this.client_name}}</h2>
+            <input class="rating rating--nojs" type="range" min="0" max="5" step="1" value="{{this.rating}}" disabled />
+            <p>{{this.testimonial}}</p>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+    <div class="row d-flex justify-content-center px-3">
+      <span class="text-center mb-5">Many reviews are in, and over 500 students have joined us since 2015, experiencing the benefits of our treatments. Discover the best and ideal posture you've always dreamed of with us!</span>
+      <a href="https://wa.me/{{#if contact.whatsapp_number}}{{contact.whatsapp_number}}{{else}}6281393339939{{/if}}" target="_blank" class="btn btn-basic">Try Our Class</a>
+    </div>
+  </div>
+</section>
+
+<!-- Feature/Classes Section -->
+<section class="feature-area section-gap" style="background-color: {{#if colors.classes.background_color}}{{colors.classes.background_color}}{{else}}#ffffff{{/if}};">
+  <div class="container">
+    <div class="row d-flex justify-content-center">
+      <div class="col-lg-12">
+        <div class="section-title-wrap text-center">
+          <h1>{{#if sectionSettings.classes.title}}{{sectionSettings.classes.title}}{{else}}Our Classes{{/if}}</h1>
+          <span>{{#if sectionSettings.classes.subtitle}}{{sectionSettings.classes.subtitle}}{{else}}Transform Your Body and Mind with Expert Guidance{{/if}}</span>
+        </div>
+      </div>
+    </div>
+    <div class="swiper classesSwiper mb-5">
+      <div class="swiper-wrapper">
+        {{#each classes}}
+        <div class="swiper-slide">
+          <a href="class#{{this.anchor_link}}" class="text-center">
+            <div class="mb-5">
+              <img src="{{this.image_url}}" loading="lazy" alt="{{this.class_name}}">
+            </div>
+            <div class="text-left px-5">
+              <h3 class="mb-3">{{this.class_name}}</h3>
+              <p>{{this.description}}</p>
+            </div>
+          </a>
+        </div>
+        {{/each}}
+      </div>
+      <div class="swiper-button-next"></div>
+      <div class="swiper-button-prev"></div>
+      <div class="swiper-pagination"></div>
+    </div>
+    <div class="row d-flex justify-content-center">
+      <!-- <a class="btn btn-basic">Class Details</a> -->
+    </div>
+  </div>
+</section>
+
+<!-- Start contact-page Area -->
+<section class="contact-page-area section-gap" style="background-color: {{#if colors.contact.background_color}}{{colors.contact.background_color}}{{else}}#ffffff{{/if}};">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="section-title-wrap text-center">
+          <h1 class="text-left">Contacts</h1>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <div class="row d-flex justify-content-between">
+      <div class="contact-detail col-lg-5 col-md-5 col-sm-12 pr-5">
+        <h3><i class="fi-rs-marker"></i> Address</h3>
+        <p class="pr-5">{{#if contact.address}}{{contact.address}}{{else}}Jl. Kuta Kencana Tim. Jl. Singgasana Raya No.2, Mekarwangi, Kec. Bojongloa Kidul, Kota Bandung, Jawa Barat 40236{{/if}}</p>
+      </div>
+      <div class="contact-detail col-lg-3 col-md-3 col-sm-12">
+        <h3><i class="fi-rs-phone-call"></i> Phone</h3>
+        <p>{{#if contact.phone}}{{contact.phone}}{{else}}0878-2228-2068{{/if}}</p>
+      </div>
+      <div class="contact-detail col-lg-4 col-md-4 col-sm-12" style="line-height: 0.5;">
+        <h3><i class="fi-rs-clock"></i> Working Hours</h3>
+        <table class="working-hours">
+          <tbody>
+          <tr>
+            <td>Mon-Fri</td>
+            <td>: {{#if contact.mon_fri_hours}}{{contact.mon_fri_hours}}{{else}}07.00 - 19.00{{/if}}</td>
+          </tr>
+          <tr>
+            <td>Sat</td>
+            <td>: {{#if contact.sat_hours}}{{contact.sat_hours}}{{else}}07.00 - 11.00{{/if}}</td>
+          </tr>
+          <tr>
+            <td>Sun</td>
+            <td>: <strong>{{#if contact.sun_hours}}{{contact.sun_hours}}{{else}}Closed{{/if}}</strong></td>
+          </tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="mb-5">
+      <h3>Studio Location</h3>
+      <iframe src="{{#if contact.map_embed_url}}{{contact.map_embed_url}}{{else}}https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3960.445005251872!2d107.59676825982162!3d-6.956717289799492!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e8e9becde3fb%3A0xae0b0b0257be584!2sHome%20Pilates%20Studio!5e0!3m2!1sen!2sid!4v1731683539835!5m2!1sen!2sid{{/if}}" width="100%" height="500px" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    <div class="faq-area mb-5">
+      <h3>FAQ</h3>
+      <div class="row">
+        <div class="col-lg-4 col-md-12 col-sm-12 px-5">
+          <h2>Frequently</h2>
+          <h2>Ask</h2>
+          <h2 style="color: #a05a3f;">Question</h2>
+        </div>
+        <div class="col-lg-8 col-md-12 col-sm-12">
+          <div class="accordion">
+            {{#each faq}}
+            <div class="accordion-item">
+              <div class="accordion-header">
+                <h3>{{this.question}}</h3>
+                <i class="fi fi-rs-angle-down"></i>
+              </div>
+              <div class="accordion-content">
+                <p>{{this.answer}}</p>
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

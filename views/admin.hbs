@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Pilate Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-container {
+            padding: 20px;
+            margin-top: 70px;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .stats-card p {
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .table-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .table-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .table-section h2 i {
+            margin-right: 10px;
+        }
+        .nav-tabs .nav-link {
+            color: #667eea;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            color: white;
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        .table {
+            font-size: 0.9rem;
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            color: #667eea;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+        }
+        .badge {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+        .status-active { background-color: #28a745; }
+        .status-inactive { background-color: #dc3545; }
+        .status-confirmed { background-color: #17a2b8; }
+        .status-completed { background-color: #28a745; }
+        .status-cancelled { background-color: #dc3545; }
+        .status-paid { background-color: #28a745; }
+        .status-pending { background-color: #ffc107; }
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        /* Highlight selected users in multiselect */
+        select[multiple] option.user-assigned {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: 600;
+        }
+        select[multiple] option:checked {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    {{> header}}
+
+    <div class="admin-container">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="fas fa-chart-line"></i> Admin Dashboard</h1>
+                <div>
+                    <a href="/admin/homepage-editor" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit Homepage
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary" target="_blank">
+                        <i class="fas fa-home"></i> View Site
+                    </a>
+                </div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Memuat data...</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div id="statsSection" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card">
+                            <h3 id="totalUsers">0</h3>
+                            <p><i class="fas fa-users"></i> Total Users</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <h3 id="totalBookings">0</h3>
+                            <p><i class="fas fa-calendar-check"></i> Bookings</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <h3 id="totalClasses">0</h3>
+                            <p><i class="fas fa-dumbbell"></i> Classes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <h3 id="totalTransactions">0</h3>
+                            <p><i class="fas fa-money-bill"></i> Transactions</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <h3 id="totalSchedules">0</h3>
+                            <p><i class="fas fa-calendar-alt"></i> Schedules</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                            <h3 id="totalTrainers">0</h3>
+                            <p><i class="fas fa-user-tie"></i> Trainers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div id="tabsSection" style="display: none;">
+                <ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                            <i class="fas fa-users"></i> Users
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">
+                            <i class="fas fa-calendar-check"></i> Bookings
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="classes-tab" data-bs-toggle="tab" data-bs-target="#classes" type="button" role="tab">
+                            <i class="fas fa-dumbbell"></i> Classes
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab">
+                            <i class="fas fa-money-bill"></i> Transactions
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules" type="button" role="tab">
+                            <i class="fas fa-calendar-alt"></i> Schedules
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="trainers-tab" data-bs-toggle="tab" data-bs-target="#trainers" type="button" role="tab">
+                            <i class="fas fa-user-tie"></i> Trainers
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="adminTabsContent">
+                    <!-- Users Table -->
+                    <div class="tab-pane fade show active" id="users" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-users"></i> Users</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('user')"><i class="fas fa-plus"></i> Add New User</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="usersTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Membership</th>
+                                            <th>Status</th>
+                                            <th>Credits</th>
+                                            <th>Gender</th>
+                                            <th>Registered</th>                                            <th>Expired Date</th>                                            <th>Expired Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Table -->
+                    <div class="tab-pane fade" id="bookings" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-calendar-check"></i> Bookings</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('booking')"><i class="fas fa-plus"></i> Add New Booking</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="bookingsTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Schedule ID</th>
+                                            <th>User ID</th>
+                                            <th>Booking Time</th>
+                                            <th>Status</th>
+                                            <th>Attended</th>
+                                            <th>Payment Status</th>
+                                            <th>Credits Used</th>
+                                            <th>Notes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Classes Table -->
+                    <div class="tab-pane fade" id="classes" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-dumbbell"></i> Classes</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('class')"><i class="fas fa-plus"></i> Add New Class</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="classesTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Duration</th>
+                                            <th>Capacity</th>
+                                            <th>Price</th>
+                                            <th>Credits Required</th>
+                                            <th>Status</th>
+                                            <th>Description</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="classesTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="tab-pane fade" id="transactions" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-money-bill"></i> Transactions</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('transaction')"><i class="fas fa-plus"></i> Add New Transaction</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="transactionsTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User ID</th>
+                                            <th>Transaction Time</th>
+                                            <th>Amount</th>
+                                            <th>Credits Purchased</th>
+                                            <th>Payment Method</th>
+                                            <th>Status</th>
+                                            <th>Invoice</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactionsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedules Table -->
+                    <div class="tab-pane fade" id="schedules" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-calendar-alt"></i> Schedules</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('schedule')"><i class="fas fa-plus"></i> Add New Schedule</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="schedulesTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Schedule Time</th>
+                                            <th>Trainer ID</th>
+                                            <th>Class ID</th>
+                                            <th>Members</th>
+                                            <th>Gender</th>
+                                            <th>Status</th>
+                                            <th>Notes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="schedulesTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trainers Table -->
+                    <div class="tab-pane fade" id="trainers" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-user-tie"></i> Trainers</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('trainer')"><i class="fas fa-plus"></i> Add New Trainer</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="trainersTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Specialization</th>
+                                            <th>Status</th>
+                                            <th>Joined Date</th>
+                                            <th>Bio</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trainersTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{> footer}}
+
+    <!-- CRUD Modal -->
+    <div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="crudModalTitle">Add New</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="crudForm">
+                        <input type="hidden" id="recordId">
+                        <input type="hidden" id="recordType">
+                        <div id="formFields"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRecord()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    
+    <!-- Load Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    
+    <script>
+        // Initialize dashboard when DOM is ready
+        $(document).ready(function() {
+            console.log('=== Initializing Dashboard ===');
+            console.log('jQuery:', typeof jQuery !== 'undefined' ? '✓' : '✗');
+            loadAdminData();
+        });
+        
+        function loadAdminData() {
+            console.log('=== Fetching Admin Data ===');
+            $.ajax({
+                url: '/api/admin/data',
+                method: 'GET',
+                success: function(response) {
+                    console.log('Data fetched successfully', response);
+                    if (response.success) {
+                        const data = response.data;
+                        
+                        // Store data globally for form dropdowns
+                        window.adminData = data;
+                        
+                        // Update statistics
+                        $('#totalUsers').text(data.stats.totalUsers);
+                        $('#totalBookings').text(data.stats.totalBookings);
+                        $('#totalClasses').text(data.stats.totalClasses);
+                        $('#totalTransactions').text(data.stats.totalTransactions);
+                        $('#totalSchedules').text(data.stats.totalSchedules);
+                        $('#totalTrainers').text(data.stats.totalTrainers);
+                        
+                        // Sort users by expired_date (furthest from today first)
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        data.users.sort((a, b) => {
+                            // Handle missing expired_date (put at bottom)
+                            if (!a.expired_date && !b.expired_date) return 0;
+                            if (!a.expired_date) return 1;
+                            if (!b.expired_date) return -1;
+                            
+                            const dateA = new Date(a.expired_date);
+                            const dateB = new Date(b.expired_date);
+                            dateA.setHours(0, 0, 0, 0);
+                            dateB.setHours(0, 0, 0, 0);
+                            
+                            // Calculate days from today
+                            const daysA = Math.floor((dateA - today) / (1000 * 60 * 60 * 24));
+                            const daysB = Math.floor((dateB - today) / (1000 * 60 * 60 * 24));
+                            
+                            // Sort by days from today (descending - furthest first)
+                            return daysB - daysA;
+                        });
+                        
+                        // Populate Users table
+                        data.users.forEach(user => {
+                            const statusClass = user.membership_status === 'Active' ? 'status-active' : 'status-inactive';
+                            
+                            // Check if expired_date is past today
+                            let expiredDateHTML = user.expired_date || '-';
+                            if (user.expired_date) {
+                                const expiredDate = new Date(user.expired_date);
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                expiredDate.setHours(0, 0, 0, 0);
+                                
+                                if (expiredDate < today) {
+                                    expiredDateHTML = `<span style="color: #d32f2f; font-weight: bold;">${user.expired_date}</span>`;
+                                } else {
+                                    expiredDateHTML = user.expired_date;
+                                }
+                            }
+                            
+                            $('#usersTableBody').append(`
+                                <tr>
+                                    <td>${user.id}</td>
+                                    <td>${user.name}</td>
+                                    <td>${user.email}</td>
+                                    <td>${user.phone}</td>
+                                    <td>${user.membership_type}</td>
+                                    <td><span class="badge ${statusClass}">${user.membership_status}</span></td>
+                                    <td>${user.total_credits}</td>
+                                    <td>${user.gender}</td>
+                                    <td>${user.registered_date}</td>
+                                    <td>${expiredDateHTML}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("user", ${JSON.stringify(user)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('user', '${user.id}', '${user.name}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Bookings table
+                        data.bookings.forEach(booking => {
+                            let statusClass = 'status-confirmed';
+                            if (booking.status === 'Completed') statusClass = 'status-completed';
+                            if (booking.status === 'Cancelled') statusClass = 'status-cancelled';
+                            
+                            const paymentClass = booking.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
+                            
+                            $('#bookingsTableBody').append(`
+                                <tr>
+                                    <td>${booking.id}</td>
+                                    <td>${booking.schedule_id}</td>
+                                    <td>${booking.user_id}</td>
+                                    <td>${booking.booking_time}</td>
+                                    <td><span class="badge ${statusClass}">${booking.status}</span></td>
+                                    <td>${booking.attended === '1' ? 'Yes' : 'No'}</td>
+                                    <td><span class="badge ${paymentClass}">${booking.payment_status}</span></td>
+                                    <td>${booking.credits_used}</td>
+                                    <td>${booking.notes}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("booking", ${JSON.stringify(booking)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('booking', '${booking.id}', 'Booking #${booking.id}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Classes table
+                        data.classes.forEach(cls => {
+                            const statusClass = cls.status === 'Active' ? 'status-active' : 'status-inactive';
+                            $('#classesTableBody').append(`
+                                <tr>
+                                    <td>${cls.id}</td>
+                                    <td>${cls.name}</td>
+                                    <td>${cls.duration} min</td>
+                                    <td>${cls.capacity}</td>
+                                    <td>Rp ${parseInt(cls.price).toLocaleString('id-ID')}</td>
+                                    <td>${cls.credits_required}</td>
+                                    <td><span class="badge ${statusClass}">${cls.status}</span></td>
+                                    <td>${cls.description}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("class", ${JSON.stringify(cls)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('class', '${cls.id}', '${cls.name}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Transactions table
+                        data.transactions.forEach(transaction => {
+                            const statusClass = transaction.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
+                            $('#transactionsTableBody').append(`
+                                <tr>
+                                    <td>${transaction.id}</td>
+                                    <td>${transaction.user_id}</td>
+                                    <td>${transaction.transaction_time}</td>
+                                    <td>Rp ${parseInt(transaction.amount).toLocaleString('id-ID')}</td>
+                                    <td>${transaction.credits_purchased}</td>
+                                    <td>${transaction.payment_method}</td>
+                                    <td><span class="badge ${statusClass}">${transaction.payment_status}</span></td>
+                                    <td>${transaction.invoice_number}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("transaction", ${JSON.stringify(transaction)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('transaction', '${transaction.id}', '${transaction.invoice_number}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Schedules table
+                        data.schedules.forEach((schedule, index) => {
+                            const statusClass = schedule.status === 'Active' ? 'status-active' : 'status-completed';
+                            $('#schedulesTableBody').append(`
+                                <tr>
+                                    <td>${schedule.id}</td>
+                                    <td>${schedule.schedule_time}</td>
+                                    <td>${schedule.trainer_id}</td>
+                                    <td>${schedule.class_id}</td>
+                                    <td>${schedule.members}</td>
+                                    <td>${schedule.gender_restriction || 'All'}</td>
+                                    <td><span class="badge ${statusClass}">${schedule.status}</span></td>
+                                    <td>${schedule.notes}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick="editScheduleById(${index})"><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('schedule', '${schedule.id}', 'Schedule #${schedule.id}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Trainers table
+                        data.trainers.forEach(trainer => {
+                            const statusClass = trainer.status === 'Active' ? 'status-active' : 'status-inactive';
+                            $('#trainersTableBody').append(`
+                                <tr>
+                                    <td>${trainer.id}</td>
+                                    <td>${trainer.name}</td>
+                                    <td>${trainer.email}</td>
+                                    <td>${trainer.phone}</td>
+                                    <td>${trainer.specialization}</td>
+                                    <td><span class="badge ${statusClass}">${trainer.status}</span></td>
+                                    <td>${trainer.joined_date}</td>
+                                    <td>${trainer.bio}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("trainer", ${JSON.stringify(trainer)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('trainer', '${trainer.id}', '${trainer.name}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        console.log('✓ Tables loaded successfully (using simple tables without DataTables)');
+                        
+                        // Hide loading spinner and show content
+                        $('#loadingSpinner').hide();
+                        $('#statsSection').show();
+                        $('#tabsSection').show();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr, status, error);
+                    $('#loadingSpinner').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Error loading data: ${error}
+                            <br><small>Status: ${xhr.status} ${xhr.statusText}</small>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Form field definitions for each entity type
+        const formFields = {
+            user: [
+                { name: 'name', label: 'Name', type: 'text', required: true },
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'phone', label: 'Phone', type: 'text', required: true },
+                { name: 'password', label: 'Password', type: 'password', required: true },
+                { name: 'membership_type', label: 'Membership Type', type: 'select', options: ['Basic', 'Premium', 'VIP'], required: true },
+                { name: 'membership_status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true },
+                { name: 'expired_date', label: 'Expired Date', type: 'date', required: true },
+                { name: 'total_credits', label: 'Total Credits', type: 'number', required: true },
+                { name: 'gender', label: 'Gender', type: 'select', options: ['M', 'F'], required: true },
+                { name: 'role', label: 'Role', type: 'select', options: ['user', 'admin'], required: true }
+            ],
+            booking: [
+                { name: 'schedule_id', label: 'Schedule', type: 'select-dynamic', source: 'schedules', required: true },
+                { name: 'user_id', label: 'User', type: 'select-dynamic', source: 'users', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Confirmed', 'Completed', 'Cancelled'], required: true },
+                { name: 'attended', label: 'Attended', type: 'select', options: ['0', '1'], required: true },
+                { name: 'payment_status', label: 'Payment Status', type: 'select', options: ['Pending', 'Paid'], required: true },
+                { name: 'credits_used', label: 'Credits Used', type: 'number', required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', required: false }
+            ],
+            class: [
+                { name: 'name', label: 'Class Name', type: 'text', required: true },
+                { name: 'duration', label: 'Duration (minutes)', type: 'number', required: true },
+                { name: 'capacity', label: 'Capacity', type: 'number', required: true },
+                { name: 'price', label: 'Price', type: 'number', required: true },
+                { name: 'credits_required', label: 'Credits Required', type: 'number', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true },
+                { name: 'description', label: 'Description', type: 'textarea', required: false }
+            ],
+            transaction: [
+                { name: 'user_id', label: 'User ID', type: 'number', required: true },
+                { name: 'amount', label: 'Amount', type: 'number', required: true },
+                { name: 'credits_purchased', label: 'Credits Purchased', type: 'number', required: true },
+                { name: 'payment_method', label: 'Payment Method', type: 'select', options: ['Bank Transfer', 'Credit Card', 'E-Wallet', 'Cash'], required: true },
+                { name: 'payment_status', label: 'Payment Status', type: 'select', options: ['Pending', 'Paid'], required: true },
+                { name: 'invoice_number', label: 'Invoice Number', type: 'text', required: true }
+            ],
+            schedule: [
+                { name: 'schedule_time', label: 'Schedule Time', type: 'datetime-local', required: true },
+                { name: 'trainer_id', label: 'Trainer', type: 'select-dynamic', source: 'trainers', required: true },
+                { name: 'class_id', label: 'Class', type: 'select-dynamic', source: 'classes', required: true },
+                { name: 'assigned_users', label: 'Assign Users', type: 'multiselect-dynamic', source: 'users', required: false },
+                { name: 'gender_restriction', label: 'Gender Restriction', type: 'select', options: ['', 'M', 'F'], required: false },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'Cancelled'], required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', required: false }
+            ],
+            trainer: [
+                { name: 'name', label: 'Name', type: 'text', required: true },
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'phone', label: 'Phone', type: 'text', required: true },
+                { name: 'specialization', label: 'Specialization', type: 'text', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true },
+                { name: 'bio', label: 'Bio', type: 'textarea', required: false }
+            ]
+        };
+        
+        // Show Add Modal
+        function showAddModal(type) {
+            $('#recordId').val('');
+            $('#recordType').val(type);
+            $('#crudModalTitle').text('Add New ' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            generateFormFields(type);
+            
+            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
+            modal.show();
+        }
+        
+        // Show Edit Modal
+        function editRecord(type, record) {
+            $('#recordId').val(record.id);
+            $('#recordType').val(type);
+            $('#crudModalTitle').text('Edit ' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            console.log('Editing record:', type, record);
+            
+            generateFormFields(type, record);
+            
+            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
+            modal.show();
+        }
+        
+        // Edit schedule by index (special handler)
+        function editScheduleById(index) {
+            if (window.adminData && window.adminData.schedules && window.adminData.schedules[index]) {
+                const schedule = window.adminData.schedules[index];
+                console.log('Editing schedule:', schedule);
+                editRecord('schedule', schedule);
+            } else {
+                alert('Schedule data not found');
+            }
+        }
+        
+        // Generate Form Fields
+        function generateFormFields(type, data = {}) {
+            console.log(`[generateFormFields] Type: ${type}, Data:`, data);
+            
+            const fields = formFields[type];
+            let html = '';
+            
+            fields.forEach(field => {
+                const value = data[field.name] || '';
+                const required = field.required ? 'required' : '';
+                
+                console.log(`[Field] ${field.name} = "${value}" (type: ${field.type})`);
+                
+                html += `<div class="mb-3">`;
+                html += `<label for="${field.name}" class="form-label">${field.label}</label>`;
+                
+                if (field.type === 'select') {
+                    html += `<select class="form-control" id="${field.name}" name="${field.name}" ${required}>`;
+                    html += `<option value="">Select ${field.label}</option>`;
+                    field.options.forEach(opt => {
+                        const selected = value == opt ? 'selected' : '';
+                        html += `<option value="${opt}" ${selected}>${opt}</option>`;
+                    });
+                    html += `</select>`;
+                } else if (field.type === 'select-dynamic') {
+                    // Dynamic dropdown from data source
+                    html += `<select class="form-control" id="${field.name}" name="${field.name}" ${required}>`;
+                    html += `<option value="">Select ${field.label}</option>`;
+                    
+                    if (window.adminData && window.adminData[field.source]) {
+                        window.adminData[field.source].forEach(item => {
+                            const selected = value == item.id ? 'selected' : '';
+                            
+                            // Special formatting for schedules - show schedule time
+                            let displayName;
+                            if (field.source === 'schedules') {
+                                displayName = item.schedule_time || item.stime || item.id;
+                            } else {
+                                displayName = item.name || item.title || item.id;
+                            }
+                            
+                            html += `<option value="${item.id}" ${selected}>${item.id} - ${displayName}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                } else if (field.type === 'multiselect-dynamic') {
+                    // Multi-select dropdown from data source
+                    html += `<select class="form-control" id="${field.name}" name="${field.name}" multiple size="10" ${required} style="background-color: white;">`;
+                    
+                    if (window.adminData && window.adminData[field.source]) {
+                        // Get assigned user IDs - could be from assigned_users, members, or comma-separated string
+                        let selectedValues = [];
+                        if (data.assigned_users) {
+                            selectedValues = Array.isArray(data.assigned_users) ? data.assigned_users : data.assigned_users.split(',').map(v => v.trim());
+                        } else if (data.members && typeof data.members === 'string' && data.members.includes(',')) {
+                            selectedValues = data.members.split(',').map(v => v.trim());
+                        } else if (value) {
+                            selectedValues = Array.isArray(value) ? value : value.split(',').map(v => v.trim());
+                        }
+                        
+                        console.log('Selected user IDs for multiselect:', selectedValues);
+                        
+                        window.adminData[field.source].forEach(item => {
+                            const isSelected = selectedValues.includes(String(item.id));
+                            const selectedAttr = isSelected ? 'selected' : '';
+                            const classAttr = isSelected ? 'class="user-assigned"' : '';
+                            const displayName = item.name || item.title || item.id;
+                            html += `<option value="${item.id}" ${selectedAttr} ${classAttr}>${item.id} - ${displayName}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                    html += `<small class="form-text text-muted">Hold Ctrl/Cmd to select multiple users. <strong style="color: #0d6efd;">■ Blue = Currently assigned members</strong></small>`;
+                } else if (field.type === 'textarea') {
+                    html += `<textarea class="form-control" id="${field.name}" name="${field.name}" rows="3" ${required}>${value}</textarea>`;
+                } else if (field.type === 'datetime-local') {
+                    // Convert datetime format from "YYYY-MM-DD HH:MM:SS" to "YYYY-MM-DDTHH:MM"
+                    let inputValue = value;
+                    console.log(`[DateTime Debug] Field: ${field.name}, Original Value: "${value}", Type: ${typeof value}`);
+                    
+                    if (value && value.includes(' ')) {
+                        // Format: "2025-12-20 16:00:00" or "2025-12-20 8:00:00" -> "2025-12-20T16:00" or "2025-12-20T08:00"
+                        const [datePart, timePart] = value.split(' ');
+                        
+                        // Parse time parts and pad with zeros if needed
+                        const timeComponents = timePart.split(':');
+                        const hours = timeComponents[0].padStart(2, '0');
+                        const minutes = timeComponents[1].padStart(2, '0');
+                        
+                        inputValue = `${datePart}T${hours}:${minutes}`;
+                        console.log(`[DateTime Debug] Converted Value: "${inputValue}"`);
+                    } else {
+                        console.log(`[DateTime Debug] No conversion needed or empty value`);
+                    }
+                    
+                    html += `<input type="${field.type}" class="form-control" id="${field.name}" name="${field.name}" value="${inputValue}" ${required}>`;
+                } else {
+                    // For edit mode on password field, don't show existing value
+                    const inputValue = field.name === 'password' && data.id ? '' : value;
+                    const placeholder = field.name === 'password' && data.id ? 'Leave empty to keep current password' : '';
+                    const readonlyAttr = field.readonly ? 'readonly style="background-color: #e9ecef;"' : '';
+                    html += `<input type="${field.type}" class="form-control" id="${field.name}" name="${field.name}" value="${inputValue}" placeholder="${placeholder}" ${required} ${readonlyAttr}>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            $('#formFields').html(html);
+            
+            // Add event listener for class_id change to auto-fill members
+            $('#class_id').on('change', function() {
+                const classId = $(this).val();
+                if (classId && window.adminData && window.adminData.classes) {
+                    const selectedClass = window.adminData.classes.find(c => c.id == classId);
+                    if (selectedClass && selectedClass.capacity) {
+                        $('#members').val(selectedClass.capacity);
+                        console.log('Auto-filled members with capacity:', selectedClass.capacity);
+                    }
+                }
+            });
+            
+            // Add event listener for assigned_users to validate capacity
+            if (type === 'schedule') {
+                $('#assigned_users').on('change', function() {
+                    const selectedUsers = $(this).val() || [];
+                    const classId = $('#class_id').val();
+                    
+                    if (classId && window.adminData && window.adminData.classes) {
+                        const selectedClass = window.adminData.classes.find(c => c.id == classId);
+                        if (selectedClass && selectedClass.capacity) {
+                            const capacity = parseInt(selectedClass.capacity);
+                            const selectedCount = selectedUsers.length;
+                            
+                            if (selectedCount > capacity) {
+                                alert(`⚠️ WARNING!\n\nYou have selected ${selectedCount} users, but the class capacity is only ${capacity}.\n\nPlease remove ${selectedCount - capacity} user(s) to match the capacity limit.`);
+                                
+                                // Show visual warning
+                                $(this).css('border', '3px solid red');
+                                $(this).next('small').html(`<strong style="color: red;">⚠️ CAPACITY EXCEEDED! Selected: ${selectedCount}/${capacity} - Remove ${selectedCount - capacity} user(s)</strong>`);
+                            } else if (selectedCount === capacity) {
+                                // At capacity - show yellow warning
+                                $(this).css('border', '2px solid #ffc107');
+                                $(this).next('small').html(`<strong style="color: #ffc107;">⚠️ FULL! Selected: ${selectedCount}/${capacity} users</strong>`);
+                            } else {
+                                // Under capacity - show normal
+                                $(this).css('border', '1px solid #ced4da');
+                                $(this).next('small').html(`Hold Ctrl/Cmd to select multiple users. <strong style="color: #0d6efd;">■ Blue = Currently assigned members</strong> | <strong style="color: #28a745;">Selected: ${selectedCount}/${capacity}</strong>`);
+                            }
+                        }
+                    }
+                });
+                
+                // Trigger initial check if editing
+                if (data.id) {
+                    setTimeout(() => $('#assigned_users').trigger('change'), 100);
+                }
+            }
+        }
+        
+        // Save Record (Create or Update)
+        function saveRecord() {
+            const type = $('#recordType').val();
+            const id = $('#recordId').val();
+            const isEdit = id !== '';
+            
+            // Special validation for schedule
+            if (type === 'schedule') {
+                const selectedUsers = $('#assigned_users').val() || [];
+                const classId = $('#class_id').val();
+                
+                if (classId && window.adminData && window.adminData.classes) {
+                    const selectedClass = window.adminData.classes.find(c => c.id == classId);
+                    if (selectedClass && selectedClass.capacity) {
+                        const capacity = parseInt(selectedClass.capacity);
+                        const selectedCount = selectedUsers.length;
+                        
+                        if (selectedCount > capacity) {
+                            alert(`❌ CANNOT SAVE!\n\nYou have assigned ${selectedCount} users, but the class capacity is only ${capacity}.\n\nPlease remove ${selectedCount - capacity} user(s) before saving.`);
+                            $('#assigned_users').css('border', '3px solid red').focus();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // Collect form data
+            const formData = {};
+            $('#crudForm').find('input, select, textarea').each(function() {
+                const name = $(this).attr('name');
+                if (name && name !== '') {
+                    // Handle multi-select
+                    if ($(this).attr('multiple')) {
+                        const selectedValues = $(this).val();
+                        formData[name] = selectedValues ? selectedValues.join(',') : '';
+                    } else {
+                        formData[name] = $(this).val();
+                    }
+                }
+            });
+            
+            // Validate required fields
+            let isValid = true;
+            $('#crudForm').find('[required]').each(function() {
+                if (!$(this).val() || ($(this).attr('multiple') && $(this).val().length === 0)) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            // AJAX call to save
+            const url = isEdit ? `/api/admin/${type}/${id}` : `/api/admin/${type}`;
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            $.ajax({
+                url: url,
+                method: method,
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(isEdit ? 'Record updated successfully' : 'Record created successfully');
+                        bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
+                        // Reload page to refresh data
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Save error:', xhr, status, error);
+                    alert('Error saving record: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+        
+        // Delete Record
+        function deleteRecord(type, id, name) {
+            if (!confirm(`Are you sure you want to delete this ${type}: ${name}?`)) {
+                return;
+            }
+            
+            $.ajax({
+                url: `/api/admin/${type}/${id}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Record deleted successfully');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Delete error:', xhr, status, error);
+                    alert('Error deleting record: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+    </script>
+</body>
+</html>

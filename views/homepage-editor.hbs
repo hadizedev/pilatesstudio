@@ -1,0 +1,989 @@
+<div class="container-fluid py-4">
+  <!-- Bootstrap Icons CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <div class="row">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📝 Homepage Visual Editor</h1>
+        <div>
+          <a href="/" target="_blank" class="btn btn-outline-primary me-2">
+            👁️ Preview Homepage
+          </a>
+          <a href="/admin" class="btn btn-outline-secondary">
+            ⬅️ Back to Admin
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Messages -->
+  <div id="alertContainer"></div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <!-- Editor Tabs -->
+  <ul class="nav nav-tabs mb-4" id="editorTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="banner-tab" data-bs-toggle="tab" data-bs-target="#banner" type="button" role="tab">
+        🖼️ Banner
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="about-tab" data-bs-toggle="tab" data-bs-target="#about" type="button" role="tab">
+        ℹ️ About
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="teachers-tab" data-bs-toggle="tab" data-bs-target="#teachers" type="button" role="tab">
+        👨‍🏫 Teachers
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="testimonials-tab" data-bs-toggle="tab" data-bs-target="#testimonials" type="button" role="tab">
+        💬 Testimonials
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="classes-tab" data-bs-toggle="tab" data-bs-target="#classes" type="button" role="tab">
+        🧘 Classes
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq" type="button" role="tab">
+        ❓ FAQ
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="colors-tab" data-bs-toggle="tab" data-bs-target="#colors" type="button" role="tab">
+        🎨 Colors
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">
+        📞 Contact
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="editorTabContent">
+    
+    <!-- Banner Section -->
+    <div class="tab-pane fade show active" id="banner" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Banner Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <form id="bannerForm">
+            <input type="hidden" id="banner_id" name="id" value="1">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="banner_title_line1" class="form-label">Title Line 1</label>
+                <input type="text" class="form-control" id="banner_title_line1" name="title_line1" placeholder="The heaven of">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="banner_title_line2" class="form-label">Title Line 2 (Main)</label>
+                <input type="text" class="form-control" id="banner_title_line2" name="title_line2" placeholder="PILATES">
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="banner_subtitle" class="form-label">Subtitle</label>
+                <input type="text" class="form-control" id="banner_subtitle" name="subtitle" placeholder="Restructure your body and mind">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="banner_tagline" class="form-label">Tagline</label>
+                <input type="text" class="form-control" id="banner_tagline" name="tagline" placeholder="Established since 2015">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="banner_background_image_file" class="form-label">Background Image</label>
+              <input type="file" class="form-control" id="banner_background_image_file" accept="image/*" onchange="handleImagePreview(event, 'banner_background_image_preview')">
+              <input type="hidden" id="banner_background_image" name="background_image">
+              <small class="form-text text-muted">Max 5MB. Formats: JPEG, PNG, GIF, WebP</small>
+              <div class="mt-2" id="banner_background_image_preview_container" style="display: none;">
+                <label class="form-label text-muted"><small>📸 Current Image:</small></label>
+                <div>
+                  <img id="banner_background_image_preview" class="img-thumbnail" style="max-height: 200px; max-width: 100%; object-fit: cover;">
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="banner_instagram_url" class="form-label">Instagram URL</label>
+                <input type="url" class="form-control" id="banner_instagram_url" name="instagram_url" placeholder="https://www.instagram.com/...">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="banner_location_url" class="form-label">Location URL (Google Maps)</label>
+                <input type="url" class="form-control" id="banner_location_url" name="location_url" placeholder="https://maps.app.goo.gl/...">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="banner_whatsapp_number" class="form-label">WhatsApp Number</label>
+                <input type="text" class="form-control" id="banner_whatsapp_number" name="whatsapp_number" placeholder="6287822282068">
+                <small class="form-text text-muted">Include country code without +</small>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="banner_whatsapp_text" class="form-label">WhatsApp Button Text</label>
+              <input type="text" class="form-control" id="banner_whatsapp_text" name="whatsapp_text" placeholder="Chat with Admin">
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Banner Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div class="tab-pane fade" id="about" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">About Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <form id="aboutForm">
+            <input type="hidden" id="about_id" name="id" value="1">
+            
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="about_title" class="form-label">Section Title</label>
+                <input type="text" class="form-control" id="about_title" name="title" placeholder="About Home Pilates Studio">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="about_title_highlight" class="form-label">Highlighted Word</label>
+                <input type="text" class="form-control" id="about_title_highlight" name="title_highlight" placeholder="About">
+                <small class="form-text text-muted">Word to display in accent color</small>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="about_title_color" class="form-label">Title Color</label>
+                <input type="color" class="form-control form-control-color" id="about_title_color" name="title_color" value="#514f34">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="about_title_color_highlight" class="form-label">Highlight Color</label>
+                <input type="color" class="form-control form-control-color" id="about_title_color_highlight" name="title_color_highlight" value="#a05a3f">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="about_subtitle" class="form-label">Subtitle</label>
+              <input type="text" class="form-control" id="about_subtitle" name="subtitle" placeholder="Reason Why You Need Us">
+            </div>
+
+            <div class="mb-3">
+              <label for="about_logo_image_file" class="form-label">Logo Image</label>
+              <input type="file" class="form-control" id="about_logo_image_file" accept="image/*" onchange="handleImagePreview(event, 'about_logo_image_preview')">
+              <input type="hidden" id="about_logo_image" name="logo_image">
+              <small class="form-text text-muted">Max 5MB. Formats: JPEG, PNG, GIF, WebP</small>
+              <div class="mt-2" id="about_logo_image_preview_container" style="display: none;">
+                <label class="form-label text-muted"><small>📸 Current Image:</small></label>
+                <div>
+                  <img id="about_logo_image_preview" class="img-thumbnail" style="max-height: 200px; max-width: 100%; object-fit: cover;">
+                </div>
+              </div>
+            </div>
+
+            <hr class="my-4">
+            <h5>Reasons (Bullet Points)</h5>
+
+            <div class="mb-3">
+              <label for="about_reason_1" class="form-label">Reason 1</label>
+              <input type="text" class="form-control" id="about_reason_1" name="reason_1" placeholder="Need help on back ache and perfect body posture?">
+            </div>
+
+            <div class="mb-3">
+              <label for="about_reason_2" class="form-label">Reason 2</label>
+              <input type="text" class="form-control" id="about_reason_2" name="reason_2" placeholder="Want to get better balance and strenth of your body core">
+            </div>
+
+            <div class="mb-3">
+              <label for="about_reason_3" class="form-label">Reason 3</label>
+              <input type="text" class="form-control" id="about_reason_3" name="reason_3" placeholder="Want to try how to refresh the mind and better body composition?">
+            </div>
+
+            <div class="mb-3">
+              <label for="about_reason_4" class="form-label">Reason 4</label>
+              <input type="text" class="form-control" id="about_reason_4" name="reason_4" placeholder="Trained by certified trainers">
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                💾 Save About Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Teachers Section -->
+    <div class="tab-pane fade" id="teachers" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">👨‍🏫 Teachers Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Teacher data is managed in the <strong>Teachers</strong> sheet. Add rows to add more teachers.
+          </div>
+          
+          <div class="card bg-light mb-4">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-table"></i> Teachers Sheet Columns:</h6>
+              <ul class="mb-0">
+                <li><code>id</code>: Unique identifier</li>
+                <li><code>name</code>: Teacher full name</li>
+                <li><code>position</code>: Role/position (e.g., "Senior Instructor")</li>
+                <li><code>image_url</code>: Profile photo URL</li>
+                <li><code>order</code>: Display order</li>
+                <li><code>active</code>: TRUE to show, FALSE to hide</li>
+              </ul>
+            </div>
+          </div>
+          
+          <h5 class="mb-3"><i class="bi bi-gear"></i> Section Title Settings</h5>
+          <form id="teachersSectionForm">
+            <div class="mb-3">
+              <label for="teachers_section_title" class="form-label">Section Title</label>
+              <input type="text" class="form-control" id="teachers_section_title" name="title" placeholder="Our Teacher">
+            </div>
+            <div class="mb-3">
+              <label for="teachers_section_subtitle" class="form-label">Section Subtitle</label>
+              <input type="text" class="form-control" id="teachers_section_subtitle" name="subtitle" placeholder="Enjoy the ultimate class experience...">
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Section Settings
+              </button>
+            </div>
+          </form>
+          
+          <hr class="my-4">
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-people"></i> Manage Teachers</h5>
+            <button type="button" class="btn btn-success" onclick="showTeacherForm()">
+              <i class="bi bi-plus-circle"></i> Add New Teacher
+            </button>
+          </div>
+          <div id="teachersList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <div class="tab-pane fade" id="testimonials" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">💬 Testimonials Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Testimonial data is managed in the <strong>Testimonials</strong> sheet. Add rows to add more testimonials.
+          </div>
+          
+          <div class="card bg-light mb-4">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-table"></i> Testimonials Sheet Columns:</h6>
+              <ul class="mb-0">
+                <li><code>id</code>: Unique identifier</li>
+                <li><code>client_name</code>: Client name</li>
+                <li><code>rating</code>: Rating (1-5)</li>
+                <li><code>testimonial</code>: Review text</li>
+                <li><code>date</code>: Review date</li>
+                <li><code>active</code>: TRUE to show, FALSE to hide</li>
+                <li><code>order</code>: Display order</li>
+              </ul>
+            </div>
+          </div>
+          
+          <h5 class="mb-3"><i class="bi bi-gear"></i> Section Title Settings</h5>
+          <form id="testimonialsSectionForm">
+            <div class="mb-3">
+              <label for="testimonials_section_title" class="form-label">Section Title</label>
+              <input type="text" class="form-control" id="testimonials_section_title" name="title" placeholder="What Our Client Says About Us">
+            </div>
+            <div class="mb-3">
+              <label for="testimonials_section_subtitle" class="form-label">Section Subtitle</label>
+              <input type="text" class="form-control" id="testimonials_section_subtitle" name="subtitle" placeholder="How our class change them">
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Section Settings
+              </button>
+            </div>
+          </form>
+          
+          <hr class="my-4">
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-chat-quote"></i> Manage Testimonials</h5>
+            <button type="button" class="btn btn-success" onclick="showTestimonialForm()">
+              <i class="bi bi-plus-circle"></i> Add New Testimonial
+            </button>
+          </div>
+          <div id="testimonialsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classes Section -->
+    <div class="tab-pane fade" id="classes" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">🧘 Classes Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Class data is managed in the <strong>Classes</strong> sheet. Add rows to add more classes.
+          </div>
+          
+          <div class="card bg-light mb-4">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-table"></i> Classes Sheet Columns:</h6>
+              <ul class="mb-0">
+                <li><code>id</code>: Unique identifier</li>
+                <li><code>class_name</code>: Class name</li>
+                <li><code>description</code>: Class description</li>
+                <li><code>image_url</code>: Class image URL</li>
+                <li><code>duration</code>: Class duration</li>
+                <li><code>difficulty</code>: Difficulty level</li>
+                <li><code>anchor_link</code>: URL anchor (e.g., "reformer")</li>
+                <li><code>active</code>: TRUE to show, FALSE to hide</li>
+                <li><code>order</code>: Display order</li>
+              </ul>
+            </div>
+          </div>
+          
+          <h5 class="mb-3"><i class="bi bi-gear"></i> Section Title Settings</h5>
+          <form id="classesSectionForm">
+            <div class="mb-3">
+              <label for="classes_section_title" class="form-label">Section Title</label>
+              <input type="text" class="form-control" id="classes_section_title" name="title" placeholder="Our Classes">
+            </div>
+            <div class="mb-3">
+              <label for="classes_section_subtitle" class="form-label">Section Subtitle</label>
+              <input type="text" class="form-control" id="classes_section_subtitle" name="subtitle" placeholder="Transform Your Body and Mind with Expert Guidance">
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Section Settings
+              </button>
+            </div>
+          </form>
+          
+          <hr class="my-4">
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-card-list"></i> Manage Classes</h5>
+            <button type="button" class="btn btn-success" onclick="showClassForm()">
+              <i class="bi bi-plus-circle"></i> Add New Class
+            </button>
+          </div>
+          <div id="classesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="tab-pane fade" id="faq" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">❓ FAQ Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> FAQ data is managed in the <strong>FAQ</strong> sheet. Add rows to add more questions.
+          </div>
+          
+          <div class="card bg-light mb-4">
+            <div class="card-body">
+              <h6 class="card-title"><i class="bi bi-table"></i> FAQ Sheet Columns:</h6>
+              <ul class="mb-0">
+                <li><code>id</code>: Unique identifier</li>
+                <li><code>question</code>: Question text</li>
+                <li><code>answer</code>: Answer text</li>
+                <li><code>order</code>: Display order</li>
+                <li><code>active</code>: TRUE to show, FALSE to hide</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-question-circle"></i> Manage FAQs</h5>
+            <button type="button" class="btn btn-success" onclick="showFAQForm()">
+              <i class="bi bi-plus-circle"></i> Add New FAQ
+            </button>
+          </div>
+          <div id="faqList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colors Section -->
+    <div class="tab-pane fade" id="colors" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Colors & Styles Settings</h3>
+        </div>
+        <div class="card-body">
+          <form id="colorsForm">
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle"></i> Configure colors for each section. These colors will be applied to backgrounds and text throughout the homepage.
+            </div>
+
+            <h5 class="mt-4">Banner Section Colors</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="colors_banner_bg" class="form-label">Background Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_banner_bg" name="banner_background_color" value="#000000">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="colors_banner_text" class="form-label">Text Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_banner_text" name="banner_text_color" value="#ffffff">
+              </div>
+            </div>
+
+            <hr>
+            <h5>About Section Colors</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="colors_about_bg" class="form-label">Background Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_about_bg" name="about_background_color" value="#F0CEC3">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="colors_about_text" class="form-label">Text Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_about_text" name="about_text_color" value="#333333">
+              </div>
+            </div>
+
+            <hr>
+            <h5>Teachers Section Colors</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="colors_teachers_bg" class="form-label">Background Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_teachers_bg" name="teachers_background_color" value="#ffffff">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="colors_teachers_text" class="form-label">Text Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_teachers_text" name="teachers_text_color" value="#333333">
+              </div>
+            </div>
+
+            <hr>
+            <h5>Testimonials Section Colors</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="colors_testimonials_bg" class="form-label">Background Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_testimonials_bg" name="testimonials_background_color" value="#F0E9D6">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="colors_testimonials_text" class="form-label">Text Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_testimonials_text" name="testimonials_text_color" value="#333333">
+              </div>
+            </div>
+
+            <hr>
+            <h5>Classes Section Colors</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="colors_classes_bg" class="form-label">Background Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_classes_bg" name="classes_background_color" value="#ffffff">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="colors_classes_text" class="form-label">Text Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_classes_text" name="classes_text_color" value="#333333">
+              </div>
+            </div>
+
+            <hr>
+            <h5>Contact Section Colors</h5>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="colors_contact_bg" class="form-label">Background Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_contact_bg" name="contact_background_color" value="#ffffff">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="colors_contact_text" class="form-label">Text Color</label>
+                <input type="color" class="form-control form-control-color" id="colors_contact_text" name="contact_text_color" value="#333333">
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Color Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div class="tab-pane fade" id="contact" role="tabpanel">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Contact Section Settings</h3>
+        </div>
+        <div class="card-body">
+          <form id="contactForm">
+            <input type="hidden" id="contact_id" name="id" value="1">
+            
+            <div class="mb-3">
+              <label for="contact_address" class="form-label">Address</label>
+              <textarea class="form-control" id="contact_address" name="address" rows="3" placeholder="Full studio address"></textarea>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="contact_phone" class="form-label">Phone Number</label>
+                <input type="text" class="form-control" id="contact_phone" name="phone" placeholder="0878-2228-2068">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="contact_whatsapp_number" class="form-label">WhatsApp Number</label>
+                <input type="text" class="form-control" id="contact_whatsapp_number" name="whatsapp_number" placeholder="6281393339939">
+                <small class="form-text text-muted">Include country code without +</small>
+              </div>
+            </div>
+
+            <hr class="my-4">
+            <h5>Working Hours</h5>
+
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="contact_mon_fri_hours" class="form-label">Monday - Friday</label>
+                <input type="text" class="form-control" id="contact_mon_fri_hours" name="mon_fri_hours" placeholder="07.00 - 19.00">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="contact_sat_hours" class="form-label">Saturday</label>
+                <input type="text" class="form-control" id="contact_sat_hours" name="sat_hours" placeholder="07.00 - 11.00">
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="contact_sun_hours" class="form-label">Sunday</label>
+                <input type="text" class="form-control" id="contact_sun_hours" name="sun_hours" placeholder="Closed">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="contact_map_embed_url" class="form-label">Google Maps Embed URL</label>
+              <textarea class="form-control" id="contact_map_embed_url" name="map_embed_url" rows="3" placeholder="https://www.google.com/maps/embed?pb=..."></textarea>
+              <small class="form-text text-muted">Get embed URL from Google Maps (Share > Embed a map)</small>
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                💾 Save Contact Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- Teacher Modal -->
+<div class="modal fade" id="teacherModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="teacherModalLabel">Add New Teacher</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="teacherForm" onsubmit="saveTeacher(event)">
+        <div class="modal-body">
+          <input type="hidden" id="teacher_id" name="id">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="teacher_name" class="form-label">Name *</label>
+              <input type="text" class="form-control" id="teacher_name" name="name" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="teacher_position" class="form-label">Position *</label>
+              <input type="text" class="form-control" id="teacher_position" name="position" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="teacher_image_url_file" class="form-label">Profile Image *</label>
+            <input type="file" class="form-control" name="teacher_image_url_file" id="teacher_image_url_file" accept="image/*" onchange="handleImagePreview(event, 'teacher_image_url_preview')">
+            <input type="hidden" id="teacher_image_url" name="image_url">
+            <small class="form-text text-muted">Max 5MB. Formats: JPEG, PNG, GIF, WebP</small>
+            <div class="mt-2" id="teacher_image_url_preview_container" style="display: none;">
+              <label class="form-label text-muted"><small>📸 Current Image:</small></label>
+              <div>
+                <img id="teacher_image_url_preview" class="img-thumbnail" style="max-height: 200px; max-width: 100%; object-fit: cover;">
+              </div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="teacher_certification" class="form-label">Certification</label>
+            <input type="text" class="form-control" id="teacher_certification" name="certification">
+          </div>
+          <div class="mb-3">
+            <label for="teacher_bio" class="form-label">Biography</label>
+            <textarea class="form-control" id="teacher_bio" name="bio" rows="3"></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="teacher_order" class="form-label">Display Order</label>
+              <input type="number" class="form-control" id="teacher_order" name="order">
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="teacher_active" name="active">
+                <label class="form-check-label" for="teacher_active">Active (Show on website)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Teacher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Testimonial Modal -->
+<div class="modal fade" id="testimonialModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="testimonialModalLabel">Add New Testimonial</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="testimonialForm" onsubmit="saveTestimonial(event)">
+        <div class="modal-body">
+          <input type="hidden" id="testimonial_id" name="id">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="testimonial_client_name" class="form-label">Client Name *</label>
+              <input type="text" class="form-control" id="testimonial_client_name" name="client_name" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="testimonial_rating" class="form-label">Rating (1-5) *</label>
+              <input type="number" class="form-control" id="testimonial_rating" name="rating" min="1" max="5" required>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="testimonial_testimonial" class="form-label">Testimonial Text *</label>
+            <textarea class="form-control" id="testimonial_testimonial" name="testimonial" rows="4" required></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="testimonial_date" class="form-label">Date</label>
+              <input type="date" class="form-control" id="testimonial_date" name="date">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="testimonial_order" class="form-label">Display Order</label>
+              <input type="number" class="form-control" id="testimonial_order" name="order">
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="testimonial_active" name="active">
+                <label class="form-check-label" for="testimonial_active">Active</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Testimonial</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Class Modal -->
+<div class="modal fade" id="classModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="classModalLabel">Add New Class</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="classForm" onsubmit="saveClass(event)">
+        <div class="modal-body">
+          <input type="hidden" id="class_id" name="id">
+          <div class="mb-3">
+            <label for="class_name" class="form-label">Class Name *</label>
+            <input type="text" class="form-control" id="class_name" name="class_name" required>
+          </div>
+          <div class="mb-3">
+            <label for="class_description" class="form-label">Description *</label>
+            <textarea class="form-control" id="class_description" name="description" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="class_image_url_file" class="form-label">Class Image *</label>
+            <input type="file" class="form-control" id="class_image_url_file" accept="image/*" onchange="handleImagePreview(event, 'class_image_url_preview')">
+            <input type="hidden" id="class_image_url" name="image_url">
+            <small class="form-text text-muted">Max 5MB. Formats: JPEG, PNG, GIF, WebP</small>
+            <div class="mt-2" id="class_image_url_preview_container" style="display: none;">
+              <label class="form-label text-muted"><small>📸 Current Image:</small></label>
+              <div>
+                <img id="class_image_url_preview" class="img-thumbnail" style="max-height: 200px; max-width: 100%; object-fit: cover;">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="class_duration" class="form-label">Duration</label>
+              <input type="text" class="form-control" id="class_duration" name="duration" placeholder="60 minutes">
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="class_difficulty" class="form-label">Difficulty</label>
+              <select class="form-control" id="class_difficulty" name="difficulty">
+                <option value="">Select...</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="All Levels">All Levels</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="class_anchor_link" class="form-label">URL Anchor</label>
+              <input type="text" class="form-control" id="class_anchor_link" name="anchor_link" placeholder="reformer">
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="class_order" class="form-label">Display Order</label>
+              <input type="number" class="form-control" id="class_order" name="order">
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="class_active" name="active">
+                <label class="form-check-label" for="class_active">Active</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ Modal -->
+<div class="modal fade" id="faqModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="faqModalLabel">Add New FAQ</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="faqForm" onsubmit="saveFAQ(event)">
+        <div class="modal-body">
+          <input type="hidden" id="faq_id" name="id">
+          <div class="mb-3">
+            <label for="faq_question" class="form-label">Question *</label>
+            <input type="text" class="form-control" id="faq_question" name="question" required>
+          </div>
+          <div class="mb-3">
+            <label for="faq_answer" class="form-label">Answer *</label>
+            <textarea class="form-control" id="faq_answer" name="answer" rows="4" required></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="faq_order" class="form-label">Display Order</label>
+              <input type="number" class="form-control" id="faq_order" name="order">
+            </div>
+            <div class="col-md-6 mb-3">
+              <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" id="faq_active" name="active">
+                <label class="form-check-label" for="faq_active">Active</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save FAQ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.card {
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  border: none;
+  margin-bottom: 2rem;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #514f34 0%, #a05a3f 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+}
+
+.nav-tabs {
+  border-bottom: 2px solid #514f34;
+}
+
+.nav-tabs .nav-link {
+  color: #514f34;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+  border-bottom-color: #a05a3f;
+  color: #a05a3f;
+}
+
+.nav-tabs .nav-link.active {
+  border-bottom-color: #514f34;
+  color: #514f34;
+  background: none;
+}
+
+.btn-primary {
+  background: #514f34;
+  border-color: #514f34;
+}
+
+.btn-primary:hover {
+  background: #a05a3f;
+  border-color: #a05a3f;
+}
+
+.form-control:focus {
+  border-color: #a05a3f;
+  box-shadow: 0 0 0 0.2rem rgba(160, 90, 63, 0.25);
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+  border-left: 4px solid #17a2b8;
+}
+
+.alert-info i {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+.alert-info strong {
+  font-weight: 600;
+}
+
+.alert-info code {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  color: #0c5460;
+}
+
+.alert-info ul {
+  margin-bottom: 0;
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.alert-info li {
+  margin-bottom: 5px;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+.alert-warning i {
+  margin-right: 8px;
+  font-size: 1.2em;
+}
+
+.card.bg-light {
+  background-color: #f8f9fa !important;
+  border: 1px solid #dee2e6;
+}
+
+.card.bg-light .card-title {
+  color: #514f34;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.card.bg-light code {
+  background-color: #e9ecef;
+  color: #514f34;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.card.bg-light ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.card.bg-light li {
+  padding: 5px 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.card.bg-light li:last-child {
+  border-bottom: none;
+}
+
+.card.bg-light li:before {
+  content: "▸ ";
+  color: #a05a3f;
+  font-weight: bold;
+  margin-right: 8px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/image-upload.js"></script>
+<script src="/js/homepage-editor.js"></script>
+<script src="/js/homepage-crud.js"></script>

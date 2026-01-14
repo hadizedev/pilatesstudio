@@ -1,0 +1,52 @@
+
+    <div class="header-top d-none">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
+            <ul>
+              <li>
+                <a href="#"><i class="fa fa-2x fa-instagram"></i></a>
+              </li>
+              <li>
+                <a href="#"><i class="fa fa-2x fa-whatsapp"></i></a>
+              </li>
+            </ul>
+          </div>
+          <div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
+            <a href="https://homepilatesstudio.com/themes/yogaflex/tel:+880 1234 654 953">
+              <span class="text">+62 812 3456 7890</span>
+            </a>
+            <a class="book-now" href="#">Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid main-menu">
+      <div class="row align-items-center justify-content-between d-flex">
+        <div id="logo">
+        <a href="/"><img src="/images/logogram.png" alt="Logo Image" style="max-height: 48px"></a>      </div>
+        <nav id="nav-menu-container">
+          <ul class="nav-menu sf-js-enabled sf-arrows" style="touch-action: pan-y;">
+            <li><a href="/">HOME</a></li>
+            {{#if isAuthenticated}}
+              {{#unless isAdmin}}
+                <li><a href="/account">MY ACCOUNT</a></li>
+              {{/unless}}
+              {{#if isAdmin}}
+                <li><a href="/admin" style="color: #f8b739; font-weight: bold;">ADMIN DASHBOARD</a></li>
+              {{/if}}
+              <li><a class="btn btn-logout" href="/logout">LOGOUT</a></li>
+            {{else}}
+              <li><a class="btn btn-login" href="/login">LOGIN</a></li>
+            {{/if}}
+          </ul>
+        </nav>
+        <div class="d-none">
+          <p id="aid"></p>
+          <p id="aname"></p>
+          <p id="arole"></p>
+          <p id="reset"></p>
+        </div>
+        <!-- #nav-menu-container -->
+      </div>
+    </div>

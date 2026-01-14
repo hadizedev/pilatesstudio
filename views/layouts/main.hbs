@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>{{title}} - Pilate Studio</title>
+  
+  <link rel="icon" href="https://homepilatesstudio.com/uploads/website/favicon.png" type="image/x-icon">
+  <link rel="shortcut icon" href="https://homepilatesstudio.com/uploads/website/favicon.png" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/all/all.min.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/linearicons.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/bootstrap.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/magnific-popup.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/nice-select.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/animate.min.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/owl.carousel.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/jquery-ui.css">
+  <link rel="stylesheet" href="https://homepilatesstudio.com/themes/yogaflex/css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.min.css" integrity="sha256-qWVM38RAVYHA4W8TAlDdszO1hRaAq0ME7y2e9aab354=" crossorigin="anonymous">
+
+  <!-- import stylesheet file here -->
+  <link rel="stylesheet" href="https://homepilatesstudio.com/assets/css/custom.css">
+  
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="https://homepilatesstudio.com/assets/css/rating.css?ver=1.1.17">
+<style>
+  /* Swiper Styles */
+  .classesSwiper {
+    width: 100%;
+    padding: 50px;
+  }
+  
+  .classesSwiper .swiper-slide {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .classesSwiper .swiper-slide img {
+    width: 100%;
+    max-width: 380px;
+    height: 450px;
+    object-fit: cover;
+    border-radius: 25px;
+    transition: transform 0.3s ease;
+  }
+  
+  .classesSwiper .swiper-slide:not(.swiper-slide-active) img {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+  
+  .classesSwiper .swiper-slide-active img {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+  .classesSwiper .swiper-button-next,
+  .classesSwiper .swiper-button-prev {
+    color: #a05a3f;
+    background: #fff;
+    border-radius: 100%;
+    width: 40px;
+    height: 40px;
+  }
+
+  .swiper-button-next:after, .swiper-button-prev:after {
+    font-size: 20px;
+  }
+  
+  .classesSwiper .swiper-pagination-bullet-active {
+    background: #a05a3f;
+  }
+
+  .nav-menu>li a:hover {
+    color: #a05a3f !important;
+    font-weight: bold;
+  }
+
+  .banner-content {
+    text-align: right;
+    line-height: 0.8;
+    position: relative;
+    top: -6.5rem
+  }
+
+  .banner-content * {
+    color: #a05a3f !important;
+  }
+
+  .banner-text1 {
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+  }
+
+  .banner-text2 {
+    font-size: 5.3rem;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+
+  .banner-text3 {
+    font-size: 1.5rem;
+  }
+
+  .banner-text4 {
+    font-size: 16px;
+  }
+
+  .banner-socials {
+    position: absolute;
+    display: inline-grid;
+    right: 30px;
+    gap: 10px;
+  }
+
+  .banner-socials .btn-basic {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    font-size: 18px;
+    padding: 8px !important;
+  }
+
+  .banner-chat {
+    position: fixed;
+    right: 30px;
+    bottom: 30px;
+    z-index: 2;
+  }
+
+  .banner-chat .btn-basic {
+    border: solid 2px #f4f0e6;
+    border-radius: 25px;
+    width: 300px;
+  }
+
+  .about-area .about-left h3 {
+    font-weight: bold;
+  }
+
+  .team-area {
+    background-size: cover;
+  }
+
+  .team-area .thumb {
+    display: flex;
+    justify-content: center;
+  }
+
+  .team-area img {
+    max-width: 180px;
+    max-height: 180px;
+    object-fit: cover;
+  }
+
+  .team-area .meta-text p {
+    font-size: 16px;
+    color: #a05a3f;
+    margin: 1rem 0;
+  }
+
+  .section-title-wrap h1 {
+    color: #a05a3f;
+    font-size: 40px;
+    font-weight: bold;
+  }
+
+  .section-title-wrap p {
+    max-width: 100%;
+  }
+
+  .single-testimonial {
+    background-color: #7ca2a6;
+    border-radius: 25px;
+    color: #fff;
+    justify-items: center;
+    height: 350px;
+    margin-bottom: 50px;
+  }
+
+  .single-testimonial:hover {
+    background: #beb3a9;
+  }
+
+  .single-testimonial h1 {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 1rem;
+  }
+
+  .single-testimonial .rating {
+    --starsize: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .single-testimonial h2 {
+    color: #fff;
+    font-size: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .single-testimonial p {
+    font-size: 14px;
+  }
+
+  .feature-area {
+    background: url('https://homepilatesstudio.com/uploads/website/texture-class.webp') center;
+    background-size: cover;
+  }
+
+  .feature-area.section-gap {
+    padding-top: 120px;
+  }
+
+  .contact-page-area {
+    background: #EFDCD8;
+  }
+
+  .contact-page-area .contact-detail {
+    margin-bottom: 2rem;
+  }
+
+  .contact-page-area h3 {
+    margin-bottom: 2rem;
+  }
+
+  .btn-basic {
+    background-color: #514f34;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 4px 32px !important;
+  }
+
+  .owl-controls {
+    display: none;
+  }
+
+  .swiper-slide a {
+    text-decoration: none;
+    color: #514f34;
+  }
+
+  .swiper-slide img {
+    width: 200px;
+    height: 300px;
+    object-fit: cover;
+    opacity: 60%;
+    border-radius: 25px;
+    transition: .3s;
+  }
+
+  .swiper-slide-active img {
+    width: 380px;
+    height: 450px;
+    object-fit: cover;
+    opacity: 100%;
+  }
+
+  .swiper-button-next,
+  .swiper-button-prev {
+    color: #a05a3f;
+  }
+
+  .swiper-pagination-bullet-active {
+    background-color: #a05a3f;
+  }
+
+  .accordion {
+    width: 100%;
+  }
+
+  .accordion-item {
+    border-bottom: 4px solid #000;
+    margin-bottom: 10px;
+  }
+
+  .accordion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 15px 0;
+    transition: all 0.3s ease;
+  }
+
+  .accordion-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #514f34;
+  }
+
+  .accordion-header i {
+    transition: transform 0.3s ease;
+  }
+
+  .accordion-content {
+    display: none;
+    padding-bottom: 15px;
+  }
+
+  .accordion-content p {
+    margin: 0;
+    font-size: 16px;
+    color: #666;
+  }
+
+  .accordion-item.active .accordion-header i {
+    transform: rotate(180deg);
+  }
+
+  .accordion-item.active .accordion-content {
+    display: block;
+  }
+
+  .faq-area h2 {
+    font-size: 40px;
+    font-weight: bold;
+    line-height: 2 !important;
+  }
+
+  table.working-hours td {
+    padding: 1rem 1rem 0.3rem 0rem;
+  }
+
+  @media only screen and (max-width: 600px) {
+    .about-area .about-left li {
+      font-size: 10px;
+      text-align: left;
+    }
+
+    .banner-content {
+      text-align: center;
+      top: -150px;
+    }
+
+    .banner-text1 {
+      font-size: 24px;
+      letter-spacing: 4px;
+    }
+
+    .banner-text2 {
+      font-size: 69px;
+      margin-bottom: 2rem;
+    }
+
+    .banner-text3 {
+      font-size: 20px;
+    }
+
+    .banner-text4 {
+      font-size: 12px;
+    }
+
+    .banner-socials {
+      position: absolute;
+      justify-content: center;
+      width: 100%;
+      display: flex;
+      right: 0px;
+      gap: 20px;
+      bottom: 200px;
+    }
+
+    .banner-socials .btn-basic {
+      height: 40px;
+      width: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      padding: 8px !important;
+    }
+
+    .banner-chat {
+      position: fixed;
+      text-align: center;
+      width: 100%;
+      right: 0px;
+      bottom: 30px;
+      z-index: 1;
+    }
+
+    .banner-chat .btn-basic {
+      border: solid 2px #f4f0e6;
+    }
+
+    .contact-page-area h3 {
+      margin-bottom: 1rem;
+    }
+  }
+</style>
+
+  <style>
+    body {
+      color: #514f34;
+      background-color: #f4f0e6;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: #514f34;
+      line-height: 1.4;
+      margin-bottom: 0;
+      margin-top: 0;
+      font-weight: 600;
+    }
+
+    .nav-menu>li {
+      margin-left: 50px;
+      line-height: 1.4rem;
+    }
+
+    .nav-menu>li a {
+      color: #555555;
+      font-weight: bold;
+    }
+
+    .nav-menu>li a:hover {
+      color: #a05a3f;
+      font-weight: bold;
+    }
+
+    .nav-menu li:hover>ul,
+    .nav-menu li.sfHover>ul {
+      margin: 0.5rem 0;
+      padding: 0.5rem 0;
+      box-shadow: none;
+      background: rgba(255, 255, 255, 0.3);
+      text-align: end;
+    }
+
+    .nav-menu li:hover>a {
+      color: #555555;
+      font-weight: bold;
+    }
+
+    .btn {
+      border-radius: 12px;
+    }
+
+    .btn-login,
+    .btn-logout,
+    .btn-changepass {
+      background-color: #f6f3ec;
+      border-radius: 7px;
+      border: solid 2px #e2ddd0;
+      color: #514f34 !important;
+      padding: 0 16px !important;
+    }
+
+    #header.header-scrolled {
+      transition: all 0.5s;
+      /* background-color: rgba(81, 79, 52, .4); */
+      background-color: #7ca2a6;
+
+    }
+
+    #header.header-scrolled a {
+      color: #9d9fac;
+      font-weight: bold;
+    }
+
+    #header.header-scrolled a:hover {
+      color: #fff !important;
+      font-weight: bold;
+    }
+
+    #header.header-scrolled #logo img {
+      content: url('https://homepilatesstudio.com/uploads/website/logogram-light.png?ver=1.1.17');
+    }
+
+    .footer-right {
+      flex: 1;
+      padding: 0.5em;
+      text-align: center;
+      border-left: 4px solid rgba(255, 255, 255, .17);
+    }
+
+    .footer-area {
+      background: #7ca2a6;
+      color: #fff;
+      line-height: 3;
+    }
+
+    .footer-left {
+      text-align: right;
+      padding-right: 5rem;
+    }
+
+    .footer-left h1 {
+      font-size: 28px;
+      color: #fff;
+    }
+
+    .footer-left p {
+      font-size: 16px;
+    }
+
+    .footer-right {
+      text-align: left;
+      padding-left: 5rem;
+    }
+
+    .footer-right h2 {
+      font-size: 16px;
+      color: #fff;
+    }
+
+    .footer-right i {
+      font-size: 16px;
+    }
+
+    .footer-right a {
+      color: #fff;
+    }
+
+    .main-menu {
+      padding: 1rem 5rem;
+    }
+
+    ul {
+      list-style: disc;
+    }
+
+    section.about-area.section-gap {
+        background-color: #F0CEC3;
+    }
+
+    @media only screen and (max-width: 600px) {
+      .btn-login {
+        background-color: transparent;
+        border: solid 0px #e2ddd0;
+        color: #fff !important;
+        padding: 10px 15px !important;
+        text-align: left;
+      }
+
+      .main-menu {
+        padding: 1rem 1rem;
+      }
+
+      .footer-left {
+        text-align: center;
+        padding: 0px;
+      }
+
+      .footer-right {
+        text-align: center;
+        padding: 0px;
+        border-left: none;
+      }
+    }
+  </style>
+  <!-- Additional CSS -->
+  {{{_sections.styles}}}
+  {{#if hideHeaderFooter}}
+  <style>
+    #header, footer {
+      display: none !important;
+    }
+    main {
+      padding-top: 0 !important;
+    }
+  </style>
+  {{/if}}
+</head>
+<body>
+  <!-- Header -->
+  <header id="header">
+    {{> header}}
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    {{{body}}}
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    {{> footer}}
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- End footer Area -->
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/vendor/jquery-2.2.4.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/vendor/bootstrap.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/easing.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/hoverIntent.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/superfish.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/jquery.ajaxchimp.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/jquery.magnific-popup.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/jquery.tabs.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/jquery.nice-select.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/owl.carousel.min.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/mail-script.js"></script>
+  <script src="https://homepilatesstudio.com/themes/yogaflex/js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/license.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.5/dist/sweetalert2.all.min.js" integrity="sha256-1m4qVbsdcSU19tulVTbeQReg0BjZiW6yGffnlr/NJu4=" crossorigin="anonymous"></script>
+  <!-- import javascript file here -->
+  <script src="https://homepilatesstudio.com/assets/scripts/init.js?ver=1.1.17"></script>
+  <script src="https://homepilatesstudio.com/assets/scripts/ready.js?ver=1.1.17"></script>
+  
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const accordionHeaders = document.querySelectorAll('.accordion-header');
+
+        accordionHeaders.forEach(header => {
+        header.addEventListener('click', () => {
+            // Toggle active class on the parent accordion item
+            const accordionItem = header.parentElement;
+            accordionItem.classList.toggle('active');
+
+            // Close other open accordion items
+            const otherItems = document.querySelectorAll('.accordion-item.active');
+            otherItems.forEach(item => {
+            if (item !== accordionItem) {
+                item.classList.remove('active');
+            }
+            });
+        });
+        });
+    });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="/js/script.js"></script>
+    <script src="https://homepilatesstudio.com/assets/scripts/welcome/welcome.js?ver=1.1.17"></script>
+  
+  <!-- Additional Scripts -->
+  {{{_sections.scripts}}}
+</body>
+</html>

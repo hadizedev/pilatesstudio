@@ -1,0 +1,228 @@
+<!-- Login Section -->
+<section class="login-area section-gap d-flex align-items-center justify-content-center" style="min-height: 100vh; background: linear-gradient(135deg, #d4c5b0 0%, #c9b79c 100%);">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-4 col-md-5 col-sm-8 col-10">
+        <div class="login-box" style="background: linear-gradient(to bottom, #f0f0ff 0%, #ffffff 40%); padding: 40px 30px; border-radius: 25px; box-shadow: 0 15px 50px rgba(0,0,0,0.15); max-width: 380px; margin: 0 auto;">
+          <!-- Logo -->
+          <div class="text-center mb-3">
+            <a href="/">
+              <img src="https://homepilatesstudio.com/uploads/website/primary.png" alt="Logo" style="max-height: 100px; margin-bottom: 15px;">
+            </a>
+          </div>
+          
+          <!-- Welcome Text -->
+          <div class="text-center mb-3">
+            <h4 style="color: #666; font-weight: 500; margin-bottom: 5px; font-size: 18px;">Welcome!</h4>
+          </div>
+          
+          <!-- Login Form -->
+          <form id="loginForm" action="/login" method="POST">
+            <!-- Email Field -->
+            <div class="form-group mb-3">
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                class="form-control" 
+                placeholder="username"
+                required
+                style="padding: 12px 18px; border: 1px solid #e0e0e0; background: rgba(255,255,255,0.9); border-radius: 12px; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
+              >
+            </div>
+            
+            <!-- Password Field -->
+            <div class="form-group mb-3 position-relative">
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                class="form-control" 
+                placeholder="password"
+                required
+                style="padding: 12px 18px; border: 1px solid #e0e0e0; background: rgba(255,255,255,0.9); border-radius: 12px; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
+              >
+              <i class="fi fi-rs-eye" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #999; font-size: 16px;"></i>
+            </div>
+            
+            <!-- Submit Button -->
+            <button 
+              type="submit" 
+              class="btn btn-block mb-2"
+              style="background: linear-gradient(135deg, #8b6f47 0%, #6b5437 100%); color: white; padding: 12px; border: none; border-radius: 25px; font-size: 15px; font-weight: 600; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(139, 111, 71, 0.3);"
+              onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(139, 111, 71, 0.4)'"
+              onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(139, 111, 71, 0.3)'"
+            >
+              Sign In
+            </button>
+          </form>
+          
+          <!-- Back to Home -->
+          <div class="text-center mt-3">
+            <a href="/" style="color: #8b6f47; font-size: 13px; text-decoration: none; font-weight: 500;">
+              <i class="fi fi-rs-angle-left"></i> Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Prevent body scroll on login page */
+  body {
+    overflow: hidden;
+  }
+  
+  /* Placeholder styling - lighter color */
+  .login-box input.form-control::placeholder {
+    color: #ccc;
+    opacity: 0.7;
+  }
+  
+  .login-box input.form-control::-webkit-input-placeholder {
+    color: #ccc;
+    opacity: 0.7;
+  }
+  
+  .login-box input.form-control::-moz-placeholder {
+    color: #ccc;
+    opacity: 0.7;
+  }
+  
+  .login-box input.form-control:-ms-input-placeholder {
+    color: #ccc;
+    opacity: 0.7;
+  }
+  
+  /* Form Focus Effects */
+  .login-box input.form-control:focus {
+    outline: none;
+    border: 1px solid #8b6f47 !important;
+    box-shadow: 0 4px 12px rgba(139, 111, 71, 0.2) !important;
+    background: rgba(255,255,255,1) !important;
+  }
+  
+  /* Remove default input styles */
+  .login-box input.form-control {
+    border: 1px solid #e0e0e0;
+  }
+  
+  /* Toggle password icon */
+  #togglePassword:hover {
+    color: #8b6f47;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .login-box {
+      padding: 35px 25px !important;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .login-box {
+      padding: 30px 20px !important;
+    }
+  }
+</style>
+
+<script>
+  // Toggle password visibility
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = this;
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      icon.className = 'fi fi-rs-crossed-eye';
+      icon.style.position = 'absolute';
+      icon.style.right = '15px';
+      icon.style.top = '50%';
+      icon.style.transform = 'translateY(-50%)';
+      icon.style.cursor = 'pointer';
+      icon.style.color = '#999';
+      icon.style.fontSize = '16px';
+    } else {
+      passwordInput.type = 'password';
+      icon.className = 'fi fi-rs-eye';
+      icon.style.position = 'absolute';
+      icon.style.right = '15px';
+      icon.style.top = '50%';
+      icon.style.transform = 'translateY(-50%)';
+      icon.style.cursor = 'pointer';
+      icon.style.color = '#999';
+      icon.style.fontSize = '16px';
+    }
+  });
+  
+  // Form validation and submission
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    
+    // Basic validation
+    if (!email || !password) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Please fill in all fields!',
+        confirmButtonColor: '#8b6f47'
+      });
+      return;
+    }
+    
+    // Show loading
+    Swal.fire({
+      title: 'Signing in...',
+      text: 'Please wait',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+    
+    // Actual API call
+    fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Login Successful!',
+          text: 'Redirecting to your account...',
+          confirmButtonColor: '#8b6f47',
+          timer: 1500,
+          showConfirmButton: false
+        }).then(() => {
+          window.location.href = data.redirectUrl || '/account';
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Failed',
+          text: data.message || 'Invalid credentials',
+          confirmButtonColor: '#8b6f47'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Login error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred. Please try again.',
+        confirmButtonColor: '#8b6f47'
+      });
+    });
+  });
+</script>
