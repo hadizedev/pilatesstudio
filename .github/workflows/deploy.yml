@@ -1,4 +1,4 @@
-name: Deploy Node App
+name: Deploy Pilates Studio
 
 on:
   push:
@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Deploy to VPS
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USER }}
-        key: ${{ secrets.VPS_KEY }}
-        script: |
-          cd /var/www/pilatesstudio
-          git pull origin main
-          npm install
-          pm2 restart pilatesstudio
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_KEY }}
+          script: |
+            cd /var/www/pilatesstudio
+            git pull origin main
+            npm install
+            pm2 restart respilate --update-env
