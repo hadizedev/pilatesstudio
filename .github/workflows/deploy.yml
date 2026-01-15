@@ -1,4 +1,4 @@
-name: Deploy Pilates Studio
+name: Deploy to Biznet VPS
 
 on:
   push:
@@ -10,14 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy to VPS
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_KEY }}
-          script: |
-            cd /var/www/pilatesstudio
-            git pull origin main
-            npm install
-            pm2 restart respilate --update-env
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+
+          # PENTING: muat nvm dulu (biar npm & pm2 dikenali)
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          cd /home/deploy/pilatesstudio
+
+          git pull origin main
+          npm install
+
+          # Restart app
+          pm2 restart respilate
+
+          EOF
