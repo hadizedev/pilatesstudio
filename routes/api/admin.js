@@ -70,9 +70,11 @@ router.get('/data', requireAdmin, async (req, res) => {
                 membership_status: row[6] || '',
                 registered_date: row[7] || '',
                 expired_date: row[8] || '',
-                total_credits: row[9] || '0',
-                gender: row[10] || '',
-                date_of_birth: row[11] || ''
+                profile_picture: row[9] || '',
+                total_credits: row[10] || '0',
+                gender: row[11] || '',
+                date_of_birth: row[12] || '',
+                role: row[13] || ''
             };
         });
 
