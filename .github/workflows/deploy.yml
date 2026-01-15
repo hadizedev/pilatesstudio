@@ -23,8 +23,17 @@ jobs:
       - name: Deploy to VPS
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
-          cd /home/deploy/app
+
+          # PENTING: muat nvm dulu (biar npm & pm2 dikenali)
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          cd /home/deploy/pilatesstudio
+
           git pull origin main
           npm install
+
+          # Restart app
           pm2 restart respilate
+
           EOF
