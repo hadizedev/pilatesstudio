@@ -1,4 +1,5 @@
 <!-- Banner Area -->
+{{#if sectionSettings.banner.enabled}}
 <section class="banner-area fullscreen relative" style="background: url({{#if banner.background_image}}{{banner.background_image}}{{else}}https://homepilatesstudio.com/uploads/website/home-banner.webp{{/if}}) center; background-size: cover;">
   <div class="overlay overlay-bg"></div>
   <div class="container-fluid">
@@ -25,8 +26,10 @@
     </div>
   </div>
 </section>
+{{/if}}
 
 <!-- About Section -->
+{{#if sectionSettings.about.enabled}}
 <section class="about-area section-gap" style="background-color: {{#if colors.about.background_color}}{{colors.about.background_color}}{{else}}#F0CEC3{{/if}};">
   <div class="container">
     <div class="row justify-content-between align-items-center">
@@ -51,8 +54,10 @@
     </div>
   </div>
 </section>
+{{/if}}
 
 <!-- Team Section -->
+{{#if sectionSettings.teachers.enabled}}
 <section class="team-area section-gap" style="background-color: {{#if colors.teachers.background_color}}{{colors.teachers.background_color}}{{else}}#ffffff{{/if}};">
   <div class="container">
     <div class="row d-flex justify-content-center">
@@ -81,8 +86,10 @@
     </div>
   </div>
 </section>
+{{/if}}
 
 <!-- Testimonials Section -->
+{{#if sectionSettings.testimonials.enabled}}
 <section class="testomial-area section-gap" style="background: {{#if colors.testimonials.background_color}}{{colors.testimonials.background_color}}{{else}}#F0E9D6{{/if}};">
   <div class="container">
     <div class="row d-flex justify-content-center">
@@ -116,8 +123,10 @@
     </div>
   </div>
 </section>
+{{/if}}
 
 <!-- Feature/Classes Section -->
+{{#if sectionSettings.classes.enabled}}
 <section class="feature-area section-gap" style="background-color: {{#if colors.classes.background_color}}{{colors.classes.background_color}}{{else}}#ffffff{{/if}};">
   <div class="container">
     <div class="row d-flex justify-content-center">
@@ -153,8 +162,10 @@
     </div>
   </div>
 </section>
+{{/if}}
 
 <!-- Start contact-page Area -->
+{{#if sectionSettings.contact.enabled}}
 <section class="contact-page-area section-gap" style="background-color: {{#if colors.contact.background_color}}{{colors.contact.background_color}}{{else}}#ffffff{{/if}};">
   <div class="container">
     <div class="row">
@@ -224,3 +235,4 @@
     </div>
   </div>
 </section>
+{{/if}}

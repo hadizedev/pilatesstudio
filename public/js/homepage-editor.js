@@ -96,6 +96,17 @@ async function loadHomepageData() {
       
       // Load Section Settings data
       if (data.sectionSettings) {
+        // Load enabled/disabled states for all sections
+        const sections = ['banner', 'about', 'teachers', 'testimonials', 'classes', 'contact'];
+        sections.forEach(section => {
+          if (data.sectionSettings[section]) {
+            const enabledCheckbox = document.getElementById(`${section}_section_enabled`);
+            if (enabledCheckbox) {
+              enabledCheckbox.checked = data.sectionSettings[section].enabled !== false;
+            }
+          }
+        });
+        
         // Teachers section
         if (data.sectionSettings.teachers) {
           const teachersTitle = document.getElementById('teachers_section_title');
@@ -276,6 +287,12 @@ document.getElementById('teachersSectionForm').addEventListener('submit', async 
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
     
+    // Add enabled state
+    const enabledCheckbox = document.getElementById('teachers_section_enabled');
+    if (enabledCheckbox) {
+      data.active = enabledCheckbox.checked ? 'TRUE' : 'FALSE';
+    }
+    
     const response = await fetch('/api/homepage/section-settings/teachers', {
       method: 'PUT',
       headers: {
@@ -309,6 +326,12 @@ document.getElementById('testimonialsSectionForm').addEventListener('submit', as
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
     
+    // Add enabled state
+    const enabledCheckbox = document.getElementById('testimonials_section_enabled');
+    if (enabledCheckbox) {
+      data.active = enabledCheckbox.checked ? 'TRUE' : 'FALSE';
+    }
+    
     const response = await fetch('/api/homepage/section-settings/testimonials', {
       method: 'PUT',
       headers: {
@@ -341,6 +364,12 @@ document.getElementById('classesSectionForm').addEventListener('submit', async (
     
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
+    
+    // Add enabled state
+    const enabledCheckbox = document.getElementById('classes_section_enabled');
+    if (enabledCheckbox) {
+      data.active = enabledCheckbox.checked ? 'TRUE' : 'FALSE';
+    }
     
     const response = await fetch('/api/homepage/section-settings/classes', {
       method: 'PUT',
@@ -437,6 +466,42 @@ document.addEventListener('keydown', (e) => {
         form.dispatchEvent(new Event('submit', { cancelable: true }));
       }
     }
+  }
+});
+
+// Helper function to update section enabled state
+async function updateSectionEnabledState(sectionName, enabled) {
+  try {
+    const response = await fetch(`/api/homepage/section-settings/${sectionName}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        active: enabled ? 'TRUE' : 'FALSE'
+      }),
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      showAlert(`✅ ${sectionName.charAt(0).toUpperCase() + sectionName.slice(1)} section ${enabled ? 'enabled' : 'disabled'} successfully!`, 'success');
+    } else {
+      showAlert(`❌ Failed to update ${sectionName} section state: ` + result.message, 'danger');
+    }
+  } catch (error) {
+    console.error(`Error updating ${sectionName} section state:`, error);
+    showAlert(`❌ Error updating ${sectionName} section state. Please try again.`, 'danger');
+  }
+}
+
+// Add listeners for enable/disable checkboxes for sections without separate forms
+['banner', 'about', 'contact'].forEach(section => {
+  const checkbox = document.getElementById(`${section}_section_enabled`);
+  if (checkbox) {
+    checkbox.addEventListener('change', async (e) => {
+      await updateSectionEnabledState(section, e.target.checked);
+    });
   }
 });
 

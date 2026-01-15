@@ -214,7 +214,8 @@ async function getSectionSettingsData() {
       settingsObj[item.section_name] = {
         title: item.title,
         subtitle: item.subtitle,
-        active: item.active === 'TRUE' || item.active === true,
+        enabled: item.active === 'TRUE' || item.active === true,
+        active: item.active === 'TRUE' || item.active === true, // Keep for backward compatibility
         order: parseInt(item.order || 0),
       };
     });
@@ -396,15 +397,18 @@ async function updateSectionSettings(sectionName, data) {
       throw new Error(`Section ${sectionName} not found in SectionSettings sheet`);
     }
     
+    // Get existing row data
+    const existingRow = dataRows[rowIndex];
+    
     // Row number in sheet (header + 1 + rowIndex)
     const sheetRow = rowIndex + 2;
     
     const values = [
       sectionName,
-      data.title || '',
-      data.subtitle || '',
-      data.active !== undefined ? (data.active ? 'TRUE' : 'FALSE') : 'TRUE',
-      data.order || (rowIndex + 1),
+      data.title !== undefined ? data.title : (existingRow[1] || ''),
+      data.subtitle !== undefined ? data.subtitle : (existingRow[2] || ''),
+      data.active !== undefined ? (data.active === 'TRUE' || data.active === true ? 'TRUE' : 'FALSE') : (existingRow[3] || 'TRUE'),
+      data.order !== undefined ? data.order : (existingRow[4] || (rowIndex + 1)),
     ];
     
     return await updateSheetData('SectionSettings', `A${sheetRow}:E${sheetRow}`, values);
