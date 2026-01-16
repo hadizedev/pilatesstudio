@@ -107,7 +107,8 @@ router.get('/admin', requireAdmin, (req, res) => {
   res.render('admin', {
     title: 'Admin Dashboard',
     heading: 'Admin Dashboard',
-    user: req.session.user
+    user: req.session.user,
+    isAdminPage: true
   });
 });
 
@@ -120,6 +121,7 @@ router.get('/admin/homepage-editor', requireAdmin, async (req, res) => {
       user: req.session.user,
       layout: 'main',
       hideHeaderFooter: true,
+      isAdminPage: true,
       ...homepageData
     });
   } catch (error) {
@@ -129,9 +131,19 @@ router.get('/admin/homepage-editor', requireAdmin, async (req, res) => {
       user: req.session.user,
       layout: 'main',
       hideHeaderFooter: true,
+      isAdminPage: true,
       error: 'Failed to load homepage data'
     });
   }
+});
+
+// Maintenance page
+router.get('/maintenance', (req, res) => {
+  res.render('maintenance', {
+    title: 'Website Maintenance',
+    layout: 'main',
+    hideHeaderFooter: true
+  });
 });
 
 // Logout

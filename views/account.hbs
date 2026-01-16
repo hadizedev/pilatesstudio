@@ -60,7 +60,7 @@
         <div class="status-card" style="background: #f5f0e8; border: 2px solid #4a3829; border-radius: 25px; padding: 25px; margin-bottom: 20px;">
           <h6 style="color: #4a3829; font-weight: 600; margin-bottom: 5px;">Membership Status</h6>
           <p style="color: #666; font-size: 13px; margin-bottom: 5px;">Expired Date:</p>
-          <p style="color: #d32f2f; font-size: 16px; font-weight: 600; margin-bottom: 15px;">{{user.expired_date}}</p>
+          <p id="expired-date-display" style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">{{user.expired_date}}</p>
           <h6 style="color: #4a3829; font-weight: 600; margin-bottom: 15px; margin-top: 20px;" id="status-class-type">Reguler</h6>
           <div class="status-info" style="background: white; border-radius: 12px; padding: 15px;">
             <div class="d-flex justify-content-between mb-2">
@@ -359,6 +359,16 @@ if (userExpiredDate && userExpiredDate !== '') {
   expiredDate.setHours(0, 0, 0, 0);
   
   isUserExpired = expiredDate < today;
+  
+  // Update expired date color based on status
+  const expiredDateElement = document.getElementById('expired-date-display');
+  if (expiredDateElement) {
+    if (isUserExpired) {
+      expiredDateElement.style.color = '#d32f2f'; // Red if expired
+    } else {
+      expiredDateElement.style.color = '#000000'; // Black if not expired
+    }
+  }
   
   console.log('User expired check:', {
     expiredDate: userExpiredDate,

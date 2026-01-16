@@ -14,6 +14,7 @@ const scheduleApiRoutes = require('./routes/api/schedule');
 const adminApiRoutes = require('./routes/api/admin');
 const homepageApiRoutes = require('./routes/api/homepage');
 const { checkAuth } = require('./middleware/auth');
+const maintenanceMiddleware = require('./middleware/maintenance');
 
 // Handlebars middleware with helpers
 app.engine('hbs', engine({
@@ -51,6 +52,9 @@ app.use(express.urlencoded({ extended: false }));
 
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Maintenance mode middleware (must be before other routes)
+app.use(maintenanceMiddleware);
 
 // Check auth for all routes (makes user data available in templates)
 app.use(checkAuth);
