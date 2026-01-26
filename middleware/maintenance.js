@@ -2,7 +2,7 @@
 // Set MAINTENANCE_MODE to true to enable maintenance mode
 // Set MAINTENANCE_MODE to false to disable maintenance mode
 
-const MAINTENANCE_MODE = true; // Change to true to enable maintenance mode
+const MAINTENANCE_MODE = false; // Change to true to enable maintenance mode
 
 function maintenanceMiddleware(req, res, next) {
   // If maintenance mode is disabled, allow all requests
