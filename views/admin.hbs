@@ -392,7 +392,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="crudModalTitle">Add New</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" id="modalCloseBtn" onclick="closeModal()" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="crudForm">
@@ -402,8 +402,8 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveRecord()">Save</button>
+                    <button type="button" class="btn btn-secondary" id="modalCancelBtn" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="modalSaveBtn" onclick="saveRecord()">Save</button>
                 </div>
             </div>
         </div>
@@ -435,6 +435,14 @@
                         
                         // Store data globally for form dropdowns
                         window.adminData = data;
+                        
+                        // Clear all table bodies first
+                        $('#usersTableBody').empty();
+                        $('#bookingsTableBody').empty();
+                        $('#classesTableBody').empty();
+                        $('#transactionsTableBody').empty();
+                        $('#schedulesTableBody').empty();
+                        $('#trainersTableBody').empty();
                         
                         // Update statistics
                         $('#totalUsers').text(data.stats.totalUsers);
@@ -720,8 +728,24 @@
             
             generateFormFields(type);
             
-            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
-            modal.show();
+            // Use jQuery Bootstrap modal API
+            $('#crudModal').modal('show');
+        }
+        
+        // Close Modal
+        function closeModal() {
+            console.log('Closing modal...');
+            // Use jQuery Bootstrap modal API
+            $('#crudModal').modal('hide');
+            
+            // Cleanup backdrop and body class
+            setTimeout(() => {
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open').css({
+                    overflow: '',
+                    paddingRight: ''
+                });
+            }, 300);
         }
         
         // Show Edit Modal
@@ -734,8 +758,8 @@
             
             generateFormFields(type, record);
             
-            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
-            modal.show();
+            // Use jQuery Bootstrap modal API
+            $('#crudModal').modal('show');
         }
         
         // Edit schedule by index (special handler)
@@ -975,17 +999,39 @@
                 contentType: 'application/json',
                 success: function(response) {
                     if (response.success) {
-                        alert(isEdit ? 'Record updated successfully' : 'Record created successfully');
-                        bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
-                        // Reload page to refresh data
-                        location.reload();
+                        // Show success message briefly
+                        const successMessage = isEdit ? 'Record updated successfully' : 'Record created successfully';
+                        console.log('✓ ' + successMessage);
+                        
+                        // Close the modal using our closeModal function
+                        closeModal();
+                        
+                        // Show success toast/alert
+                        const alertDiv = $(`
+                            <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                                <i class="fas fa-check-circle"></i> ${successMessage}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `);
+                        $('body').append(alertDiv);
+                        
+                        // Auto-dismiss after 3 seconds
+                        setTimeout(() => {
+                            alertDiv.remove();
+                        }, 3000);
+                        
+                        // Reload data to refresh tables
+                        setTimeout(() => {
+                            loadAdminData();
+                        }, 500);
                     } else {
-                        alert('Error: ' + response.message);
+                        alert('❌ Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Save error:', xhr, status, error);
-                    alert('Error saving record: ' + (xhr.responseJSON?.message || error));
+                    const errorMessage = xhr.responseJSON?.message || error;
+                    alert('❌ Error saving record: ' + errorMessage);
                 }
             });
         }
@@ -1029,15 +1075,32 @@
                 method: 'DELETE',
                 success: function(response) {
                     if (response.success) {
-                        alert('Record deleted successfully');
-                        location.reload();
+                        // Show success message
+                        const alertDiv = $(`
+                            <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                                <i class="fas fa-trash-alt"></i> Record deleted successfully
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        `);
+                        $('body').append(alertDiv);
+                        
+                        // Auto-dismiss after 3 seconds
+                        setTimeout(() => {
+                            alertDiv.remove();
+                        }, 3000);
+                        
+                        // Reload data to refresh tables
+                        setTimeout(() => {
+                            loadAdminData();
+                        }, 500);
                     } else {
-                        alert('Error: ' + response.message);
+                        alert('❌ Error: ' + response.message);
                     }
                 },
                 error: function(xhr, status, error) {
                     console.error('Delete error:', xhr, status, error);
-                    alert('Error deleting record: ' + (xhr.responseJSON?.message || error));
+                    const errorMessage = xhr.responseJSON?.message || error;
+                    alert('❌ Error deleting record: ' + errorMessage);
                 }
             });
         }
