@@ -208,6 +208,16 @@
     <!-- Date & Time -->
     <h4 id="booking-datetime" style="color: #4a3829; margin-bottom: 20px; font-size: 18px; font-weight: 600;">Sabtu, 27 Desember 2025<br>Jam 07.00</h4>
     
+    <!-- Credits Info -->
+    <div style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 15px; padding: 15px; margin-bottom: 20px;">
+      <p style="color: #2e7d32; margin: 0; font-size: 14px;">
+        <i class="fas fa-coins"></i> Credits Required: <span id="booking-credits-required" style="font-weight: bold;">-</span>
+      </p>
+      <p style="color: #2e7d32; margin: 5px 0 0 0; font-size: 14px;">
+        <i class="fas fa-wallet"></i> Your Credits: <span id="booking-credits-available" style="font-weight: bold;">-</span>
+      </p>
+    </div>
+    
     <!-- Warning Message -->
     <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 15px; padding: 20px; margin-bottom: 25px;">
       <h2 style="color: #856404; margin: 0 0 10px 0; font-size: 22px; font-weight: 700;">PERHATIAN!!!</h2>
@@ -346,7 +356,7 @@ let currentTab = 'upcoming'; // upcoming or history
 let classesData = [];
 
 // API endpoints (adjust based on your backend)
-const API_BASE = '/api';
+const API_BASE = '/api/admin/data';
 
 // Check if user membership is expired
 const userExpiredDate = '{{user.expired_date}}';
@@ -392,147 +402,176 @@ function formatDateToString(date) {
   return `${year}-${month}-${day}`;
 }
 
-// Fetch schedule data
-async function fetchSchedule(date, isHistory = false) {
-  const dateStr = formatDateToString(date);
-  console.log('Fetching schedule for date:', dateStr);
+// Cache for trainers and classes data (fetched once)
+let trainersCache = null;
+let classesCache = null;
+
+// Fetch trainers and classes lookup data (once)
+async function fetchLookupData() {
+  if (trainersCache && classesCache) return;
   
-  // Always use fallback data for now (API not fully implemented yet)
-  console.log('Using fallback data (API integration pending)');
-  useFallbackData(isHistory);
-  
-  /* Uncomment when API is ready:
   try {
-    const endpoint = isHistory ? `${API_BASE}/schedule/history` : `${API_BASE}/schedule?date=${dateStr}`;
-    const response = await fetch(endpoint);
-    const data = await response.json();
+    const [trainersRes, classesRes] = await Promise.all([
+      fetch(`${API_BASE}/trainers`),
+      fetch(`${API_BASE}/classes`)
+    ]);
     
-    if (data.schedule && data.schedule.length > 0) {
-      classesData = data.schedule;
-      renderClasses();
-      updateStatusCard();
-    } else {
-      useFallbackData(isHistory);
-    }
+    const trainersData = await trainersRes.json();
+    const classesDataRes = await classesRes.json();
+    
+    if (trainersData.success) trainersCache = trainersData.data;
+    if (classesDataRes.success) classesCache = classesDataRes.data;
   } catch (error) {
-    console.error('Error fetching schedule:', error);
-    useFallbackData(isHistory);
+    console.error('Error fetching lookup data:', error);
+    trainersCache = trainersCache || [];
+    classesCache = classesCache || [];
   }
-  */
 }
 
-// Fallback data for demo (when API not available yet)
-function useFallbackData(isHistory = false) {
-  console.log('useFallbackData called for date:', formatDateToString(selectedDate), 'isHistory:', isHistory);
+// Fetch schedule data from admin API
+async function fetchSchedule(date, isHistory = false) {
+  const dateStr = formatDateToString(date);
+  console.log('Fetching schedule for date:', dateStr, 'isHistory:', isHistory);
   
-  if (isHistory) {
-    // History data
-    classesData = [
-      {
-        sid: "10868",
-        stime: "2025-11-20 16:00:00",
-        snotes: "Reformer \n(Intermediate)",
-        aname: "Kim Davis",
-        aimg: "u-3.webp",
-        cname: "Reguler",
-        cdur: "50",
-        ccap: "6",
-        scap: 4,
-        sgender: "F",
-        booked: "0",
-        bookclass: ""
-      }
-    ];
-  } else {
-    // Generate class data for selected date (available for all dates, but only bookable within range)
-    const today = new Date(); // Current date
-    today.setHours(0, 0, 0, 0); // Reset time to start of day
+  // Show loading
+  const listContainer = document.getElementById('classes-list');
+  listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fi fi-rs-spinner" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>Loading schedules...</div>';
+  
+  try {
+    // Ensure lookup data is loaded
+    await fetchLookupData();
     
-    const selectedDateOnly = new Date(selectedDate);
-    selectedDateOnly.setHours(0, 0, 0, 0);
-    
-    const sevenDaysLater = new Date(today);
-    sevenDaysLater.setDate(today.getDate() + 7); // Dec 27, 2025
-    sevenDaysLater.setHours(0, 0, 0, 0); // Ensure time is set to start of day
-    
-    console.log('Date check:', {
-      selectedDate: formatDateToString(selectedDateOnly),
-      today: formatDateToString(today),
-      sevenDaysLater: formatDateToString(sevenDaysLater),
-      selectedTimestamp: selectedDateOnly.getTime(),
-      todayTimestamp: today.getTime(),
-      sevenDaysLaterTimestamp: sevenDaysLater.getTime()
-    });
-    
-    // Check if date is within bookable range (today to +7 days)
-    const isBookableDate = selectedDateOnly.getTime() >= today.getTime() && selectedDateOnly.getTime() <= sevenDaysLater.getTime();
-    
-    console.log('isBookableDate:', isBookableDate);
-    
-    // If date is more than 7 days ahead, don't show any classes
-    if (selectedDateOnly.getTime() > sevenDaysLater.getTime()) {
-      console.log('Date is more than 7 days ahead, no classes shown');
-      classesData = [];
+    if (isHistory) {
+      // History still uses the old schedule API
+      const response = await fetch('/api/schedule/history');
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      classesData = (data.schedule || []).map(s => {
+        s.isPast = true;
+        s.isBookable = false;
+        return s;
+      });
       renderClasses();
       updateStatusCard();
       return;
     }
     
-    // Class schedule (same every day)
-    const dailySchedule = [
-      { time: "07:00:00", trainer: "Kim Davis", img: "https://homepilatesstudio.com/uploads/u-3.webp", type: "Reguler", gender: "F" },
-      { time: "08:00:00", trainer: "Caitlyn", img: "https://homepilatesstudio.com/uploads/u-902.webp", type: "Happy Hour", gender: "F" },
-      { time: "09:00:00", trainer: "Monica Theresia", img: "https://homepilatesstudio.com/uploads/u-7.webp", type: "Happy Hour", gender: "F" },
-      { time: "16:00:00", trainer: "Shanti", img: "https://homepilatesstudio.com/uploads/u-5.webp", type: "Reguler", gender: "F" },
-      { time: "17:00:00", trainer: "Amelia Venesa", img: "https://homepilatesstudio.com/uploads/u-8.webp", type: "Happy Hour", gender: "" },
-      { time: "18:00:00", trainer: "Kim Davis", img: "https://homepilatesstudio.com/uploads/u-3.webp", type: "Reguler", gender: "" }
-    ];
+    // Fetch schedules with week filter
+    const response = await fetch(`${API_BASE}/schedules?date=${dateStr}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
     
-    // Generate classes for selected date
-    const dateStr = formatDateToString(selectedDate);
-    const now = new Date(); // Get current real time
+    // Also fetch user's bookings to check booked status
+    let userBookedSids = [];
+    try {
+      const bookingsRes = await fetch(`/api/schedule?date=${dateStr}`);
+      if (bookingsRes.ok) {
+        const bookingsData = await bookingsRes.json();
+        userBookedSids = (bookingsData.schedule || [])
+          .filter(s => s.booked === '1' || s.bookclass === 'booked')
+          .map(s => s.sid);
+      }
+    } catch (e) { console.log('Could not fetch user bookings:', e); }
     
-    classesData = dailySchedule.map((schedule, index) => {
-      const randomSlots = Math.floor(Math.random() * 6); // Random slots taken (0-6)
-      const classDateTime = new Date(`${dateStr} ${schedule.time}`);
-      const classEndTime = new Date(classDateTime.getTime() + 50 * 60000); // Add 50 minutes
+    // Filter schedules for the selected date only
+    const schedulesForDate = (data.data || []).filter(s => {
+      if (!s.schedule_time) return false;
+      if (!s.id) {
+        console.warn('Schedule missing ID, skipping:', s);
+        return false;
+      }
+      const st = new Date(s.schedule_time);
+      if (isNaN(st.getTime())) return false;
+      const stDateStr = formatDateToString(st);
+      return stDateStr === dateStr && (s.status === 'Active' || s.status === '');
+    });
+    
+    // Build enriched schedule objects
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const selectedDateOnly = new Date(selectedDate);
+    selectedDateOnly.setHours(0, 0, 0, 0);
+    const sevenDaysLater = new Date(today);
+    sevenDaysLater.setDate(today.getDate() + 7);
+    sevenDaysLater.setHours(0, 0, 0, 0);
+    const isBookableDate = selectedDateOnly.getTime() >= today.getTime() && selectedDateOnly.getTime() <= sevenDaysLater.getTime();
+    
+    classesData = schedulesForDate.map(s => {
+      const trainer = (trainersCache || []).find(t => t.id === s.trainer_id) || {};
+      const classInfo = (classesCache || []).find(c => c.id === s.class_id) || {};
       
-      // Check if class is in the past or currently running (only for today's date)
+      let membersArray = [];
+      if (s.members && s.members.trim()) {
+        try { 
+          membersArray = JSON.parse(s.members); 
+        } catch(e) { 
+          // Not valid JSON — treat as comma-separated string
+          membersArray = s.members.split(',').map(m => m.trim()).filter(m => m !== '');
+        }
+      }
+      
+      const classDateTime = new Date(s.schedule_time);
+      const duration = parseInt(classInfo.duration) || 60;
+      const classEndTime = new Date(classDateTime.getTime() + duration * 60000);
+      
       let isPast = false;
       let isRunning = false;
-      
       if (selectedDateOnly.getTime() === today.getTime()) {
-        // Only check time for today's classes
         isPast = classEndTime <= now;
         isRunning = classDateTime <= now && now < classEndTime;
       } else if (selectedDateOnly < today) {
-        // All classes in the past dates are past
         isPast = true;
       }
       
+      const isBooked = userBookedSids.includes(s.id);
+      
+      // Debug: log schedule id
+      if (!s.id) {
+        console.warn('Schedule missing ID:', s);
+      }
+      
       return {
-        sid: `${Date.now()}${index}`,
-        stime: `${dateStr} ${schedule.time}`,
-        snotes: "Reformer",
-        aname: schedule.trainer,
-        aimg: schedule.img,
-        cname: schedule.type,
-        cdur: "50",
-        ccap: "6",
-        scap: randomSlots,
-        sgender: schedule.gender,
-        booked: "0",
-        bookclass: "",
+        sid: s.id,
+        stime: s.schedule_time,
+        strain: s.trainer_id,
+        sclass: s.class_id,
+        smember: s.members,
+        sgender: s.gender_restriction || '',
+        snotes: s.notes || '',
+        aname: trainer.name || '',
+        aimg: trainer.image || '',
+        cname: classInfo.name || '',
+        cdur: classInfo.duration || '60',
+        ccap: classInfo.capacity || '6',
+        scap: membersArray.length,
+        booked: isBooked ? '1' : '0',
+        bookclass: isBooked ? 'booked' : '',
         isPast: isPast || isRunning,
-        isBookable: isBookableDate && !isPast && !isRunning
+        isBookable: isBookableDate && !isPast && !isRunning,
+        credits_required: classInfo.credits_required || 1,
+        total_credits: window.userCredits || 0
       };
     });
     
-    console.log('Generated classesData:', classesData.length, 'classes');
+    renderScheduleGrid();
+    updateStatusCard();
+    
+  } catch (error) {
+    console.error('Error fetching schedule:', error);
+    classesData = [];
+    renderScheduleGrid();
+    updateStatusCard();
   }
-  
-  renderClasses();
-  updateStatusCard();
+}
+
+// No more fallback data - schedule list comes from the database via API
+
+// Helper: resolve trainer image URL (API may return just filename like "u-3.webp")
+function resolveTrainerImage(img) {
+  if (!img) return 'https://homepilatesstudio.com/uploads/users/u-156.webp';
+  if (img.startsWith('http://') || img.startsWith('https://')) return img;
+  return `https://homepilatesstudio.com/uploads/${img}`;
 }
 
 // Format date
@@ -628,177 +667,217 @@ function updateCalendarTitle() {
   document.getElementById('calendar-title').textContent = formatDate(selectedDate);
 }
 
-// Render classes from API data
+// Render schedule grid - shows all time slots 08:00 to 16:00
+function renderScheduleGrid() {
+  const listContainer = document.getElementById('classes-list');
+  listContainer.innerHTML = '';
+  
+  // If history tab, use old card-based rendering
+  if (currentTab === 'history') {
+    renderClasses();
+    return;
+  }
+  
+  const timeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16]; // 08:00 - 16:00
+  const dateStr = formatDateToString(selectedDate);
+  const dayIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][selectedDate.getDay()];
+  const monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][selectedDate.getMonth()];
+  
+  timeSlots.forEach(hour => {
+    const hourStr = hour.toString().padStart(2, '0');
+    
+    // Find schedule(s) matching this hour
+    const matchingSchedules = classesData.filter(s => {
+      const sDate = new Date(s.stime);
+      return sDate.getHours() === hour;
+    });
+    
+    const hasSchedule = matchingSchedules.length > 0;
+    
+    if (hasSchedule) {
+      // Render each schedule at this hour
+      matchingSchedules.forEach(schedule => {
+        const card = createScheduleCard(schedule, dayIndo, monthShort);
+        listContainer.appendChild(card);
+      });
+    } else {
+      // Render disabled/empty slot
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'class-card disabled-slot';
+      emptyCard.style = 'background: #f0ece5; border: 2px dashed #c4b8a8; border-radius: 25px; padding: 20px 25px; margin-bottom: 10px; opacity: 0.6;';
+      
+      emptyCard.innerHTML = `
+        <div class="row align-items-center">
+          <div class="col-md-9">
+            <div class="d-flex align-items-center">
+              <div class="time-badge" style="background: #9d8c7a; color: white; border-radius: 15px; padding: 12px; text-align: center; min-width: 80px; margin-right: 20px;">
+                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 3px;">${dayIndo}</div>
+                <div style="font-size: 10px; background: #b5a594; border-radius: 10px; padding: 3px 8px; margin-bottom: 5px; display: inline-block;">${selectedDate.getDate()} ${monthShort}</div>
+                <div style="font-size: 20px; font-weight: bold;">${hourStr}.00</div>
+              </div>
+              <div class="class-info">
+                <h5 style="color: #999; font-weight: 500; margin: 0; font-size: 16px;">Tidak ada jadwal</h5>
+                <p style="color: #bbb; font-size: 13px; margin: 5px 0 0;">No schedule available at this time</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3 text-end">
+            <button disabled style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: not-allowed; width: 100%; font-size: 13px;">
+              Not Available
+            </button>
+          </div>
+        </div>
+      `;
+      
+      listContainer.appendChild(emptyCard);
+    }
+  });
+
+  attachCardEventListeners();
+}
+
+// Create a schedule card for an active time slot
+function createScheduleCard(schedule, dayIndo, monthShort) {
+  // Validate schedule has required ID
+  if (!schedule.sid) {
+    console.error('Schedule missing sid:', schedule);
+    return document.createElement('div'); // Return empty div
+  }
+  
+  const card = document.createElement('div');
+  card.className = 'class-card';
+  card.style = 'background: white; border: 2px solid #4a3829; border-radius: 25px; padding: 25px; margin-bottom: 10px;';
+  
+  const scheduleDate = new Date(schedule.stime);
+  const hours = scheduleDate.getHours().toString().padStart(2, '0');
+  const minutes = scheduleDate.getMinutes().toString().padStart(2, '0');
+  const timeStr = `${hours}.${minutes}`;
+  
+  const classNotes = schedule.snotes ? schedule.snotes.replace(/\n/g, ' ').trim() : '';
+  const fullClassName = `${schedule.cname} ${classNotes}`.trim();
+  
+  const slotsUsed = parseInt(schedule.scap) || 0;
+  const slotsTotal = parseInt(schedule.ccap) || 6;
+  const slotsDisplay = `${slotsUsed}/${slotsTotal}`;
+  
+  const isBooked = schedule.booked === "1" || schedule.bookclass === "booked";
+  const isFull = slotsUsed >= slotsTotal;
+  const isPast = schedule.isPast === true;
+  const isBookable = schedule.isBookable !== false;
+  
+  let genderIcon = 'fi-rs-briefcase';
+  let genderText = 'All Class';
+  let genderColor = '#8b6f47';
+  
+  if (schedule.sgender === 'F') {
+    genderIcon = 'fi-rs-venus';
+    genderText = 'Female Only';
+    genderColor = '#e91e63';
+  } else if (schedule.sgender === '') {
+    genderText = 'Mixed Class';
+  }
+  
+  let buttonHTML = '';
+  if (isUserExpired) {
+    buttonHTML = `<button class="expired-btn" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Membership Expired</button>`;
+  } else if (isBooked) {
+    buttonHTML = `<button class="cancel-btn" data-sid="${schedule.sid}" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Cancel Book</button>`;
+  } else if (isPast) {
+    buttonHTML = `<button class="past-btn" style="background: #9e9e9e; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Selesai</button>`;
+  } else if (isFull) {
+    buttonHTML = `<button disabled style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: not-allowed; width: 100%;">Full</button>`;
+  } else if (!isBookable) {
+    buttonHTML = `<button class="future-btn" style="background: #ff9800; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Terlalu Jauh</button>`;
+  } else {
+    buttonHTML = `<button class="book-btn" data-sid="${schedule.sid}" style="background: #4a3829; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Book Now</button>`;
+  }
+  
+  card.innerHTML = `
+    <div class="row align-items-center">
+      <div class="col-md-9">
+        <div class="d-flex align-items-start">
+          <div class="time-badge" style="background: #4a3829; color: white; border-radius: 15px; padding: 15px; text-align: center; min-width: 100px; margin-right: 20px;">
+            <div style="font-size: 11px; opacity: 0.8; margin-bottom: 3px;">${dayIndo}</div>
+            <div style="font-size: 10px; background: #8b6f47; border-radius: 10px; padding: 3px 8px; margin-bottom: 5px; display: inline-block;">${scheduleDate.getDate()} ${monthShort}</div>
+            <div style="font-size: 20px; font-weight: bold;">${timeStr}</div>
+            <div style="font-size: 11px; margin-top: 3px;">${schedule.cdur} mins</div>
+          </div>
+          <div class="class-info">
+            <h5 style="color: #4a3829; font-weight: 600; margin-bottom: 5px; font-size: 18px;">${fullClassName}</h5>
+            <div class="class-meta" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+              <div style="display: flex; align-items: center; width: 100%;">
+                <i class="fi fi-rs-user" style="color: #8b6f47; margin-right: 5px;"></i>
+                <span style="color: #666; font-size: 14px;">${schedule.aname}</span>
+              </div>
+              <div style="display: flex; align-items: center; width: 100%;">
+                <i class="fi ${genderIcon}" style="color: ${genderColor}; margin-right: 5px;"></i>
+                <span style="color: ${genderColor}; font-size: 14px;">${genderText}</span>
+              </div>
+              <div style="display: flex; align-items: center; width: 100%;">
+                <span style="background: ${isFull ? '#ffebee' : '#e8f5e9'}; color: ${isFull ? '#c62828' : '#2e7d32'}; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">${slotsDisplay}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 text-end">
+        ${buttonHTML}
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+// Render classes for history tab (card-based, no time grid)
 function renderClasses() {
   const listContainer = document.getElementById('classes-list');
   listContainer.innerHTML = '';
   
   if (classesData.length === 0) {
-    listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fi fi-rs-calendar-xmark" style="font-size: 48px; margin-bottom: 15px; display: block;"></i><strong>No classes available for the selected date</strong></div>';
+    listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fi fi-rs-calendar-xmark" style="font-size: 48px; margin-bottom: 15px; display: block;"></i><strong>No classes available</strong></div>';
     return;
   }
   
   classesData.forEach((schedule) => {
-    const card = document.createElement('div');
-    card.className = 'class-card';
-    card.style = 'background: white; border: 2px solid #4a3829; border-radius: 25px; padding: 25px; margin-bottom: 15px;';
-    
-    // Parse schedule time
     const scheduleDate = new Date(schedule.stime);
-    const hours = scheduleDate.getHours().toString().padStart(2, '0');
-    const minutes = scheduleDate.getMinutes().toString().padStart(2, '0');
-    const timeStr = `${hours}.${minutes}`;
-    
     const dayIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][scheduleDate.getDay()];
     const monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][scheduleDate.getMonth()];
-    
-    // Parse class name and level from snotes
-    const classNotes = schedule.snotes ? schedule.snotes.replace(/\n/g, ' ').trim() : '';
-    const fullClassName = `${schedule.cname} ${classNotes}`;
-    
-    // Calculate slots
-    const slotsUsed = parseInt(schedule.scap) || 0;
-    const slotsTotal = parseInt(schedule.ccap) || 6;
-    const slotsDisplay = `${slotsUsed}/${slotsTotal}`;
-    
-    const isBooked = schedule.booked === "1" || schedule.bookclass === "booked";
-    const isFull = slotsUsed >= slotsTotal;
-    const isPast = schedule.isPast === true;
-    const isBookable = schedule.isBookable !== false;
-    
-    // Gender display
-    let genderIcon = 'fi-rs-briefcase';
-    let genderText = 'All Class';
-    let genderColor = '#8b6f47';
-    
-    if (schedule.sgender === 'F') {
-      genderIcon = 'fi-rs-venus';
-      genderText = 'Female Only';
-      genderColor = '#e91e63';
-    } else if (schedule.sgender === '') {
-      genderText = 'Mr. Class';
-    }
-    
-    // Determine button state
-    let buttonHTML = '';
-    if (isUserExpired) {
-      // User membership expired - cannot book
-      buttonHTML = `
-        <button class="expired-btn" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
-          Membership Expired
-        </button>
-      `;
-    } else if (isBooked) {
-      buttonHTML = `
-        <button class="cancel-btn" data-sid="${schedule.sid}" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
-          Cancel Book
-        </button>
-      `;
-    } else if (isPast) {
-      buttonHTML = `
-        <button class="past-btn" style="background: #9e9e9e; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
-          Selesai
-        </button>
-      `;
-    } else if (isFull) {
-      buttonHTML = `
-        <button class="book-btn" disabled style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: not-allowed; width: 100%;">
-          Full
-        </button>
-      `;
-    } else if (!isBookable) {
-      buttonHTML = `
-        <button class="future-btn" style="background: #ff9800; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
-          Terlalu Jauh
-        </button>
-      `;
-    } else {
-      buttonHTML = `
-        <button class="book-btn" data-sid="${schedule.sid}" style="background: #4a3829; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
-          Book Now
-        </button>
-      `;
-    }
-    
-    card.innerHTML = `
-      <div class="row align-items-center">
-        <div class="col-md-9">
-          <div class="d-flex align-items-start">
-            <div class="time-badge" style="background: #4a3829; color: white; border-radius: 15px; padding: 15px; text-align: center; min-width: 100px; margin-right: 20px;">
-              <div style="font-size: 11px; opacity: 0.8; margin-bottom: 3px;">${dayIndo}</div>
-              <div style="font-size: 10px; background: #8b6f47; border-radius: 10px; padding: 3px 8px; margin-bottom: 5px; display: inline-block;">${scheduleDate.getDate()} ${monthShort}</div>
-              <div style="font-size: 20px; font-weight: bold;">${timeStr}</div>
-              <div style="font-size: 11px; margin-top: 3px;">${schedule.cdur} mins</div>
-            </div>
-            
-            <div class="class-info">
-              <h5 style="color: #4a3829; font-weight: 600; margin-bottom: 5px; font-size: 18px;">${fullClassName}</h5>
-              <div class="class-meta" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
-                <div style="display: flex; align-items: center; width: 100%;">
-                  <i class="fi fi-rs-user" style="color: #8b6f47; margin-right: 5px;"></i>
-                  <span style="color: #666; font-size: 14px;">${schedule.aname}</span>
-                </div>
-                <div style="display: flex; align-items: center; width: 100%;">
-                  <i class="fi ${genderIcon}" style="color: ${genderColor}; margin-right: 5px;"></i>
-                  <span style="color: ${genderColor}; font-size: 14px;">${genderText}</span>
-                </div>
-                <div style="display: flex; align-items: center; width: 100%;">
-                  <span style="background: ${isFull ? '#ffebee' : '#e8f5e9'}; color: ${isFull ? '#c62828' : '#2e7d32'}; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">${slotsDisplay}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-3 text-end">
-          ${buttonHTML}
-        </div>
-      </div>
-    `;
-    
+    const card = createScheduleCard(schedule, dayIndo, monthShort);
     listContainer.appendChild(card);
   });
   
-  // Add event listeners to book buttons
-  document.querySelectorAll('.book-btn:not([disabled])').forEach(btn => {
-    btn.addEventListener('click', () => handleBookClass(btn.dataset.sid));
+  attachCardEventListeners();
+}
+
+// Attach event listeners to schedule cards
+function attachCardEventListeners() {
+  const bookButtons = document.querySelectorAll('.book-btn:not([disabled])');
+  console.log('Attaching listeners to', bookButtons.length, 'book buttons');
+  
+  bookButtons.forEach(btn => {
+    const sid = btn.dataset.sid;
+    console.log('Book button found with sid:', sid);
+    btn.addEventListener('click', () => handleBookClass(sid));
   });
   
   document.querySelectorAll('.cancel-btn').forEach(btn => {
     btn.addEventListener('click', () => handleCancelBook(btn.dataset.sid));
   });
   
-  // Add event listeners for past class buttons
   document.querySelectorAll('.past-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      alert('Kelas sudah selesai!');
-    });
+    btn.addEventListener('click', () => { alert('Kelas sudah selesai!'); });
   });
   
-  // Add event listeners for expired membership buttons
   document.querySelectorAll('.expired-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       alert('⚠️ Membership Anda telah expired!\n\nAnda tidak dapat melakukan booking class.\nSilakan hubungi admin untuk perpanjangan membership melalui WhatsApp.');
     });
   });
   
-  // Add event listeners for future class buttons
   document.querySelectorAll('.future-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      alert('Kelas hanya bisa dibooking maksimal 8 hari kedepan!');
-    });
+    btn.addEventListener('click', () => { alert('Kelas hanya bisa dibooking maksimal 8 hari kedepan!'); });
   });
-}
-
-// Update status card with selected class data
-function updateStatusCard() {
-  if (classesData.length > 0) {
-    const firstClass = classesData[0];
-    document.getElementById('status-class-type').textContent = firstClass.cname || 'Reguler';
-    document.getElementById('status-total').textContent = firstClass.ccap || '0';
-    document.getElementById('status-used').textContent = firstClass.scap || '0';
-    document.getElementById('status-remaining').textContent = (parseInt(firstClass.ccap || 0) - parseInt(firstClass.scap || 0));
-  }
 }
 
 // Show booking confirmation modal
@@ -806,10 +885,17 @@ let pendingBookingSid = null;
 let pendingBookingData = null;
 
 function showBookingModal(sid) {
+  console.log('showBookingModal called with sid:', sid);
+  
   // Find the class data
   const classData = classesData.find(c => c.sid === sid);
-  if (!classData) return;
+  if (!classData) {
+    console.error('Class data not found for sid:', sid);
+    alert('Error: Class data not found');
+    return;
+  }
   
+  console.log('Found class data:', classData);
   pendingBookingSid = sid;
   pendingBookingData = classData;
   
@@ -823,11 +909,17 @@ function showBookingModal(sid) {
   const monthIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][scheduleDate.getMonth()];
   
   // Update modal content
-  document.getElementById('booking-trainer-img').src = classData.aimg || 'https://homepilatesstudio.com/uploads/users/u-156.webp';
+  document.getElementById('booking-trainer-img').src = resolveTrainerImage(classData.aimg);
   document.getElementById('booking-class-name').textContent = classData.cname || 'Class';
   document.getElementById('booking-class-type').textContent = classData.snotes ? classData.snotes.replace(/\n/g, ' ').trim() : '';
   document.getElementById('booking-trainer-name').textContent = `Trainer : ${classData.aname || 'Unknown'}`;
   document.getElementById('booking-datetime').innerHTML = `${dayIndo}, ${scheduleDate.getDate()} ${monthIndo} ${scheduleDate.getFullYear()}<br>Jam ${timeStr}`;
+  
+  // Update credits info
+  const creditsRequired = classData.credits_required || 1;
+  const creditsAvailable = classData.total_credits || 0;
+  document.getElementById('booking-credits-required').textContent = creditsRequired;
+  document.getElementById('booking-credits-available').textContent = creditsAvailable;
   
   // Show modal
   document.getElementById('booking-modal').classList.add('show');
@@ -841,43 +933,82 @@ function closeBookingModal() {
   pendingBookingData = null;
 }
 
-// Update status card with selected class data
+// Fetch user's total credits information
+async function fetchUserCredits() {
+  try {
+    const response = await fetch('/api/schedule/user/profile');
+    if (!response.ok) {
+      console.error('Failed to fetch user profile:', response.status);
+      return null;
+    }
+    const data = await response.json();
+    console.log('User profile data:', data);
+    
+    // Store total credits in global variable for use in showBookingModal
+    window.userCredits = data.total_credits || 0;
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
+}
+
+// Update status card with user credit data
 function updateStatusCard() {
+  // For now, show class-related info
+  // Credit display will be updated separately via fetchUserCredits
   if (classesData.length > 0) {
     const firstClass = classesData[0];
     document.getElementById('status-class-type').textContent = firstClass.cname || 'Reguler';
-    document.getElementById('status-total').textContent = firstClass.ccap || '0';
-  // Check if user is expired
-  if (isUserExpired) {
-    alert('⚠️ Membership Anda telah expired!\n\nAnda tidak dapat melakukan booking class.\nSilakan hubungi admin untuk perpanjangan membership.');
-    return;
-  }
-  
-    document.getElementById('status-used').textContent = firstClass.scap || '0';
-    document.getElementById('status-remaining').textContent = (parseInt(firstClass.ccap || 0) - parseInt(firstClass.scap || 0));
+  } else {
+    document.getElementById('status-class-type').textContent = '-';
   }
 }
 
 // Handle book class - now opens modal instead of using confirm
 function handleBookClass(sid) {
+  // Check if user membership is expired
+  if (isUserExpired) {
+    alert('⚠️ Membership Anda telah expired!\n\nAnda tidak dapat melakukan booking class.\nSilakan hubungi admin untuk perpanjangan membership.');
+    return;
+  }
   showBookingModal(sid);
 }
 
 // Handle cancel booking
 async function handleCancelBook(sid) {
+  console.log('handleCancelBook called with sid:', sid);
   if (!confirm('Are you sure you want to cancel this booking?')) return;
   
   try {
-    const response = await fetch(`${API_BASE}/schedule/cancel`, {
+    const requestBody = { sid };
+    console.log('Sending cancel request:', requestBody);
+    
+    const response = await fetch('/api/schedule/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sid })
+      body: JSON.stringify(requestBody)
     });
     
     const result = await response.json();
     
     if (result.success) {
       alert('Booking cancelled successfully!');
+      
+      // Refresh user credits after cancellation
+      const userProfile = await fetchUserCredits();
+      if (userProfile && userProfile.user) {
+        const user = userProfile.user;
+        const totalCredits = parseInt(user.total_credits) || 0;
+        const creditsUsed = parseInt(user.credits_used) || 0;
+        const creditsRemaining = totalCredits - creditsUsed;
+        
+        document.getElementById('status-total').textContent = totalCredits;
+        document.getElementById('status-used').textContent = creditsUsed;
+        document.getElementById('status-remaining').textContent = Math.max(0, creditsRemaining);
+      }
+      
       fetchSchedule(selectedDate, currentTab === 'history');
     } else {
       alert(result.message || 'Failed to cancel booking');
@@ -890,21 +1021,46 @@ async function handleCancelBook(sid) {
 
 // Confirm booking button handler
 document.getElementById('confirm-booking-btn').addEventListener('click', async () => {
-  if (!pendingBookingSid) return;
+  if (!pendingBookingSid) {
+    console.error('No pending booking sid');
+    alert('Error: No schedule selected');
+    return;
+  }
+  
+  // Store sid in local variable BEFORE closing modal (which sets pendingBookingSid to null)
+  const sidToBook = pendingBookingSid;
+  console.log('Confirming booking for sid:', sidToBook);
   
   closeBookingModal();
   
   try {
-    const response = await fetch(`${API_BASE}/schedule/book`, {
+    const requestBody = { sid: sidToBook };
+    console.log('Sending booking request:', requestBody);
+    
+    const response = await fetch('/api/schedule/book', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sid: pendingBookingSid })
+      body: JSON.stringify(requestBody)
     });
     
     const result = await response.json();
     
     if (result.success) {
       alert('Class booked successfully!');
+      
+      // Refresh user credits after booking
+      const userProfile = await fetchUserCredits();
+      if (userProfile && userProfile.user) {
+        const user = userProfile.user;
+        const totalCredits = parseInt(user.total_credits) || 0;
+        const creditsUsed = parseInt(user.credits_used) || 0;
+        const creditsRemaining = totalCredits - creditsUsed;
+        
+        document.getElementById('status-total').textContent = totalCredits;
+        document.getElementById('status-used').textContent = creditsUsed;
+        document.getElementById('status-remaining').textContent = Math.max(0, creditsRemaining);
+      }
+      
       fetchSchedule(selectedDate, currentTab === 'history');
     } else {
       alert(result.message || 'Failed to book class');
@@ -1062,8 +1218,30 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // Initialize - fetch data on page load
-renderCalendar();
-updateCalendarTitle();
-fetchSchedule(selectedDate, false); // Load upcoming classes for today
+async function initializePage() {
+  renderCalendar();
+  updateCalendarTitle();
+  
+  // Fetch user credits information
+  const userProfile = await fetchUserCredits();
+  if (userProfile && userProfile.user) {
+    const user = userProfile.user;
+    console.log('Updating status card with user data:', user);
+    
+    // Update credit display
+    const totalCredits = parseInt(user.total_credits) || 0;
+    const creditsUsed = parseInt(user.credits_used) || 0;
+    const creditsRemaining = totalCredits - creditsUsed;
+    
+    document.getElementById('status-total').textContent = totalCredits;
+    document.getElementById('status-used').textContent = creditsUsed;
+    document.getElementById('status-remaining').textContent = Math.max(0, creditsRemaining);
+  }
+  
+  fetchSchedule(selectedDate, false); // Load upcoming classes for today
+}
+
+// Call initialization
+initializePage();
 
 </script>

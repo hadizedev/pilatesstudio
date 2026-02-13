@@ -27,6 +27,7 @@ const SCHEDULES_SHEET = 'Schedules';
 const TRAINERS_SHEET = 'Trainers';
 const CLASSES_SHEET = 'Classes';
 const BOOKINGS_SHEET = 'Bookings';
+const USERS_SHEET = 'Users';
 
 /**
  * Helper function to get sheets data
@@ -122,6 +123,69 @@ function rowToSchedule(row, trainers, classes) {
     booked: '0'
   };
 }
+
+/**
+ * GET /api/user/profile
+ * Get current user's profile and credit information
+ */
+router.get('/user/profile', async (req, res) => {
+  try {
+    if (!req.session.user) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    
+    const userId = req.session.user.id;
+    
+    // Fetch users data from Google Sheets
+    const usersData = await getSheetsData('Users!A2:N');
+    
+    // Find user by ID
+    const userRow = usersData.find(row => row[0] === userId.toString());
+    
+    if (!userRow) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    // Fetch bookings to calculate credits used
+    const bookingsData = await getSheetsData('Bookings!A2:J');
+    
+    // Find all completed bookings for this user
+    const userBookings = bookingsData
+      .filter(row => row[2] === userId.toString() && (row[4] === 'Completed' || row[4] === 'Confirmed'))
+      .map(row => ({
+        id: row[0],
+        schedule_id: row[1],
+        credits_used: parseInt(row[9]) || 1 // Default 1 credit per class
+      }));
+    
+    // Calculate total credits used
+    const creditsUsed = userBookings.reduce((sum, booking) => sum + booking.credits_used, 0);
+    
+    const user = {
+      id: userRow[0],
+      email: userRow[1],
+      name: userRow[3],
+      phone: userRow[4],
+      membership_type: userRow[5],
+      membership_status: userRow[6],
+      registered_date: userRow[7],
+      expired_date: userRow[8],
+      profile_picture: userRow[9],
+      total_credits: parseInt(userRow[10]) || 0,
+      gender: userRow[11],
+      date_of_birth: userRow[12],
+      role: userRow[13],
+      credits_used: creditsUsed,
+      credits_remaining: (parseInt(userRow[10]) || 0) - creditsUsed
+    };
+    
+    res.json({ success: true, user });
+    
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch user profile' });
+  }
+});
 
 /**
  * GET /api/schedule?date=YYYY-MM-DD
@@ -329,12 +393,16 @@ router.post('/book', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
     
+    console.log('Booking endpoint hit. Request body:', req.body);
+    console.log('Session user:', req.session.user);
+    
     const { sid } = req.body;
     const userId = req.session.user.id;
     
-    console.log('Booking request:', { sid, userId, sessionUser: req.session.user });
+    console.log('Extracted values:', { sid, userId, sidType: typeof sid });
     
     if (!sid) {
+      console.error('Schedule ID missing or invalid:', { sid, body: req.body });
       return res.status(400).json({ success: false, message: 'Schedule ID is required' });
     }
     
@@ -366,14 +434,33 @@ router.post('/book', async (req, res) => {
       return res.status(400).json({ success: false, message: 'You have already booked this class' });
     }
     
-    // Get class capacity
+    // Get class capacity and credits required
     const classesData = await getSheetsData(`${CLASSES_SHEET}!A2:H`);
     const classInfo = classesData.find(row => row[0] === sclass);
     const capacity = classInfo ? parseInt(classInfo[3]) : 6;
+    const creditsRequired = classInfo ? parseInt(classInfo[6]) || 1 : 1;
     
     // Check if full
     if (membersArray.length >= capacity) {
       return res.status(400).json({ success: false, message: 'Class is full' });
+    }
+    
+    // Check user has enough credits
+    const usersData = await getSheetsData(`${USERS_SHEET}!A2:N`);
+    const userIndex = usersData.findIndex(row => row[0] === userId.toString());
+    
+    if (userIndex === -1) {
+      return res.status(400).json({ success: false, message: 'User not found' });
+    }
+    
+    const userRow = usersData[userIndex];
+    const currentTotalCredits = parseInt(userRow[10]) || 0;
+    
+    if (currentTotalCredits < creditsRequired) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Insufficient credits. You have ${currentTotalCredits} but this class requires ${creditsRequired} credits` 
+      });
     }
     
     // Add user to members array
@@ -403,10 +490,24 @@ router.post('/book', async (req, res) => {
       '', // cancelled_time
       '', // notes
       'Paid', // payment_status
-      '1' // credits_used
+      creditsRequired.toString() // credits_used
     ];
     
     await appendSheetsData(`${BOOKINGS_SHEET}!A:J`, [bookingRow]);
+    
+    // Deduct credits from user's total_credits
+    try {
+      const newTotalCredits = currentTotalCredits - creditsRequired;
+      
+      // Update user's total_credits
+      userRow[10] = newTotalCredits.toString();
+      await updateSheetsData(`${USERS_SHEET}!A${userIndex + 2}:N${userIndex + 2}`, [userRow]);
+      
+      console.log(`Deducted ${creditsRequired} credits from user ${userId}: ${currentTotalCredits} -> ${newTotalCredits}`);
+    } catch (creditError) {
+      console.error('Error updating user credits:', creditError);
+      // Don't fail the booking if credit update fails
+    }
     
     res.json({ success: true, message: 'Class booked successfully' });
     
@@ -485,10 +586,32 @@ router.post('/cancel', async (req, res) => {
     
     if (bookingIndex !== -1) {
       const bookingRow = bookingsData[bookingIndex];
+      const creditsUsed = parseInt(bookingRow[9]) || 1; // Get actual credits used
       bookingRow[4] = 'Cancelled'; // status
       bookingRow[6] = now; // cancelled_time
       
       await updateSheetsData(`${BOOKINGS_SHEET}!A${bookingIndex + 2}:J${bookingIndex + 2}`, [bookingRow]);
+      
+      // Refund credits to user
+      try {
+        const usersData = await getSheetsData(`${USERS_SHEET}!A2:N`);
+        const userIndex = usersData.findIndex(row => row[0] === userId.toString());
+        
+        if (userIndex !== -1) {
+          const userRow = usersData[userIndex];
+          const currentTotalCredits = parseInt(userRow[10]) || 0;
+          const newTotalCredits = currentTotalCredits + creditsUsed;
+          
+          // Update user's total_credits with refund
+          userRow[10] = newTotalCredits.toString();
+          await updateSheetsData(`${USERS_SHEET}!A${userIndex + 2}:N${userIndex + 2}`, [userRow]);
+          
+          console.log(`Refunded ${creditsUsed} credits to user ${userId}: ${currentTotalCredits} -> ${newTotalCredits}`);
+        }
+      } catch (creditError) {
+        console.error('Error refunding user credits:', creditError);
+        // Don't fail the cancellation if credit refund fails
+      }
     }
     
     res.json({ success: true, message: 'Booking cancelled successfully' });

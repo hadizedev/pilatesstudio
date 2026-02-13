@@ -88,6 +88,259 @@
             background-color: #0d6efd;
             color: white;
         }
+        
+        /* Weekly Calendar Styles */
+        .schedule-calendar-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            min-width: 900px;
+        }
+        
+        .schedule-calendar-table th,
+        .schedule-calendar-table td {
+            border: 1px solid #dee2e6;
+            text-align: center;
+            vertical-align: top;
+        }
+        
+        .schedule-calendar-table thead th {
+            background-color: #f8f9fa;
+            padding: 12px 6px;
+            font-weight: 700;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        
+        .schedule-calendar-table thead th.time-col {
+            width: 70px;
+            min-width: 70px;
+        }
+        
+        .schedule-calendar-table thead th .day-name {
+            font-size: 0.95rem;
+            display: block;
+        }
+        
+        .schedule-calendar-table thead th .day-date {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: 500;
+            display: block;
+        }
+        
+        .schedule-calendar-table thead th.today-col {
+            background-color: #667eea;
+            color: #fff;
+        }
+        
+        .schedule-calendar-table thead th.today-col .day-date {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .schedule-calendar-table tbody td.time-col {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #555;
+            vertical-align: middle;
+            text-align: right;
+            padding: 8px 10px;
+            width: 70px;
+            min-width: 70px;
+        }
+        
+        .schedule-calendar-table tbody td.day-col {
+            padding: 4px;
+            height: 120px;
+            vertical-align: top;
+            position: relative;
+            background: #ff000015;
+        }
+        
+        .schedule-calendar-table tbody td.day-col.today-col {
+            background-color: rgba(102, 126, 234, 0.04);
+        }
+        
+        .schedule-calendar-table tbody td.day-col:hover {
+            cursor: pointer;
+        }
+        
+        .schedule-calendar-table tbody td.day-col.past-col {
+            cursor: default;
+            opacity: 0.5;
+        }
+        
+        .schedule-calendar-table tbody td.day-col.past-col.has-schedule {
+            opacity: 1;
+        }
+        
+        .schedule-calendar-table tbody td.day-col.past-col:hover {
+            background-color: #eee;
+            cursor: default;
+        }
+        
+        .schedule-calendar-table tbody td.day-col.past-col::after {
+            display: none;
+        }
+        
+        .schedule-calendar-table tbody td.day-col::after {
+            content: '+';
+            position: absolute;
+            bottom: 4px;
+            right: 8px;
+            font-size: 1.2rem;
+            color: rgba(102, 126, 234, 0.2);
+            font-weight: bold;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+        
+        .schedule-calendar-table tbody td.day-col:hover::after {
+            color: rgba(102, 126, 234, 0.6);
+        }
+        
+        .schedule-calendar-table tbody tr.empty-row td.day-col {
+            background-color: #ff000015;
+        }
+        
+        .schedule-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .schedule-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 6px 0 0 6px;
+        }
+        
+        .schedule-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .schedule-item-title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+            letter-spacing: 0.3px;
+        }
+        
+        .schedule-item-trainer {
+            font-size: 0.72rem;
+            opacity: 0.9;
+            margin-bottom: 2px;
+        }
+        
+        .schedule-item-meta {
+            font-size: 0.68rem;
+            opacity: 0.85;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .schedule-item-meta i {
+            font-size: 0.6rem;
+        }
+        
+        .schedule-item.bg-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .schedule-item.bg-completed {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: #1a3a2a;
+        }
+        
+        .schedule-item.bg-completed::before {
+            background: rgba(0,0,0,0.15);
+        }
+        
+        .schedule-item.bg-cancelled {
+            background: linear-gradient(135deg, #f5576c 0%, #ff6b6b 100%);
+        }
+        
+        .schedule-item.bg-cancelled .schedule-item-title {
+            text-decoration: line-through;
+        }
+        
+        .schedule-item-gender {
+            display: inline-block;
+            font-size: 0.6rem;
+            padding: 1px 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.25);
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        
+        .schedule-item-delete {
+            position: absolute;
+            top: 4px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            font-size: 0.7rem;
+            padding: 2px;
+            line-height: 1;
+            border-radius: 3px;
+            display: none;
+        }
+        
+        .schedule-item:hover .schedule-item-delete {
+            display: block;
+        }
+        
+        .schedule-item-delete:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Calendar container */
+        .calendar-scroll-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        @media (max-width: 1200px) {
+            .schedule-item {
+                padding: 5px 7px;
+            }
+            .schedule-item-title {
+                font-size: 0.72rem;
+            }
+            .schedule-item-trainer,
+            .schedule-item-meta {
+                font-size: 0.65rem;
+            }
+            .schedule-calendar-table tbody td.day-col {
+                height: 100px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -116,6 +369,12 @@
 
             <!-- Statistics Cards -->
             <div id="statsSection" style="display: none;">
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-primary" onclick="loadAdminData()">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                    <small class="text-muted ms-2">(Auto-refreshes every 10 seconds)</small>
+                </div>
                 <div class="row mb-4">
                     <div class="col-md-4 col-lg-2 mb-3">
                         <div class="stats-card">
@@ -160,7 +419,12 @@
             <div id="tabsSection" style="display: none;">
                 <ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                        <button class="nav-link active" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules" type="button" role="tab">
+                            <i class="fas fa-calendar-alt"></i> Schedules
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
                             <i class="fas fa-users"></i> Users
                         </button>
                     </li>
@@ -180,11 +444,6 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules" type="button" role="tab">
-                            <i class="fas fa-calendar-alt"></i> Schedules
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="trainers-tab" data-bs-toggle="tab" data-bs-target="#trainers" type="button" role="tab">
                             <i class="fas fa-user-tie"></i> Trainers
                         </button>
@@ -194,7 +453,7 @@
                 <!-- Tab Content -->
                 <div class="tab-content" id="adminTabsContent">
                     <!-- Users Table -->
-                    <div class="tab-pane fade show active" id="users" role="tabpanel">
+                    <div class="tab-pane fade" id="users" role="tabpanel">
                         <div class="table-section">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h2 class="mb-0"><i class="fas fa-users"></i> Users</h2>
@@ -322,30 +581,38 @@
                         </div>
                     </div>
 
-                    <!-- Schedules Table -->
-                    <div class="tab-pane fade" id="schedules" role="tabpanel">
+                    <!-- Schedules Calendar -->
+                    <div class="tab-pane fade show active" id="schedules" role="tabpanel">
                         <div class="table-section">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h2 class="mb-0"><i class="fas fa-calendar-alt"></i> Schedules</h2>
-                                <button class="btn btn-primary" onclick="showAddModal('schedule')"><i class="fas fa-plus"></i> Add New Schedule</button>
+                            <h2 class="mb-4"><i class="fas fa-calendar-alt"></i> Jadwal Kelas Mingguan</h2>
+                            
+                            <!-- Week Navigation -->
+                            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="previousWeek()">
+                                        <i class="fas fa-chevron-left"></i> Minggu Sebelumnya
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="goToToday()">
+                                        <i class="fas fa-calendar-day"></i> Hari Ini
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="nextWeek()">
+                                        Minggu Depan <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <input type="date" id="weekDatePicker" class="form-control form-control-sm" style="width: 150px;" onchange="goToDate()">
+                                </div>
+                                <div>
+                                    <span id="weekDisplay" style="font-size: 1rem; font-weight: 600; color: #667eea;"></span>
+                                </div>
+                                <button class="btn btn-sm btn-success" onclick="showAddModal('schedule')">
+                                    <i class="fas fa-plus"></i> Tambah Jadwal
+                                </button>
                             </div>
-                            <div class="table-responsive">
-                                <table id="schedulesTable" class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Schedule Time</th>
-                                            <th>Trainer ID</th>
-                                            <th>Class ID</th>
-                                            <th>Members</th>
-                                            <th>Gender</th>
-                                            <th>Status</th>
-                                            <th>Notes</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="schedulesTableBody">
-                                    </tbody>
+
+                            <!-- Weekly Calendar -->
+                            <div class="calendar-scroll-container">
+                                <table class="schedule-calendar-table" id="scheduleCalendarTable">
+                                    <thead id="calendarHead"></thead>
+                                    <tbody id="calendarBody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -421,6 +688,9 @@
             console.log('=== Initializing Dashboard ===');
             console.log('jQuery:', typeof jQuery !== 'undefined' ? '✓' : '✗');
             loadAdminData();
+            
+            // Auto-refresh data every 10 seconds
+            setInterval(loadAdminData, 10000);
         });
         
         function loadAdminData() {
@@ -441,7 +711,6 @@
                         $('#bookingsTableBody').empty();
                         $('#classesTableBody').empty();
                         $('#transactionsTableBody').empty();
-                        $('#schedulesTableBody').empty();
                         $('#trainersTableBody').empty();
                         
                         // Update statistics
@@ -599,26 +868,9 @@
                             `);
                         });
                         
-                        // Populate Schedules table
-                        data.schedules.forEach((schedule, index) => {
-                            const statusClass = schedule.status === 'Active' ? 'status-active' : 'status-completed';
-                            $('#schedulesTableBody').append(`
-                                <tr>
-                                    <td>${schedule.id}</td>
-                                    <td>${schedule.schedule_time}</td>
-                                    <td>${schedule.trainer_id}</td>
-                                    <td>${schedule.class_id}</td>
-                                    <td>${schedule.members}</td>
-                                    <td>${schedule.gender_restriction || 'All'}</td>
-                                    <td><span class="badge ${statusClass}">${schedule.status}</span></td>
-                                    <td>${schedule.notes}</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-warning" onclick="editScheduleById(${index})"><i class="fas fa-edit"></i></button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('schedule', '${schedule.id}', 'Schedule #${schedule.id}')"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            `);
-                        });
+                        // Populate Schedules calendar
+                        window.calendarSchedules = data.schedules;
+                        initCalendarView();
                         
                         // Populate Trainers table
                         data.trainers.forEach(trainer => {
@@ -1103,6 +1355,273 @@
                     alert('❌ Error deleting record: ' + errorMessage);
                 }
             });
+        }
+        
+        // ============ CALENDAR VIEW FUNCTIONS ============
+        
+        let currentWeekStart = new Date();
+        
+        // Get Monday of the current week
+        function getMonday(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
+            return new Date(d.setDate(diff));
+        }
+        
+        // Initialize calendar view
+        function initCalendarView() {
+            currentWeekStart = getMonday(new Date());
+            renderWeekCalendar();
+        }
+        
+        // Render the week calendar
+        function renderWeekCalendar() {
+            const startDate = new Date(currentWeekStart);
+            const endDate = new Date(currentWeekStart);
+            endDate.setDate(endDate.getDate() + 6);
+            
+            // Update week display
+            const weekText = `${startDate.toLocaleDateString('id-ID')} - ${endDate.toLocaleDateString('id-ID')}`;
+            $('#weekDisplay').text(weekText);
+            $('#weekDatePicker').val(startDate.toISOString().split('T')[0]);
+            
+            // Render full calendar table
+            renderCalendarTable(startDate);
+        }
+        
+        // Render full calendar table (header + body)
+        function renderCalendarTable(startDate) {
+            const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            
+            // --- HEADER ---
+            let headHtml = '<tr><th class="time-col">Jam</th>';
+            const dayDates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                dayDates.push(d);
+                const isToday = d.toDateString() === today.toDateString();
+                const monthNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+                const dateLabel = `${d.getDate()}-${monthNames[d.getMonth()]}-${d.getFullYear()}`;
+                headHtml += `<th class="${isToday ? 'today-col' : ''}">
+                    <span class="day-name">${days[i]}</span>
+                    <span class="day-date">${dateLabel}</span>
+                </th>`;
+            }
+            headHtml += '</tr>';
+            $('#calendarHead').html(headHtml);
+            
+            // --- BODY ---
+            const timeSlots = generateTimeSlots();
+            const schedulesByDateTime = groupSchedulesByDateTime(window.calendarSchedules || [], startDate);
+            window.scheduleItemMap = {};
+            let counter = 0;
+            
+            let bodyHtml = '';
+            timeSlots.forEach(time => {
+                // Check if this row has any schedules
+                let rowHasSchedules = false;
+                for (let di = 0; di < 7; di++) {
+                    const dk = dayDates[di].toISOString().split('T')[0];
+                    if (schedulesByDateTime[`${dk}|${time}`]) { rowHasSchedules = true; break; }
+                }
+                const rowClass = rowHasSchedules ? '' : ' class="empty-row"';
+                
+                bodyHtml += `<tr${rowClass}>`;
+                bodyHtml += `<td class="time-col">${time}</td>`;
+                
+                for (let di = 0; di < 7; di++) {
+                    const dateKey = dayDates[di].toISOString().split('T')[0];
+                    const isToday = dayDates[di].toDateString() === today.toDateString();
+                    const slotHour = parseInt(time.split(':')[0]);
+                    const isPast = dayDates[di] < today || (isToday && slotHour < new Date().getHours());
+                    const cellKey = `${dateKey}|${time}`;
+                    const schedules = schedulesByDateTime[cellKey] || [];
+                    
+                    let cellContent = '';
+                    schedules.forEach(schedule => {
+                        const trainerName = getTrainerName(schedule.trainer_id);
+                        const className = getClassName(schedule.class_id);
+                        const classInfo = getClassInfo(schedule.class_id);
+                        const memberNames = getMemberNames(schedule.members);
+                        const userCount = memberNames.length;
+                        const capacity = classInfo ? parseInt(classInfo.capacity) || 0 : 0;
+                        const duration = classInfo ? classInfo.duration : '';
+                        const statusLower = (schedule.status || 'active').toLowerCase();
+                        const bgClass = `bg-${statusLower}`;
+                        const genderLabel = schedule.gender_restriction === 'M' ? '♂ Pria' : schedule.gender_restriction === 'F' ? '♀ Wanita' : '';
+                        
+                        const sid = 'sched-' + (counter++);
+                        window.scheduleItemMap[sid] = schedule;
+                        
+                        // Build member list
+                        let memberList = '';
+                        if (userCount > 0) {
+                            memberList = memberNames.map(n => `<div style="font-size:0.65rem;opacity:0.85;">• ${n}</div>`).join('');
+                        }
+                        
+                        cellContent += `
+                            <div class="schedule-item ${bgClass}" data-schedule-id="${sid}" onclick="event.stopPropagation(); editScheduleItem('${sid}')">
+                                <button class="schedule-item-delete" onclick="event.stopPropagation(); deleteRecord('schedule','${schedule.id}','Schedule #${schedule.id}')" title="Hapus"><i class="fas fa-times"></i></button>
+                                <div class="schedule-item-title">${className}${genderLabel ? '<span class="schedule-item-gender">' + genderLabel + '</span>' : ''}</div>
+                                <div class="schedule-item-trainer"><i class="fas fa-user-tie"></i> ${trainerName}</div>
+                                <div class="schedule-item-meta">
+                                    ${duration ? '<span><i class="fas fa-clock"></i> ' + duration + ' min</span>' : ''}
+                                    <span><i class="fas fa-users"></i> ${userCount}/${capacity}</span>
+                                </div>
+                                ${memberList}
+                            </div>
+                        `;
+                    });
+                    
+                    const hasSchedule = schedules.length > 0;
+                    const cellClass = `day-col${isToday ? ' today-col' : ''}${isPast ? ' past-col' : ''}${hasSchedule ? ' has-schedule' : ''}`;
+                    if (isPast) {
+                        bodyHtml += `<td class="${cellClass}">${cellContent}</td>`;
+                    } else {
+                        bodyHtml += `<td class="${cellClass}" onclick="showAddScheduleForCell('${dateKey}','${time}')" title="Klik untuk tambah jadwal">${cellContent}</td>`;
+                    }
+                }
+                bodyHtml += '</tr>';
+            });
+            
+            $('#calendarBody').html(bodyHtml);
+        }
+        
+        // Generate time slots from 7:00 to 19:00
+        function generateTimeSlots() {
+            const slots = [];
+            for (let hour = 7; hour < 20; hour++) {
+                slots.push(`${String(hour).padStart(2, '0')}:00`);
+            }
+            return slots;
+        }
+        
+        // Group schedules by date and time
+        function groupSchedulesByDateTime(schedules, startDate) {
+            const grouped = {};
+            
+            schedules.forEach(schedule => {
+                if (!schedule.schedule_time) return;
+                
+                const schedDateTime = new Date(schedule.schedule_time);
+                const schedDate = schedDateTime.toISOString().split('T')[0];
+                const schedTime = String(schedDateTime.getHours()).padStart(2, '0') + ':00';
+                
+                // Check if schedule is within the current week
+                const weekEnd = new Date(startDate);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                
+                if (schedDateTime >= startDate && schedDateTime <= weekEnd) {
+                    const key = `${schedDate}|${schedTime}`;
+                    if (!grouped[key]) {
+                        grouped[key] = [];
+                    }
+                    grouped[key].push(schedule);
+                }
+            });
+            
+            return grouped;
+        }
+        
+        // Get trainer name from ID
+        function getTrainerName(trainerId) {
+            if (!window.adminData || !window.adminData.trainers) return 'No Trainer';
+            const trainer = window.adminData.trainers.find(t => t.id == trainerId);
+            return trainer ? trainer.name : 'No Trainer';
+        }
+        
+        // Get class name from ID
+        function getClassName(classId) {
+            if (!window.adminData || !window.adminData.classes) return 'No Class';
+            const cls = window.adminData.classes.find(c => c.id == classId);
+            return cls ? cls.name : 'No Class';
+        }
+        
+        // Get full class info from ID
+        function getClassInfo(classId) {
+            if (!window.adminData || !window.adminData.classes) return null;
+            return window.adminData.classes.find(c => c.id == classId) || null;
+        }
+        
+        // Get member names from comma-separated IDs
+        function getMemberNames(membersStr) {
+            if (!membersStr || !window.adminData || !window.adminData.users) return [];
+            
+            // Try to parse as JSON array first, fallback to comma-separated
+            let ids = [];
+            try {
+                ids = JSON.parse(membersStr);
+            } catch (e) {
+                // Not JSON, treat as comma-separated string
+                ids = membersStr.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            
+            return ids.map(id => {
+                const user = window.adminData.users.find(u => u.id == id);
+                return user ? user.name : 'User #' + id;
+            });
+        }
+        
+        // Previous week button
+        function previousWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            renderWeekCalendar();
+        }
+        
+        // Next week button
+        function nextWeek() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            renderWeekCalendar();
+        }
+        
+        // Go to today button
+        function goToToday() {
+            currentWeekStart = getMonday(new Date());
+            renderWeekCalendar();
+        }
+        
+        // Go to selected date
+        function goToDate() {
+            const dateStr = $('#weekDatePicker').val();
+            if (dateStr) {
+                const selectedDate = new Date(dateStr);
+                currentWeekStart = getMonday(selectedDate);
+                renderWeekCalendar();
+            }
+        }
+        
+        // Show add schedule modal
+        function showAddScheduleModal() {
+            showAddModal('schedule');
+        }
+        
+        // Show add schedule modal with pre-filled date and time from calendar cell
+        function showAddScheduleForCell(dateStr, time) {
+            // dateStr = "2026-02-13", time = "16:00"
+            const prefilledDateTime = `${dateStr}T${time}`;
+            
+            $('#recordId').val('');
+            $('#recordType').val('schedule');
+            $('#crudModalTitle').text('Add New Schedule');
+            
+            // Generate form with pre-filled schedule_time
+            generateFormFields('schedule', { schedule_time: prefilledDateTime });
+            
+            $('#crudModal').modal('show');
+        }
+        
+        // Edit schedule item from calendar
+        function editScheduleItem(scheduleId) {
+            const schedule = window.scheduleItemMap[scheduleId];
+            if (schedule) {
+                editRecord('schedule', schedule);
+            } else {
+                alert('Error: Schedule data not found');
+            }
         }
     </script>
 </body>
