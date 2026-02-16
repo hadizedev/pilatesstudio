@@ -80,7 +80,7 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Assuming first row is header: id, email, password, name, phone, membership_type, membership_status, registered_date, expired_date, profile_picture, total_credits
+        // Assuming first row is header: id, email, password, name, phone, membership_type, membership_status, registered_date, expired_date, profile_picture, credits, credit_available
         const headers = rows[0];
         const idIndex = headers.indexOf('id');
         const emailIndex = headers.indexOf('email');
@@ -92,7 +92,8 @@ router.post('/', async (req, res) => {
         const registeredDateIndex = headers.indexOf('registered_date');
         const expiredDateIndex = headers.indexOf('expired_date');
         const profilePictureIndex = headers.indexOf('profile_picture');
-        const totalCreditsIndex = headers.indexOf('total_credits');
+        const creditsIndex = headers.indexOf('credits');
+        const creditAvailableIndex = headers.indexOf('credit_available');
         const roleIndex = headers.indexOf('role'); // Add role field
 
         // Find user by email
@@ -143,7 +144,8 @@ router.post('/', async (req, res) => {
             registered_date: userFound[registeredDateIndex],
             expired_date: userFound[expiredDateIndex],
             profile_picture: userFound[profilePictureIndex],
-            total_credits: userFound[totalCreditsIndex],
+            credits: userFound[creditsIndex],
+            credit_available: userFound[creditAvailableIndex],
             role: userFound[roleIndex] || 'user' // Default to 'user' if role is not set
         };
 

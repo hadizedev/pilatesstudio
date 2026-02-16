@@ -59,11 +59,29 @@ const checkAuth = (req, res, next) => {
     res.locals.isAuthenticated = !!(req.session && req.session.user);
     res.locals.user = req.session && req.session.user ? req.session.user : null;
     res.locals.isAdmin = req.session && req.session.user && req.session.user.role === 'admin';
+    res.locals.isTrainer = !!(req.session && req.session.trainer);
+    res.locals.trainer = req.session && req.session.trainer ? req.session.trainer : null;
     next();
+};
+
+// Trainer authentication middleware
+const requireTrainer = (req, res, next) => {
+    if (req.session && req.session.trainer) {
+        next();
+    } else {
+        if (req.path.startsWith('/api/') || req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized. Please login as trainer first.'
+            });
+        }
+        res.redirect('/partners/login');
+    }
 };
 
 module.exports = {
     requireAuth,
     requireAdmin,
+    requireTrainer,
     checkAuth
 };

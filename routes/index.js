@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, requireAdmin, checkAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireTrainer, checkAuth } = require('../middleware/auth');
 const googleSheets = require('../utils/googleSheets');
 
 // Home page
@@ -144,6 +144,34 @@ router.get('/maintenance', (req, res) => {
     layout: 'main',
     hideHeaderFooter: true
   });
+});
+
+// Partners Login page
+router.get('/partners/login', (req, res) => {
+  if (req.session && req.session.trainer) {
+    return res.redirect('/partners');
+  }
+  res.render('partners-login', {
+    title: 'Partner Login',
+    layout: 'main',
+    hideHeaderFooter: true
+  });
+});
+
+// Partners Dashboard (Protected - Trainer Only)
+router.get('/partners', requireTrainer, (req, res) => {
+  res.render('partners', {
+    title: 'Partner Dashboard',
+    layout: 'main',
+    hideHeaderFooter: true,
+    trainer: req.session.trainer
+  });
+});
+
+// Partners Logout
+router.get('/partners/logout', (req, res) => {
+  delete req.session.trainer;
+  res.redirect('/partners/login');
 });
 
 // Logout

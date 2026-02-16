@@ -36,7 +36,7 @@ async function checkUserRole(email) {
 
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Users!A:N',
+            range: 'Users!A:O',
         });
 
         const rows = response.data.values;

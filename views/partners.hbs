@@ -1,0 +1,549 @@
+<!-- Partners Dashboard -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+    body { background: #f4f6f9; overflow-x: hidden; }
+    .partner-sidebar {
+        position: fixed; top: 0; left: 0; width: 260px; height: 100vh;
+        background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
+        color: #fff; z-index: 1000; padding: 0;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .partner-sidebar .sidebar-header {
+        padding: 25px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+        text-align: center;
+    }
+    .partner-sidebar .sidebar-header img {
+        width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+        border: 3px solid rgba(255,255,255,0.3); margin-bottom: 10px;
+    }
+    .partner-sidebar .sidebar-header h6 { margin: 0; font-size: 15px; font-weight: 600; }
+    .partner-sidebar .sidebar-header small { color: rgba(255,255,255,0.6); font-size: 12px; }
+    .partner-sidebar .nav-item {
+        padding: 12px 25px; cursor: pointer; transition: all 0.2s;
+        display: flex; align-items: center; gap: 12px; font-size: 14px;
+        color: rgba(255,255,255,0.7); text-decoration: none;
+    }
+    .partner-sidebar .nav-item:hover, .partner-sidebar .nav-item.active {
+        background: rgba(255,255,255,0.1); color: #fff;
+    }
+    .partner-sidebar .nav-item i { width: 20px; text-align: center; }
+    .partner-content { margin-left: 260px; padding: 25px; min-height: 100vh; }
+    .partner-topbar {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 25px; padding: 15px 20px; background: #fff;
+        border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .stat-card {
+        background: #fff; border-radius: 12px; padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); }
+    .stat-card .stat-icon { font-size: 28px; margin-bottom: 10px; }
+    .stat-card .stat-value { font-size: 28px; font-weight: 700; color: #2c3e50; }
+    .stat-card .stat-label { font-size: 13px; color: #7f8c8d; margin-top: 5px; }
+
+    /* Calendar Styles */
+    .calendar-container { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; }
+    .calendar-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 20px 25px; background: #2c3e50; color: #fff;
+    }
+    .calendar-header h5 { margin: 0; font-weight: 600; }
+    .calendar-header .btn-nav {
+        background: rgba(255,255,255,0.15); border: none; color: #fff;
+        width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+    }
+    .calendar-header .btn-nav:hover { background: rgba(255,255,255,0.25); }
+    .week-grid {
+        display: grid; grid-template-columns: repeat(7, 1fr); gap: 0;
+    }
+    .day-header {
+        text-align: center; padding: 12px 5px; font-weight: 600; font-size: 12px;
+        color: #7f8c8d; border-bottom: 2px solid #ecf0f1; text-transform: uppercase;
+    }
+    .day-col {
+        min-height: 120px; border-right: 1px solid #ecf0f1; border-bottom: 1px solid #ecf0f1;
+        padding: 8px; cursor: pointer; transition: background 0.2s; position: relative;
+    }
+    .day-col:nth-child(7n) { border-right: none; }
+    .day-col:hover { background: #f8f9fa; }
+    .day-col.today { background: #eaf2ff; }
+    .day-col .day-number {
+        font-size: 13px; font-weight: 600; color: #2c3e50; margin-bottom: 5px;
+    }
+    .day-col.today .day-number {
+        background: #2c3e50; color: #fff; width: 26px; height: 26px;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    }
+    .schedule-pill {
+        font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-bottom: 3px;
+        cursor: pointer; transition: transform 0.2s; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
+    }
+    .schedule-pill:hover { transform: scale(1.02); }
+    .schedule-pill.active { background: #d4edda; color: #155724; }
+    .schedule-pill.cancelled { background: #f8d7da; color: #721c24; }
+    .schedule-pill.completed { background: #cce5ff; color: #004085; }
+
+    /* Schedule detail modal */
+    .schedule-detail-card {
+        background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 15px;
+    }
+    .schedule-detail-card .detail-row {
+        display: flex; justify-content: space-between; padding: 8px 0;
+        border-bottom: 1px solid #e9ecef; font-size: 14px;
+    }
+    .schedule-detail-card .detail-row:last-child { border-bottom: none; }
+    .schedule-detail-card .detail-label { color: #7f8c8d; font-weight: 500; }
+    .schedule-detail-card .detail-value { color: #2c3e50; font-weight: 600; }
+    .member-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: #e9ecef; padding: 5px 12px; border-radius: 20px;
+        font-size: 13px; margin: 3px;
+    }
+    .member-badge i { font-size: 11px; }
+
+    /* Modal close button */
+    .modal-close-btn {
+        background: none; border: none; color: #fff; font-size: 20px;
+        cursor: pointer; opacity: 0.7; transition: opacity 0.2s;
+        padding: 0; line-height: 1; display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close-btn:hover { opacity: 1; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .partner-sidebar { transform: translateX(-100%); }
+        .partner-sidebar.show { transform: translateX(0); }
+        .partner-content { margin-left: 0; }
+        .day-col { min-height: 80px; padding: 4px; }
+        .schedule-pill { font-size: 10px; padding: 2px 5px; }
+    }
+</style>
+
+<!-- Sidebar -->
+<div class="partner-sidebar" id="partnerSidebar">
+    <div class="sidebar-header">
+        <img id="trainerAvatar" src="https://ui-avatars.com/api/?name=T&background=3498db&color=fff&size=60" alt="Avatar">
+        <h6 id="trainerName">Trainer</h6>
+        <small id="trainerSpecialization">Specialization</small>
+    </div>
+    <div style="padding: 15px 0;">
+        <a class="nav-item active" href="#" onclick="showSection('schedule')">
+            <i class="fas fa-calendar-alt"></i> My Schedule
+        </a>
+        <a class="nav-item" href="#" onclick="showSection('profile')">
+            <i class="fas fa-user"></i> Profile
+        </a>
+        <a class="nav-item" href="#" onclick="handleLogout()" style="margin-top: auto; color: #e74c3c;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="partner-content">
+    <!-- Topbar -->
+    <div class="partner-topbar">
+        <div>
+            <button class="btn btn-sm d-md-none" onclick="toggleSidebar()" style="margin-right: 10px;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <strong style="font-size: 18px; color: #2c3e50;">My Schedule</strong>
+        </div>
+        <div>
+            <button class="btn btn-sm" onclick="goToToday()" style="background: #2c3e50; color: #fff; border-radius: 8px; padding: 6px 15px; font-size: 13px;">
+                <i class="fas fa-calendar-day"></i> Today
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4" id="statsRow">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #3498db;"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-value" id="statTotalWeek">0</div>
+                <div class="stat-label">Classes This Week</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #2ecc71;"><i class="fas fa-users"></i></div>
+                <div class="stat-value" id="statTotalMembers">0</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #e67e22;"><i class="fas fa-clock"></i></div>
+                <div class="stat-value" id="statUpcoming">0</div>
+                <div class="stat-label">Upcoming Today</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="color: #9b59b6;"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-value" id="statCompleted">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Section -->
+    <div id="scheduleSection">
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <button class="btn-nav" onclick="changeWeek(-1)"><i class="fas fa-chevron-left"></i></button>
+                <h5 id="weekLabel">Week</h5>
+                <button class="btn-nav" onclick="changeWeek(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="week-grid" id="weekGrid">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Section (hidden by default) -->
+    <div id="profileSection" style="display: none;">
+        <div class="card" style="border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <img id="profileAvatar" src="" alt="Avatar" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #2c3e50;">
+                    <h4 class="mt-3 mb-1" id="profileName" style="color: #2c3e50;"></h4>
+                    <span class="badge" id="profileStatus" style="background: #2ecc71; color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px;"></span>
+                </div>
+                <div class="schedule-detail-card">
+                    <div class="detail-row">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value" id="profileEmail"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value" id="profilePhone"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Specialization</span>
+                        <span class="detail-value" id="profileSpecialization"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Joined</span>
+                        <span class="detail-value" id="profileJoined"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Bio</span>
+                        <span class="detail-value" id="profileBio" style="max-width: 60%; text-align: right;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Detail Modal -->
+<div class="modal fade" id="scheduleDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header" style="background: #2c3e50; color: #fff; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title"><i class="fas fa-calendar-alt"></i> Schedule Detail</h5>
+                <button type="button" class="modal-close-btn" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="schedule-detail-card" id="modalScheduleDetail">
+                    <!-- Filled by JS -->
+                </div>
+                <div id="modalMembersList">
+                    <h6 style="color: #2c3e50; font-weight: 600; margin-bottom: 10px;"><i class="fas fa-users"></i> Students</h6>
+                    <div id="modalMembers">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Day Schedule Modal (click on a day) -->
+<div class="modal fade" id="dayScheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header" style="background: #2c3e50; color: #fff; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" id="dayModalTitle"><i class="fas fa-calendar-day"></i> Schedule</h5>
+                <button type="button" class="modal-close-btn" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body p-4" id="dayScheduleList">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentWeekStart = null;
+let schedulesData = [];
+let trainerInfo = null;
+
+// Format date as YYYY-MM-DD in local timezone (avoids UTC shift from toISOString)
+function formatDateLocal(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load trainer profile
+    try {
+        const res = await fetch('/api/partners/profile');
+        const data = await res.json();
+        if (data.success) {
+            trainerInfo = data.data;
+            updateTrainerUI(trainerInfo);
+        } else {
+            window.location.href = '/partners/login';
+        }
+    } catch (e) {
+        window.location.href = '/partners/login';
+    }
+
+    // Set current week
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    currentWeekStart = new Date(today);
+    currentWeekStart.setDate(today.getDate() + diff);
+    currentWeekStart.setHours(0, 0, 0, 0);
+
+    await loadSchedules();
+});
+
+function updateTrainerUI(trainer) {
+    const avatarUrl = trainer.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=3498db&color=fff&size=60`;
+    document.getElementById('trainerAvatar').src = avatarUrl;
+    document.getElementById('trainerName').textContent = trainer.name;
+    document.getElementById('trainerSpecialization').textContent = trainer.specialization || 'Trainer';
+
+    // Profile section
+    document.getElementById('profileAvatar').src = trainer.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(trainer.name)}&background=3498db&color=fff&size=100`;
+    document.getElementById('profileName').textContent = trainer.name;
+    document.getElementById('profileStatus').textContent = trainer.status || 'Active';
+    document.getElementById('profileEmail').textContent = trainer.email || '-';
+    document.getElementById('profilePhone').textContent = trainer.phone || '-';
+    document.getElementById('profileSpecialization').textContent = trainer.specialization || '-';
+    document.getElementById('profileJoined').textContent = trainer.joined_date || '-';
+    document.getElementById('profileBio').textContent = trainer.bio || '-';
+}
+
+async function loadSchedules() {
+    const dateStr = formatDateLocal(currentWeekStart);
+    try {
+        const res = await fetch(`/api/partners/schedules?date=${dateStr}`);
+        const data = await res.json();
+        if (data.success) {
+            schedulesData = data.data;
+            renderCalendar();
+            updateStats();
+        }
+    } catch (e) {
+        console.error('Error loading schedules:', e);
+    }
+}
+
+function renderCalendar() {
+    const grid = document.getElementById('weekGrid');
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Update week label
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    document.getElementById('weekLabel').textContent =
+        `${currentWeekStart.getDate()} ${monthNames[currentWeekStart.getMonth()]} - ${weekEnd.getDate()} ${monthNames[weekEnd.getMonth()]} ${weekEnd.getFullYear()}`;
+
+    let html = '';
+
+    // Day headers
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        html += `<div class="day-header">${days[i]}<br><small style="font-weight:400; color:#bdc3c7;">${d.getDate()}</small></div>`;
+    }
+
+    // Day columns
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        d.setHours(0, 0, 0, 0);
+        const dateStr = formatDateLocal(d);
+        const isToday = d.getTime() === today.getTime();
+
+        // Filter schedules for this day
+        const daySchedules = schedulesData.filter(s => {
+            const sDate = s.schedule_time ? s.schedule_time.split(' ')[0] : '';
+            return sDate === dateStr;
+        }).sort((a, b) => a.schedule_time.localeCompare(b.schedule_time));
+
+        html += `<div class="day-col ${isToday ? 'today' : ''}" onclick="showDaySchedules('${dateStr}')">`;
+        html += `<div class="day-number">${isToday ? `<div style="background:#2c3e50;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;">${d.getDate()}</div>` : d.getDate()}</div>`;
+
+        daySchedules.forEach(s => {
+            const time = s.schedule_time ? s.schedule_time.split(' ')[1] || '' : '';
+            const timeShort = time ? time.substring(0, 5) : '';
+            const statusClass = (s.status || 'Active').toLowerCase() === 'active' ? 'active' : 
+                               (s.status || '').toLowerCase() === 'cancelled' ? 'cancelled' : 'completed';
+            html += `<div class="schedule-pill ${statusClass}" onclick="event.stopPropagation(); showScheduleDetail('${s.id}')" title="${s.class_name} - ${timeShort}">
+                ${timeShort} ${s.class_name}
+            </div>`;
+        });
+
+        html += `</div>`;
+    }
+
+    grid.innerHTML = html;
+}
+
+function updateStats() {
+    const now = new Date();
+    const todayStr = formatDateLocal(now);
+
+    document.getElementById('statTotalWeek').textContent = schedulesData.length;
+
+    const totalMembers = schedulesData.reduce((sum, s) => sum + (s.members_count || 0), 0);
+    document.getElementById('statTotalMembers').textContent = totalMembers;
+
+    const upcoming = schedulesData.filter(s => {
+        const sDate = s.schedule_time ? s.schedule_time.split(' ')[0] : '';
+        return sDate === todayStr && new Date(s.schedule_time) > now && (s.status || 'Active').toLowerCase() === 'active';
+    }).length;
+    document.getElementById('statUpcoming').textContent = upcoming;
+
+    const completed = schedulesData.filter(s => (s.status || '').toLowerCase() === 'completed').length;
+    document.getElementById('statCompleted').textContent = completed;
+}
+
+function showDaySchedules(dateStr) {
+    const daySchedules = schedulesData.filter(s => {
+        const sDate = s.schedule_time ? s.schedule_time.split(' ')[0] : '';
+        return sDate === dateStr;
+    }).sort((a, b) => a.schedule_time.localeCompare(b.schedule_time));
+
+    const d = new Date(dateStr + 'T00:00:00');
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('dayModalTitle').innerHTML = `<i class="fas fa-calendar-day"></i> ${dayNames[d.getDay()]}, ${d.getDate()} ${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+
+    let html = '';
+    if (daySchedules.length === 0) {
+        html = '<div class="text-center py-4" style="color: #7f8c8d;"><i class="fas fa-calendar-times fa-3x mb-3" style="opacity:0.3;"></i><p>No classes scheduled for this day</p></div>';
+    } else {
+        daySchedules.forEach(s => {
+            const time = s.schedule_time ? s.schedule_time.split(' ')[1] || '' : '';
+            const timeShort = time ? time.substring(0, 5) : '-';
+            const statusBadge = (s.status || 'Active').toLowerCase() === 'active' ? 
+                '<span class="badge bg-success">Active</span>' : 
+                `<span class="badge bg-secondary">${s.status}</span>`;
+
+            html += `<div class="schedule-detail-card" style="cursor:pointer;" onclick="$('#dayScheduleModal').modal('hide'); setTimeout(() => showScheduleDetail('${s.id}'), 300);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div>
+                        <strong style="font-size:16px; color:#2c3e50;">${s.class_name || 'Class'}</strong>
+                        ${statusBadge}
+                    </div>
+                    <span style="font-size:13px; color:#7f8c8d;"><i class="fas fa-clock"></i> ${timeShort}</span>
+                </div>
+                <div style="display:flex; gap:20px; font-size:13px; color:#7f8c8d;">
+                    <span><i class="fas fa-users"></i> ${s.members_count || 0}/${s.class_capacity || '-'} students</span>
+                    <span><i class="fas fa-hourglass-half"></i> ${s.class_duration || '-'} min</span>
+                    ${s.gender_restriction ? `<span><i class="fas fa-venus-mars"></i> ${s.gender_restriction}</span>` : ''}
+                </div>
+                ${s.notes ? `<div style="margin-top:8px; font-size:12px; color:#95a5a6;"><i class="fas fa-sticky-note"></i> ${s.notes}</div>` : ''}
+            </div>`;
+        });
+    }
+
+    document.getElementById('dayScheduleList').innerHTML = html;
+    $('#dayScheduleModal').modal('show');
+}
+
+function showScheduleDetail(scheduleId) {
+    const schedule = schedulesData.find(s => s.id === scheduleId);
+    if (!schedule) return;
+
+    const time = schedule.schedule_time ? schedule.schedule_time.split(' ')[1] || '' : '';
+    const timeShort = time ? time.substring(0, 5) : '-';
+    const date = schedule.schedule_time ? schedule.schedule_time.split(' ')[0] : '-';
+
+    let detailHtml = `
+        <div class="detail-row"><span class="detail-label">Class</span><span class="detail-value">${schedule.class_name || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${date}</span></div>
+        <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value">${timeShort}</span></div>
+        <div class="detail-row"><span class="detail-label">Duration</span><span class="detail-value">${schedule.class_duration || '-'} min</span></div>
+        <div class="detail-row"><span class="detail-label">Capacity</span><span class="detail-value">${schedule.members_count || 0} / ${schedule.class_capacity || '-'}</span></div>
+        <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value">${schedule.status || 'Active'}</span></div>
+        ${schedule.gender_restriction ? `<div class="detail-row"><span class="detail-label">Gender</span><span class="detail-value">${schedule.gender_restriction}</span></div>` : ''}
+        ${schedule.notes ? `<div class="detail-row"><span class="detail-label">Notes</span><span class="detail-value">${schedule.notes}</span></div>` : ''}
+    `;
+    document.getElementById('modalScheduleDetail').innerHTML = detailHtml;
+
+    // Members list
+    let membersHtml = '';
+    if (schedule.members && schedule.members.length > 0) {
+        schedule.members.forEach(m => {
+            const genderIcon = m.gender === 'M' ? 'fa-mars' : m.gender === 'F' ? 'fa-venus' : 'fa-user';
+            membersHtml += `<span class="member-badge"><i class="fas ${genderIcon}"></i> ${m.name}</span>`;
+        });
+    } else {
+        membersHtml = '<p style="color:#95a5a6; font-size:13px;">No students registered yet</p>';
+    }
+    document.getElementById('modalMembers').innerHTML = membersHtml;
+
+    $('#scheduleDetailModal').modal('show');
+}
+
+function changeWeek(direction) {
+    currentWeekStart.setDate(currentWeekStart.getDate() + (direction * 7));
+    loadSchedules();
+}
+
+function goToToday() {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    currentWeekStart = new Date(today);
+    currentWeekStart.setDate(today.getDate() + diff);
+    currentWeekStart.setHours(0, 0, 0, 0);
+    loadSchedules();
+}
+
+function showSection(section) {
+    document.querySelectorAll('.partner-sidebar .nav-item').forEach(el => el.classList.remove('active'));
+    if (section === 'schedule') {
+        document.getElementById('scheduleSection').style.display = '';
+        document.getElementById('profileSection').style.display = 'none';
+        document.getElementById('statsRow').style.display = '';
+        document.querySelectorAll('.partner-sidebar .nav-item')[0].classList.add('active');
+    } else if (section === 'profile') {
+        document.getElementById('scheduleSection').style.display = 'none';
+        document.getElementById('profileSection').style.display = '';
+        document.getElementById('statsRow').style.display = 'none';
+        document.querySelectorAll('.partner-sidebar .nav-item')[1].classList.add('active');
+    }
+}
+
+function toggleSidebar() {
+    document.getElementById('partnerSidebar').classList.toggle('show');
+}
+
+async function handleLogout() {
+    try {
+        await fetch('/api/partners/logout', { method: 'POST' });
+    } catch (e) {}
+    window.location.href = '/partners/login';
+}
+</script>

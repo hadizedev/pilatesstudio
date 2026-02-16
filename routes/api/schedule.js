@@ -137,7 +137,7 @@ router.get('/user/profile', async (req, res) => {
     const userId = req.session.user.id;
     
     // Fetch users data from Google Sheets
-    const usersData = await getSheetsData('Users!A2:N');
+    const usersData = await getSheetsData('Users!A2:O');
     
     // Find user by ID
     const userRow = usersData.find(row => row[0] === userId.toString());
@@ -171,12 +171,13 @@ router.get('/user/profile', async (req, res) => {
       registered_date: userRow[7],
       expired_date: userRow[8],
       profile_picture: userRow[9],
-      total_credits: parseInt(userRow[10]) || 0,
-      gender: userRow[11],
-      date_of_birth: userRow[12],
-      role: userRow[13],
+      credits: parseInt(userRow[10]) || 0,
+      credit_available: parseInt(userRow[11]) || 0,
+      gender: userRow[12],
+      date_of_birth: userRow[13],
+      role: userRow[14],
       credits_used: creditsUsed,
-      credits_remaining: (parseInt(userRow[10]) || 0) - creditsUsed
+      credits_remaining: (parseInt(userRow[11]) || 0) - creditsUsed
     };
     
     res.json({ success: true, user });
@@ -211,8 +212,8 @@ router.get('/', async (req, res) => {
     // Fetch all required data
     const [schedulesData, trainersData, classesData, bookingsData] = await Promise.all([
       getSheetsData(`${SCHEDULES_SHEET}!A2:Q`),
-      getSheetsData(`${TRAINERS_SHEET}!A2:I`),
-      getSheetsData(`${CLASSES_SHEET}!A2:H`),
+      getSheetsData(`${TRAINERS_SHEET}!A2:J`),
+      getSheetsData(`${CLASSES_SHEET}!A2:G`),
       getSheetsData(`${BOOKINGS_SHEET}!A2:J`)
     ]);
     
@@ -221,12 +222,12 @@ router.get('/', async (req, res) => {
       id: row[0],
       name: row[1],
       email: row[2],
-      phone: row[3],
-      specialization: row[4],
-      image: row[5],
-      bio: row[6],
-      status: row[7],
-      joined_date: row[8]
+      phone: row[4],
+      specialization: row[5],
+      image: row[6],
+      bio: row[7],
+      status: row[8],
+      joined_date: row[9]
     }));
     
     // Parse classes
@@ -236,9 +237,8 @@ router.get('/', async (req, res) => {
       duration: row[2],
       capacity: row[3],
       description: row[4],
-      price: row[5],
-      credits_required: row[6],
-      status: row[7]
+      credits_required: row[5],
+      status: row[6]
     }));
     
     // Parse bookings for current user
@@ -294,8 +294,8 @@ router.get('/history', async (req, res) => {
     // Fetch all required data
     const [schedulesData, trainersData, classesData, bookingsData] = await Promise.all([
       getSheetsData(`${SCHEDULES_SHEET}!A2:Q`),
-      getSheetsData(`${TRAINERS_SHEET}!A2:I`),
-      getSheetsData(`${CLASSES_SHEET}!A2:H`),
+      getSheetsData(`${TRAINERS_SHEET}!A2:J`),
+      getSheetsData(`${CLASSES_SHEET}!A2:G`),
       getSheetsData(`${BOOKINGS_SHEET}!A2:J`)
     ]);
     
@@ -304,12 +304,12 @@ router.get('/history', async (req, res) => {
       id: row[0],
       name: row[1],
       email: row[2],
-      phone: row[3],
-      specialization: row[4],
-      image: row[5],
-      bio: row[6],
-      status: row[7],
-      joined_date: row[8]
+      phone: row[4],
+      specialization: row[5],
+      image: row[6],
+      bio: row[7],
+      status: row[8],
+      joined_date: row[9]
     }));
     
     // Parse classes
@@ -319,9 +319,8 @@ router.get('/history', async (req, res) => {
       duration: row[2],
       capacity: row[3],
       description: row[4],
-      price: row[5],
-      credits_required: row[6],
-      status: row[7]
+      credits_required: row[5],
+      status: row[6]
     }));
     
     // Get user's bookings (past only)
@@ -435,10 +434,10 @@ router.post('/book', async (req, res) => {
     }
     
     // Get class capacity and credits required
-    const classesData = await getSheetsData(`${CLASSES_SHEET}!A2:H`);
+    const classesData = await getSheetsData(`${CLASSES_SHEET}!A2:G`);
     const classInfo = classesData.find(row => row[0] === sclass);
     const capacity = classInfo ? parseInt(classInfo[3]) : 6;
-    const creditsRequired = classInfo ? parseInt(classInfo[6]) || 1 : 1;
+    const creditsRequired = classInfo ? parseInt(classInfo[5]) || 1 : 1;
     
     // Check if full
     if (membersArray.length >= capacity) {
@@ -446,7 +445,7 @@ router.post('/book', async (req, res) => {
     }
     
     // Check user has enough credits
-    const usersData = await getSheetsData(`${USERS_SHEET}!A2:N`);
+    const usersData = await getSheetsData(`${USERS_SHEET}!A2:O`);
     const userIndex = usersData.findIndex(row => row[0] === userId.toString());
     
     if (userIndex === -1) {
@@ -454,12 +453,12 @@ router.post('/book', async (req, res) => {
     }
     
     const userRow = usersData[userIndex];
-    const currentTotalCredits = parseInt(userRow[10]) || 0;
+    const currentCreditAvailable = parseInt(userRow[11]) || 0;
     
-    if (currentTotalCredits < creditsRequired) {
+    if (currentCreditAvailable < creditsRequired) {
       return res.status(400).json({ 
         success: false, 
-        message: `Insufficient credits. You have ${currentTotalCredits} but this class requires ${creditsRequired} credits` 
+        message: `Insufficient credits. You have ${currentCreditAvailable} but this class requires ${creditsRequired} credits` 
       });
     }
     
@@ -495,15 +494,15 @@ router.post('/book', async (req, res) => {
     
     await appendSheetsData(`${BOOKINGS_SHEET}!A:J`, [bookingRow]);
     
-    // Deduct credits from user's total_credits
+    // Deduct credits from user's credit_available
     try {
-      const newTotalCredits = currentTotalCredits - creditsRequired;
+      const newCreditAvailable = currentCreditAvailable - creditsRequired;
       
-      // Update user's total_credits
-      userRow[10] = newTotalCredits.toString();
-      await updateSheetsData(`${USERS_SHEET}!A${userIndex + 2}:N${userIndex + 2}`, [userRow]);
+      // Update user's credit_available
+      userRow[11] = newCreditAvailable.toString();
+      await updateSheetsData(`${USERS_SHEET}!A${userIndex + 2}:O${userIndex + 2}`, [userRow]);
       
-      console.log(`Deducted ${creditsRequired} credits from user ${userId}: ${currentTotalCredits} -> ${newTotalCredits}`);
+      console.log(`Deducted ${creditsRequired} credits from user ${userId}: ${currentCreditAvailable} -> ${newCreditAvailable}`);
     } catch (creditError) {
       console.error('Error updating user credits:', creditError);
       // Don't fail the booking if credit update fails
@@ -594,19 +593,19 @@ router.post('/cancel', async (req, res) => {
       
       // Refund credits to user
       try {
-        const usersData = await getSheetsData(`${USERS_SHEET}!A2:N`);
+        const usersData = await getSheetsData(`${USERS_SHEET}!A2:O`);
         const userIndex = usersData.findIndex(row => row[0] === userId.toString());
         
         if (userIndex !== -1) {
           const userRow = usersData[userIndex];
-          const currentTotalCredits = parseInt(userRow[10]) || 0;
-          const newTotalCredits = currentTotalCredits + creditsUsed;
+          const currentCreditAvailable = parseInt(userRow[11]) || 0;
+          const newCreditAvailable = currentCreditAvailable + creditsUsed;
           
-          // Update user's total_credits with refund
-          userRow[10] = newTotalCredits.toString();
-          await updateSheetsData(`${USERS_SHEET}!A${userIndex + 2}:N${userIndex + 2}`, [userRow]);
+          // Update user's credit_available with refund
+          userRow[11] = newCreditAvailable.toString();
+          await updateSheetsData(`${USERS_SHEET}!A${userIndex + 2}:O${userIndex + 2}`, [userRow]);
           
-          console.log(`Refunded ${creditsUsed} credits to user ${userId}: ${currentTotalCredits} -> ${newTotalCredits}`);
+          console.log(`Refunded ${creditsUsed} credits to user ${userId}: ${currentCreditAvailable} -> ${newCreditAvailable}`);
         }
       } catch (creditError) {
         console.error('Error refunding user credits:', creditError);

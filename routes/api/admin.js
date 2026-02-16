@@ -30,10 +30,10 @@ const sheets = google.sheets({ version: 'v4', auth });
 router.get('/data', async (req, res) => {
     try {
         // Fetch all data in parallel
-        const [usersResponse, bookingsResponse, classesResponse, transactionsResponse, schedulesResponse, trainersResponse] = await Promise.all([
+        const [usersResponse, bookingsResponse, classesResponse, transactionsResponse, schedulesResponse, trainersResponse, membershipResponse] = await Promise.all([
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Users!A:N'
+                range: 'Users!A:O'
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
@@ -41,7 +41,7 @@ router.get('/data', async (req, res) => {
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Classes!A:H'
+                range: 'Classes!A:G'
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
@@ -53,7 +53,11 @@ router.get('/data', async (req, res) => {
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Trainers!A:I'
+                range: 'Trainers!A:J'
+            }),
+            sheets.spreadsheets.values.get({
+                spreadsheetId: spreadsheetId,
+                range: 'Membership!A:D'
             })
         ]);
 
@@ -70,10 +74,11 @@ router.get('/data', async (req, res) => {
                 registered_date: row[7] || '',
                 expired_date: row[8] || '',
                 profile_picture: row[9] || '',
-                total_credits: row[10] || '0',
-                gender: row[11] || '',
-                date_of_birth: row[12] || '',
-                role: row[13] || ''
+                credits: row[10] || '0',
+                credit_available: row[11] || '0',
+                gender: row[12] || '',
+                date_of_birth: row[13] || '',
+                role: row[14] || ''
             };
         });
 
@@ -103,9 +108,8 @@ router.get('/data', async (req, res) => {
                 duration: row[2] || '',
                 capacity: row[3] || '',
                 description: row[4] || '',
-                price: row[5] || '',
-                credits_required: row[6] || '',
-                status: row[7] || ''
+                credits_required: row[5] || '',
+                status: row[6] || ''
             };
         });
 
@@ -146,11 +150,24 @@ router.get('/data', async (req, res) => {
                 id: row[0] || '',
                 name: row[1] || '',
                 email: row[2] || '',
-                phone: row[3] || '',
-                specialization: row[4] || '',
-                bio: row[6] || '',
-                status: row[7] || '',
-                joined_date: row[8] || ''
+                phone: row[4] || '',
+                specialization: row[5] || '',
+                image: row[6] || '',
+                bio: row[7] || '',
+                status: row[8] || '',
+                joined_date: row[9] || ''
+            };
+        });
+
+        // Process Membership data (A=Name, B=Price, C=Credits, D=Duration_Days - no ID column)
+        const membershipRows = membershipResponse.data.values || [];
+        const membership = membershipRows.slice(1).map((row, index) => {
+            return {
+                id: (index + 2).toString(),  // row index in sheet (1-based + header)
+                name: row[0] || '',
+                price: row[1] || '0',
+                credits: row[2] || '0',
+                duration_days: row[3] || '0'
             };
         });
 
@@ -163,13 +180,15 @@ router.get('/data', async (req, res) => {
                 transactions,
                 schedules,
                 trainers,
+                membership,
                 stats: {
                     totalUsers: users.length,
                     totalBookings: bookings.length,
                     totalClasses: classes.length,
                     totalTransactions: transactions.length,
                     totalSchedules: schedules.length,
-                    totalTrainers: trainers.length
+                    totalTrainers: trainers.length,
+                    totalMembership: membership.length
                 }
             }
         });
@@ -190,7 +209,7 @@ router.get('/data/users', async (req, res) => {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Users!A:N'
+            range: 'Users!A:O'
         });
 
         const rows = response.data.values || [];
@@ -204,10 +223,11 @@ router.get('/data/users', async (req, res) => {
             registered_date: row[7] || '',
             expired_date: row[8] || '',
             profile_picture: row[9] || '',
-            total_credits: row[10] || '0',
-            gender: row[11] || '',
-            date_of_birth: row[12] || '',
-            role: row[13] || ''
+            credits: row[10] || '0',
+            credit_available: row[11] || '0',
+            gender: row[12] || '',
+            date_of_birth: row[13] || '',
+            role: row[14] || ''
         }));
 
         res.json({ success: true, data: users, total: users.length });
@@ -224,7 +244,7 @@ router.get('/data/users/:id', async (req, res) => {
         
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Users!A:N'
+            range: 'Users!A:O'
         });
 
         const rows = response.data.values || [];
@@ -244,10 +264,11 @@ router.get('/data/users/:id', async (req, res) => {
             registered_date: user[7] || '',
             expired_date: user[8] || '',
             profile_picture: user[9] || '',
-            total_credits: user[10] || '0',
-            gender: user[11] || '',
-            date_of_birth: user[12] || '',
-            role: user[13] || ''
+            credits: user[10] || '0',
+            credit_available: user[11] || '0',
+            gender: user[12] || '',
+            date_of_birth: user[13] || '',
+            role: user[14] || ''
         };
 
         res.json({ success: true, data: userData });
@@ -381,7 +402,7 @@ router.get('/data/classes', async (req, res) => {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Classes!A:H'
+            range: 'Classes!A:G'
         });
 
         const rows = response.data.values || [];
@@ -391,9 +412,8 @@ router.get('/data/classes', async (req, res) => {
             duration: row[2] || '',
             capacity: row[3] || '',
             description: row[4] || '',
-            price: row[5] || '',
-            credits_required: row[6] || '',
-            status: row[7] || ''
+            credits_required: row[5] || '',
+            status: row[6] || ''
         }));
 
         res.json({ success: true, data: classes, total: classes.length });
@@ -410,7 +430,7 @@ router.get('/data/classes/:id', async (req, res) => {
         
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Classes!A:H'
+            range: 'Classes!A:G'
         });
 
         const rows = response.data.values || [];
@@ -426,9 +446,8 @@ router.get('/data/classes/:id', async (req, res) => {
             duration: classItem[2] || '',
             capacity: classItem[3] || '',
             description: classItem[4] || '',
-            price: classItem[5] || '',
-            credits_required: classItem[6] || '',
-            status: classItem[7] || ''
+            credits_required: classItem[5] || '',
+            status: classItem[6] || ''
         };
 
         res.json({ success: true, data: classData });
@@ -509,7 +528,7 @@ router.get('/data/trainers', async (req, res) => {
     try {
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Trainers!A:I'
+            range: 'Trainers!A:J'
         });
 
         const rows = response.data.values || [];
@@ -517,12 +536,12 @@ router.get('/data/trainers', async (req, res) => {
             id: row[0] || '',
             name: row[1] || '',
             email: row[2] || '',
-            phone: row[3] || '',
-            specialization: row[4] || '',
-            image: row[5] || '',
-            bio: row[6] || '',
-            status: row[7] || '',
-            joined_date: row[8] || ''
+            phone: row[4] || '',
+            specialization: row[5] || '',
+            image: row[6] || '',
+            bio: row[7] || '',
+            status: row[8] || '',
+            joined_date: row[9] || ''
         }));
 
         res.json({ success: true, data: trainers, total: trainers.length });
@@ -539,7 +558,7 @@ router.get('/data/trainers/:id', async (req, res) => {
         
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Trainers!A:I'
+            range: 'Trainers!A:J'
         });
 
         const rows = response.data.values || [];
@@ -553,12 +572,12 @@ router.get('/data/trainers/:id', async (req, res) => {
             id: trainer[0] || '',
             name: trainer[1] || '',
             email: trainer[2] || '',
-            phone: trainer[3] || '',
-            specialization: trainer[4] || '',
-            image: trainer[5] || '',
-            bio: trainer[6] || '',
-            status: trainer[7] || '',
-            joined_date: trainer[8] || ''
+            phone: trainer[4] || '',
+            specialization: trainer[5] || '',
+            image: trainer[6] || '',
+            bio: trainer[7] || '',
+            status: trainer[8] || '',
+            joined_date: trainer[9] || ''
         };
 
         res.json({ success: true, data: trainerData });
@@ -630,16 +649,73 @@ router.get('/data/transactions/:id', async (req, res) => {
     }
 });
 
+// GET /api/admin/data/membership - Get membership plans only
+router.get('/data/membership', async (req, res) => {
+    try {
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: 'Membership!A:D'
+        });
+
+        const rows = response.data.values || [];
+        const membership = rows.slice(1).map((row, index) => ({
+            id: (index + 2).toString(),  // row index in sheet
+            name: row[0] || '',
+            price: row[1] || '0',
+            credits: row[2] || '0',
+            duration_days: row[3] || '0'
+        }));
+
+        res.json({ success: true, data: membership, total: membership.length });
+    } catch (error) {
+        console.error('Error fetching membership:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch membership' });
+    }
+});
+
+// GET /api/admin/data/membership/:id - Get specific membership detail (id = row number)
+router.get('/data/membership/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const rowNumber = parseInt(id);
+        
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: `Membership!A${rowNumber}:D${rowNumber}`
+        });
+
+        const rows = response.data.values || [];
+        if (!rows[0]) {
+            return res.status(404).json({ success: false, message: 'Membership not found' });
+        }
+
+        const item = rows[0];
+        const membershipData = {
+            id: id,
+            name: item[0] || '',
+            price: item[1] || '0',
+            credits: item[2] || '0',
+            duration_days: item[3] || '0'
+        };
+
+        res.json({ success: true, data: membershipData });
+    } catch (error) {
+        console.error('Error fetching membership detail:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch membership detail' });
+    }
+});
+
 // GET /api/admin/data/stats - Get summary counts only (lightweight)
 router.get('/data/stats', async (req, res) => {
     try {
-        const [usersRes, bookingsRes, classesRes, transactionsRes, schedulesRes, trainersRes] = await Promise.all([
+        const [usersRes, bookingsRes, classesRes, transactionsRes, schedulesRes, trainersRes, membershipRes] = await Promise.all([
             sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A:A' }),
             sheets.spreadsheets.values.get({ spreadsheetId, range: 'Bookings!A:A' }),
             sheets.spreadsheets.values.get({ spreadsheetId, range: 'Classes!A:A' }),
             sheets.spreadsheets.values.get({ spreadsheetId, range: 'Transactions!A:A' }),
             sheets.spreadsheets.values.get({ spreadsheetId, range: 'Schedules!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Trainers!A:A' })
+            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Trainers!A:A' }),
+            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Membership!A:A' })
         ]);
 
         res.json({
@@ -650,7 +726,8 @@ router.get('/data/stats', async (req, res) => {
                 totalClasses: Math.max((classesRes.data.values || []).length - 1, 0),
                 totalTransactions: Math.max((transactionsRes.data.values || []).length - 1, 0),
                 totalSchedules: Math.max((schedulesRes.data.values || []).length - 1, 0),
-                totalTrainers: Math.max((trainersRes.data.values || []).length - 1, 0)
+                totalTrainers: Math.max((trainersRes.data.values || []).length - 1, 0),
+                totalMembership: Math.max((membershipRes.data.values || []).length - 1, 0)
             }
         });
     } catch (error) {
@@ -781,7 +858,7 @@ async function deleteRow(sheetName, rowNumber) {
 // POST /api/admin/user - Create new user
 router.post('/user', async (req, res) => {
     try {
-        const { name, email, phone, password, membership_type, membership_status, expired_date, total_credits, gender, role } = req.body;
+        const { name, email, phone, password, membership_type, membership_status, expired_date, credits, credit_available, gender, role } = req.body;
         
         // Validate required fields
         if (!name || !email || !phone || !password) {
@@ -800,7 +877,8 @@ router.post('/user', async (req, res) => {
             new Date().toISOString().split('T')[0], // registered_date
             expired_date,
             '', // profile_picture
-            total_credits,
+            credits,
+            credit_available || credits, // default credit_available = credits
             gender,
             '', // date_of_birth
             role || 'user'
@@ -823,7 +901,7 @@ router.post('/user', async (req, res) => {
 router.put('/user/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, phone, password, membership_type, membership_status, expired_date, total_credits, gender, role } = req.body;
+        const { name, email, phone, password, membership_type, membership_status, expired_date, credits, credit_available, gender, role } = req.body;
         
         const rowIndex = await findRowIndexById('Users', id);
         if (rowIndex === -1) {
@@ -833,7 +911,7 @@ router.put('/user/:id', async (req, res) => {
         // Get existing data to preserve fields not being updated
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: `Users!A${rowIndex}:N${rowIndex}`
+            range: `Users!A${rowIndex}:O${rowIndex}`
         });
         
         const existingRow = response.data.values[0] || [];
@@ -849,10 +927,11 @@ router.put('/user/:id', async (req, res) => {
             existingRow[7], // registered_date (don't change)
             expired_date || existingRow[8],
             existingRow[9], // profile_picture
-            total_credits || existingRow[10],
-            gender || existingRow[11],
-            existingRow[12], // date_of_birth
-            role || existingRow[13]
+            credits || existingRow[10],
+            credit_available !== undefined ? credit_available : existingRow[11],
+            gender || existingRow[12],
+            existingRow[13], // date_of_birth
+            role || existingRow[14]
         ];
         
         await updateRow('Users', rowIndex, values);
@@ -981,7 +1060,7 @@ router.delete('/booking/:id', async (req, res) => {
 // POST /api/admin/class - Create new class
 router.post('/class', async (req, res) => {
     try {
-        const { name, duration, capacity, price, credits_required, status, description } = req.body;
+        const { name, duration, capacity, credits_required, status, description } = req.body;
         
         if (!name) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -994,7 +1073,6 @@ router.post('/class', async (req, res) => {
             duration || '',
             capacity || '',
             description || '',
-            price || '0',
             credits_required || '0',
             status || 'Active'
         ];
@@ -1012,7 +1090,7 @@ router.post('/class', async (req, res) => {
 router.put('/class/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, duration, capacity, price, credits_required, status, description } = req.body;
+        const { name, duration, capacity, credits_required, status, description } = req.body;
         
         const rowIndex = await findRowIndexById('Classes', id);
         if (rowIndex === -1) {
@@ -1021,7 +1099,7 @@ router.put('/class/:id', async (req, res) => {
         
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: `Classes!A${rowIndex}:H${rowIndex}`
+            range: `Classes!A${rowIndex}:G${rowIndex}`
         });
         
         const existingRow = response.data.values[0] || [];
@@ -1032,9 +1110,8 @@ router.put('/class/:id', async (req, res) => {
             duration !== undefined ? duration : existingRow[2],
             capacity !== undefined ? capacity : existingRow[3],
             description !== undefined ? description : existingRow[4],
-            price !== undefined ? price : existingRow[5],
-            credits_required !== undefined ? credits_required : existingRow[6],
-            status || existingRow[7]
+            credits_required !== undefined ? credits_required : existingRow[5],
+            status || existingRow[6]
         ];
         
         await updateRow('Classes', rowIndex, values);
@@ -1256,12 +1333,185 @@ router.delete('/schedule/:id', async (req, res) => {
     }
 });
 
+// ============ MEMBERSHIP CRUD ============
+
+// POST /api/admin/membership - Create new membership plan
+router.post('/membership', async (req, res) => {
+    try {
+        const { name, price, credits, duration_days } = req.body;
+        
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+        
+        const values = [
+            name,
+            price || '0',
+            credits || '0',
+            duration_days || '0'
+        ];
+        
+        await appendRow('Membership', values);
+        
+        res.json({ success: true, message: 'Membership created successfully' });
+    } catch (error) {
+        console.error('Error creating membership:', error);
+        res.status(500).json({ success: false, message: 'Error creating membership: ' + error.message });
+    }
+});
+
+// PUT /api/admin/membership/:id - Update membership plan (id = row number)
+router.put('/membership/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const rowNumber = parseInt(id);
+        const { name, price, credits, duration_days } = req.body;
+        
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: `Membership!A${rowNumber}:D${rowNumber}`
+        });
+        
+        if (!response.data.values || !response.data.values[0]) {
+            return res.status(404).json({ success: false, message: 'Membership not found' });
+        }
+        
+        const existingRow = response.data.values[0];
+        
+        const values = [
+            name || existingRow[0],
+            price !== undefined ? price : existingRow[1],
+            credits !== undefined ? credits : existingRow[2],
+            duration_days !== undefined ? duration_days : existingRow[3]
+        ];
+        
+        await updateRow('Membership', rowNumber, values);
+        
+        res.json({ success: true, message: 'Membership updated successfully' });
+    } catch (error) {
+        console.error('Error updating membership:', error);
+        res.status(500).json({ success: false, message: 'Error updating membership: ' + error.message });
+    }
+});
+
+// DELETE /api/admin/membership/:id - Delete membership plan (id = row number)
+router.delete('/membership/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const rowNumber = parseInt(id);
+        
+        await deleteRow('Membership', rowNumber);
+        
+        res.json({ success: true, message: 'Membership deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting membership:', error);
+        res.status(500).json({ success: false, message: 'Error deleting membership: ' + error.message });
+    }
+});
+
+// POST /api/admin/membership/apply - Apply membership to a user (sync to Users table)
+router.post('/membership/apply', async (req, res) => {
+    try {
+        const { membership_id, user_id } = req.body;
+        
+        if (!membership_id || !user_id) {
+            return res.status(400).json({ success: false, message: 'Missing membership_id or user_id' });
+        }
+        
+        // Get membership plan details
+        const membershipResponse = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: 'Membership!A:D'
+        });
+        const membershipRows = membershipResponse.data.values || [];
+        // membership_id is row number, so row index = membership_id - 1 (0-based)
+        const rowIdx = parseInt(membership_id) - 1; // convert to 0-based index
+        if (rowIdx < 1 || rowIdx >= membershipRows.length) {
+            return res.status(404).json({ success: false, message: 'Membership plan not found' });
+        }
+        const membershipPlan = membershipRows[rowIdx];
+        
+        const planName = membershipPlan[0] || '';
+        const planCredits = parseInt(membershipPlan[2]) || 0;
+        const planDurationDays = parseInt(membershipPlan[3]) || 0;
+        
+        // Get user data
+        const userRowIndex = await findRowIndexById('Users', user_id);
+        if (userRowIndex === -1) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        
+        const userResponse = await sheets.spreadsheets.values.get({
+            spreadsheetId: spreadsheetId,
+            range: `Users!A${userRowIndex}:O${userRowIndex}`
+        });
+        const existingUser = userResponse.data.values[0] || [];
+        
+        // Calculate new credits (add to existing)
+        const currentCredits = parseInt(existingUser[10]) || 0;
+        const currentCreditAvailable = parseInt(existingUser[11]) || 0;
+        const newCredits = currentCredits + planCredits;
+        const newCreditAvailable = currentCreditAvailable + planCredits;
+        
+        // Calculate new expired date (today + duration_days)
+        const today = new Date();
+        const currentExpiry = existingUser[8] ? new Date(existingUser[8]) : null;
+        
+        // If user has a future expiry date, extend from that date; otherwise from today
+        let baseDate = today;
+        if (currentExpiry && currentExpiry > today) {
+            baseDate = currentExpiry;
+        }
+        
+        const newExpiry = new Date(baseDate);
+        newExpiry.setDate(newExpiry.getDate() + planDurationDays);
+        const newExpiryStr = newExpiry.toISOString().split('T')[0];
+        
+        // Update user row: membership_type (col F/5), membership_status (col G/6), expired_date (col I/8), credits (col K/10), credit_available (col L/11)
+        const updatedValues = [
+            existingUser[0],  // id
+            existingUser[1],  // email
+            existingUser[2],  // password
+            existingUser[3],  // name
+            existingUser[4],  // phone
+            planName,         // membership_type -> from plan
+            'Active',         // membership_status -> set to Active
+            existingUser[7],  // registered_date
+            newExpiryStr,     // expired_date -> calculated
+            existingUser[9],  // profile_picture
+            newCredits.toString(), // credits -> added
+            newCreditAvailable.toString(), // credit_available -> added
+            existingUser[12], // gender
+            existingUser[13], // date_of_birth
+            existingUser[14]  // role
+        ];
+        
+        await updateRow('Users', userRowIndex, updatedValues);
+        
+        res.json({
+            success: true,
+            message: `Membership "${planName}" applied to user successfully. Credits: ${currentCredits} → ${newCredits}, Expiry: ${newExpiryStr}`,
+            data: {
+                user_id,
+                membership_name: planName,
+                credits_added: planCredits,
+                new_credits: newCredits,
+                new_credit_available: newCreditAvailable,
+                new_expired_date: newExpiryStr
+            }
+        });
+    } catch (error) {
+        console.error('Error applying membership:', error);
+        res.status(500).json({ success: false, message: 'Error applying membership: ' + error.message });
+    }
+});
+
 // ============ TRAINER CRUD ============
 
 // POST /api/admin/trainer - Create new trainer
 router.post('/trainer', async (req, res) => {
     try {
-        const { name, email, phone, specialization, status, bio } = req.body;
+        const { name, email, password, phone, specialization, status, bio } = req.body;
         
         if (!name || !email) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
@@ -1272,9 +1522,10 @@ router.post('/trainer', async (req, res) => {
             id,
             name,
             email,
+            password || '',
             phone || '',
             specialization || '',
-            '', // placeholder
+            '', // image
             bio || '',
             status || 'Active',
             new Date().toISOString().split('T')[0] // joined_date
@@ -1293,7 +1544,7 @@ router.post('/trainer', async (req, res) => {
 router.put('/trainer/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, phone, specialization, status, bio } = req.body;
+        const { name, email, password, phone, specialization, status, bio } = req.body;
         
         const rowIndex = await findRowIndexById('Trainers', id);
         if (rowIndex === -1) {
@@ -1302,7 +1553,7 @@ router.put('/trainer/:id', async (req, res) => {
         
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: `Trainers!A${rowIndex}:I${rowIndex}`
+            range: `Trainers!A${rowIndex}:J${rowIndex}`
         });
         
         const existingRow = response.data.values[0] || [];
@@ -1311,12 +1562,13 @@ router.put('/trainer/:id', async (req, res) => {
             id,
             name || existingRow[1],
             email || existingRow[2],
-            phone !== undefined ? phone : existingRow[3],
-            specialization !== undefined ? specialization : existingRow[4],
-            existingRow[5],
-            bio !== undefined ? bio : existingRow[6],
-            status || existingRow[7],
-            existingRow[8] // joined_date (don't change)
+            password || existingRow[3],
+            phone !== undefined ? phone : existingRow[4],
+            specialization !== undefined ? specialization : existingRow[5],
+            existingRow[6], // image
+            bio !== undefined ? bio : existingRow[7],
+            status || existingRow[8],
+            existingRow[9] // joined_date (don't change)
         ];
         
         await updateRow('Trainers', rowIndex, values);

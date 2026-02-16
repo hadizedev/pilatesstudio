@@ -13,6 +13,7 @@ const loginApiRoutes = require('./routes/api/login');
 const scheduleApiRoutes = require('./routes/api/schedule');
 const adminApiRoutes = require('./routes/api/admin');
 const homepageApiRoutes = require('./routes/api/homepage');
+const partnersApiRoutes = require('./routes/api/partners');
 const { checkAuth } = require('./middleware/auth');
 const maintenanceMiddleware = require('./middleware/maintenance');
 
@@ -65,6 +66,7 @@ app.use('/api/login', loginApiRoutes);
 app.use('/api/schedule', scheduleApiRoutes);
 app.use('/api/admin', adminApiRoutes);
 app.use('/api/homepage', homepageApiRoutes);
+app.use('/api/partners', partnersApiRoutes);
 
 // Start server
 app.listen(PORT, () => {

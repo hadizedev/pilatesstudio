@@ -550,7 +550,7 @@ async function fetchSchedule(date, isHistory = false) {
         isPast: isPast || isRunning,
         isBookable: isBookableDate && !isPast && !isRunning,
         credits_required: classInfo.credits_required || 1,
-        total_credits: window.userCredits || 0
+        credit_available: window.userCredits || 0
       };
     });
     
@@ -917,7 +917,7 @@ function showBookingModal(sid) {
   
   // Update credits info
   const creditsRequired = classData.credits_required || 1;
-  const creditsAvailable = classData.total_credits || 0;
+  const creditsAvailable = classData.credit_available || 0;
   document.getElementById('booking-credits-required').textContent = creditsRequired;
   document.getElementById('booking-credits-available').textContent = creditsAvailable;
   
@@ -933,7 +933,7 @@ function closeBookingModal() {
   pendingBookingData = null;
 }
 
-// Fetch user's total credits information
+// Fetch user's credit available information
 async function fetchUserCredits() {
   try {
     const response = await fetch('/api/schedule/user/profile');
@@ -944,8 +944,8 @@ async function fetchUserCredits() {
     const data = await response.json();
     console.log('User profile data:', data);
     
-    // Store total credits in global variable for use in showBookingModal
-    window.userCredits = data.total_credits || 0;
+    // Store credit_available in global variable for use in showBookingModal
+    window.userCredits = data.user ? (data.user.credit_available || 0) : 0;
     
     return data;
   } catch (error) {
@@ -1000,13 +1000,13 @@ async function handleCancelBook(sid) {
       const userProfile = await fetchUserCredits();
       if (userProfile && userProfile.user) {
         const user = userProfile.user;
-        const totalCredits = parseInt(user.total_credits) || 0;
+        const totalCredits = parseInt(user.credits) || 0;
+        const creditAvailable = parseInt(user.credit_available) || 0;
         const creditsUsed = parseInt(user.credits_used) || 0;
-        const creditsRemaining = totalCredits - creditsUsed;
         
         document.getElementById('status-total').textContent = totalCredits;
         document.getElementById('status-used').textContent = creditsUsed;
-        document.getElementById('status-remaining').textContent = Math.max(0, creditsRemaining);
+        document.getElementById('status-remaining').textContent = Math.max(0, creditAvailable);
       }
       
       fetchSchedule(selectedDate, currentTab === 'history');
@@ -1052,13 +1052,13 @@ document.getElementById('confirm-booking-btn').addEventListener('click', async (
       const userProfile = await fetchUserCredits();
       if (userProfile && userProfile.user) {
         const user = userProfile.user;
-        const totalCredits = parseInt(user.total_credits) || 0;
+        const totalCredits = parseInt(user.credits) || 0;
+        const creditAvailable = parseInt(user.credit_available) || 0;
         const creditsUsed = parseInt(user.credits_used) || 0;
-        const creditsRemaining = totalCredits - creditsUsed;
         
         document.getElementById('status-total').textContent = totalCredits;
         document.getElementById('status-used').textContent = creditsUsed;
-        document.getElementById('status-remaining').textContent = Math.max(0, creditsRemaining);
+        document.getElementById('status-remaining').textContent = Math.max(0, creditAvailable);
       }
       
       fetchSchedule(selectedDate, currentTab === 'history');
@@ -1229,13 +1229,13 @@ async function initializePage() {
     console.log('Updating status card with user data:', user);
     
     // Update credit display
-    const totalCredits = parseInt(user.total_credits) || 0;
+    const totalCredits = parseInt(user.credits) || 0;
+    const creditAvailable = parseInt(user.credit_available) || 0;
     const creditsUsed = parseInt(user.credits_used) || 0;
-    const creditsRemaining = totalCredits - creditsUsed;
     
     document.getElementById('status-total').textContent = totalCredits;
     document.getElementById('status-used').textContent = creditsUsed;
-    document.getElementById('status-remaining').textContent = Math.max(0, creditsRemaining);
+    document.getElementById('status-remaining').textContent = Math.max(0, creditAvailable);
   }
   
   fetchSchedule(selectedDate, false); // Load upcoming classes for today
