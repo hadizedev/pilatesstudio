@@ -24,16 +24,14 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
 
-          # PENTING: muat nvm dulu (biar npm & pm2 dikenali)
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-          cd /home/deploy/pilatesstudio
+          cd /var/www/pilatesstudio
 
           git pull origin main
-          npm install
+          npm install --production
 
-          # Restart app
-          pm2 restart respilate
+          pm2 restart pilatesstudio || pm2 start app.js --name pilatesstudio
 
           EOF
