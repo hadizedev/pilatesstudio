@@ -24,14 +24,29 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
 
+          set -e  # stop kalau ada error
+
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
           cd /var/www/pilatesstudio
 
-          git pull origin main
-          npm install --production
+          echo "Pull latest code..."
+          git fetch origin
+          git reset --hard origin/main
 
-          pm2 restart pilatesstudio || pm2 start app.js --name pilatesstudio
+          echo "Install dependencies..."
+          npm install --omit=dev
+
+          echo "Restarting PM2..."
+          if pm2 describe pilatesstudio > /dev/null 2>&1; then
+            pm2 restart pilatesstudio
+          else
+            pm2 start app.js --name pilatesstudio
+          fi
+
+          pm2 save
+
+          echo "Deploy finished successfully 🚀"
 
           EOF
