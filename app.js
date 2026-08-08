@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { engine } = require('express-handlebars');
 const path = require('path');
@@ -11,7 +12,10 @@ const indexRoutes = require('./routes/index');
 const loginApiRoutes = require('./routes/api/login');
 const scheduleApiRoutes = require('./routes/api/schedule');
 const adminApiRoutes = require('./routes/api/admin');
+const homepageApiRoutes = require('./routes/api/homepage');
+const partnersApiRoutes = require('./routes/api/partners');
 const { checkAuth } = require('./middleware/auth');
+const maintenanceMiddleware = require('./middleware/maintenance');
 
 // Handlebars middleware with helpers
 app.engine('hbs', engine({
@@ -50,6 +54,9 @@ app.use(express.urlencoded({ extended: false }));
 // Static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Maintenance mode middleware (must be before other routes)
+app.use(maintenanceMiddleware);
+
 // Check auth for all routes (makes user data available in templates)
 app.use(checkAuth);
 
@@ -58,6 +65,8 @@ app.use('/', indexRoutes);
 app.use('/api/login', loginApiRoutes);
 app.use('/api/schedule', scheduleApiRoutes);
 app.use('/api/admin', adminApiRoutes);
+app.use('/api/homepage', homepageApiRoutes);
+app.use('/api/partners', partnersApiRoutes);
 
 // Start server
 app.listen(PORT, () => {

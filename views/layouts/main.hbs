@@ -563,6 +563,16 @@
   </style>
   <!-- Additional CSS -->
   {{{_sections.styles}}}
+  {{#if hideHeaderFooter}}
+  <style>
+    #header, footer {
+      display: none !important;
+    }
+    main {
+      padding-top: 0 !important;
+    }
+  </style>
+  {{/if}}
 </head>
 <body>
   <!-- Header -->

@@ -62,12 +62,31 @@ const requireTrainer = (req, res, next) => {
     }
 };
 
+// Partners-portal trainer auth — the Partners feature (routes/api/partners.js) keeps its own
+// session namespace (req.session.trainer) separate from the Coach dashboard's req.session.user,
+// so it needs its own guard rather than reusing requireTrainer above.
+const requirePartnerTrainer = (req, res, next) => {
+    if (req.session && req.session.trainer) {
+        next();
+    } else {
+        if (req.path.startsWith('/api/') || req.xhr || req.headers.accept?.includes('application/json')) {
+            return res.status(401).json({
+                success: false,
+                message: 'Unauthorized. Please login as trainer first.'
+            });
+        }
+        res.redirect('/partners/login');
+    }
+};
+
 // Check if user is logged in (for conditional rendering)
 const checkAuth = (req, res, next) => {
     res.locals.isAuthenticated = !!(req.session && req.session.user);
     res.locals.user = req.session && req.session.user ? req.session.user : null;
     res.locals.isAdmin = req.session && req.session.user && req.session.user.role === 'admin';
     res.locals.isTrainer = req.session && req.session.user && req.session.user.role === 'trainer';
+    res.locals.isPartnerTrainer = !!(req.session && req.session.trainer);
+    res.locals.partnerTrainer = req.session && req.session.trainer ? req.session.trainer : null;
     next();
 };
 
@@ -75,5 +94,6 @@ module.exports = {
     requireAuth,
     requireAdmin,
     requireTrainer,
+    requirePartnerTrainer,
     checkAuth
 };

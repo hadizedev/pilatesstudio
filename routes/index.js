@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, requireAdmin, requireTrainer, checkAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireTrainer, requirePartnerTrainer, checkAuth } = require('../middleware/auth');
+const googleSheets = require('../utils/googleSheets');
 
 // Home page
 router.get('/', (req, res) => {
@@ -107,6 +108,68 @@ router.get('/coach', requireTrainer, (req, res) => {
     heading: 'Jadwal Coach',
     user: req.session.user
   });
+});
+
+// Homepage Visual Editor (Protected - Admin Only)
+router.get('/admin/homepage-editor', requireAdmin, async (req, res) => {
+  try {
+    const homepageData = await googleSheets.getAllHomepageData();
+    res.render('homepage-editor', {
+      title: 'Homepage Editor',
+      user: req.session.user,
+      layout: 'main',
+      hideHeaderFooter: true,
+      isAdminPage: true,
+      ...homepageData
+    });
+  } catch (error) {
+    console.error('Error loading homepage editor:', error);
+    res.render('homepage-editor', {
+      title: 'Homepage Editor',
+      user: req.session.user,
+      layout: 'main',
+      hideHeaderFooter: true,
+      isAdminPage: true,
+      error: 'Failed to load homepage data'
+    });
+  }
+});
+
+// Maintenance page
+router.get('/maintenance', (req, res) => {
+  res.render('maintenance', {
+    title: 'Website Maintenance',
+    layout: 'main',
+    hideHeaderFooter: true
+  });
+});
+
+// Partners Login page
+router.get('/partners/login', (req, res) => {
+  if (req.session && req.session.trainer) {
+    return res.redirect('/partners');
+  }
+  res.render('partners-login', {
+    title: 'Partner Login',
+    layout: 'main',
+    hideHeaderFooter: true
+  });
+});
+
+// Partners Dashboard (Protected - Partner Trainer Only)
+router.get('/partners', requirePartnerTrainer, (req, res) => {
+  res.render('partners', {
+    title: 'Partner Dashboard',
+    layout: 'main',
+    hideHeaderFooter: true,
+    trainer: req.session.trainer
+  });
+});
+
+// Partners Logout
+router.get('/partners/logout', (req, res) => {
+  delete req.session.trainer;
+  res.redirect('/partners/login');
 });
 
 // Logout
