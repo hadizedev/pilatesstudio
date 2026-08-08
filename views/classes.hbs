@@ -1,0 +1,31 @@
+<div class="hero">
+  <h1>{{heading}}</h1>
+  <p>Pilih kelas yang sesuai dengan level dan tujuan Anda</p>
+</div>
+
+<section class="cards-container">
+  {{#each classes}}
+  <div class="card">
+    <h3>{{this.name}}</h3>
+    <p>{{this.description}}</p>
+    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+      <p><strong>⏱️ Durasi:</strong> {{this.duration}}</p>
+      <p><strong>📊 Level:</strong> {{this.level}}</p>
+      <a href="/contact" class="btn" style="margin-top: 1rem;">Daftar Sekarang</a>
+    </div>
+  </div>
+  {{/each}}
+</section>
+
+<section style="background: white; padding: 2rem; border-radius: 10px; margin-top: 2rem;">
+  <h2 style="color: #2c3e50; margin-bottom: 1rem;">Jadwal Kelas</h2>
+  <p style="color: #666; margin-bottom: 1rem;">
+    Kelas tersedia setiap hari Senin - Sabtu:
+  </p>
+  <ul style="list-style: none; padding: 0;">
+    <li style="padding: 0.5rem 0; color: #666;">🌅 Pagi: 07:00 - 08:30</li>
+    <li style="padding: 0.5rem 0; color: #666;">☀️ Siang: 12:00 - 13:30</li>
+    <li style="padding: 0.5rem 0; color: #666;">🌆 Sore: 17:00 - 18:30</li>
+    <li style="padding: 0.5rem 0; color: #666;">🌙 Malam: 19:00 - 20:30</li>
+  </ul>
+</section>

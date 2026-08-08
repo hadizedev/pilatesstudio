@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Pilate Studio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .admin-container {
+            padding: 20px;
+            margin-top: 70px;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stats-card h3 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+        .stats-card p {
+            margin: 5px 0 0 0;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        .table-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .table-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .table-section h2 i {
+            margin-right: 10px;
+        }
+        .nav-tabs .nav-link {
+            color: #667eea;
+            font-weight: 500;
+        }
+        #adminTabs .nav-link.active,
+        #adminTabs .nav-link.schedules-group-active {
+            color: #fff !important;
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        #adminTabs .nav-link.active i,
+        #adminTabs .nav-link.schedules-group-active i {
+            color: #fff !important;
+        }
+        .table {
+            font-size: 0.9rem;
+        }
+        .table thead th {
+            background-color: #f8f9fa;
+            color: #667eea;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+        }
+        .badge {
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+        .status-active { background-color: #28a745; }
+        .status-inactive { background-color: #dc3545; }
+        .status-confirmed { background-color: #17a2b8; }
+        .status-completed { background-color: #28a745; }
+        .status-cancelled { background-color: #dc3545; }
+        .status-paid { background-color: #28a745; }
+        .status-pending { background-color: #ffc107; }
+        .schedule-day-section {
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+        .schedule-day-toggle {
+            width: 100%;
+            text-align: left;
+            background: #f8f9fa;
+            border: none;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #667eea;
+        }
+        .schedule-day-toggle:hover {
+            background: #f0f2ff;
+        }
+        .schedule-day-toggle.schedule-day-past {
+            color: #adb5bd;
+        }
+        .schedule-day-toggle .chevron {
+            transition: transform .2s;
+        }
+        .schedule-day-toggle[aria-expanded="false"] .chevron {
+            transform: rotate(-90deg);
+        }
+        .schedule-day-body {
+            padding: 12px 16px;
+        }
+        tr.schedule-row-past {
+            color: #adb5bd;
+            background-color: #f8f9fa !important;
+        }
+        tr.schedule-row-past .badge {
+            opacity: 0.7;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        /* Highlight selected users in multiselect */
+        select[multiple] option.user-assigned {
+            background-color: #0d6efd;
+            color: white;
+            font-weight: 600;
+        }
+        select[multiple] option:checked {
+            background-color: #0d6efd;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    {{> header}}
+
+    <div class="admin-container">
+        <div class="container-fluid">
+            <h1 class="mb-4"><i class="fas fa-chart-line"></i> Admin Dashboard</h1>
+
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Memuat data...</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div id="statsSection" style="display: none;">
+                <div class="row mb-4">
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card">
+                            <h3 id="totalUsers">0</h3>
+                            <p><i class="fas fa-users"></i> Total Users</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <h3 id="totalBookings">0</h3>
+                            <p><i class="fas fa-calendar-check"></i> Bookings</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <h3 id="totalClasses">0</h3>
+                            <p><i class="fas fa-dumbbell"></i> Classes</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <h3 id="totalSchedules">0</h3>
+                            <p><i class="fas fa-calendar-alt"></i> Schedules</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-2 mb-3">
+                        <div class="stats-card" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                            <h3 id="totalTrainers">0</h3>
+                            <p><i class="fas fa-user-tie"></i> Trainers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div id="tabsSection" style="display: none;">
+                <ul class="nav nav-tabs mb-3" id="adminTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules" type="button" role="tab">
+                            <i class="fas fa-calendar-alt"></i> Schedules
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                            <i class="fas fa-users"></i> Users
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="memberships-tab" data-bs-toggle="tab" data-bs-target="#memberships" type="button" role="tab">
+                            <i class="fas fa-id-card"></i> Memberships
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab">
+                            <i class="fas fa-calendar-check"></i> Bookings
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="classes-tab" data-bs-toggle="tab" data-bs-target="#classes" type="button" role="tab">
+                            <i class="fas fa-dumbbell"></i> Classes
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="trainers-tab" data-bs-toggle="tab" data-bs-target="#trainers" type="button" role="tab">
+                            <i class="fas fa-user-tie"></i> Trainers
+                        </button>
+                    </li>
+                    <!-- Custom Schedule and Regular Schedule are reached via buttons inside the
+                         Schedules tab instead of top-level nav entries. Kept here (hidden) rather
+                         than deleted so the existing bootstrap.Tab wiring, ?view= URL sync, and
+                         nested day-tab JS all keep working unchanged. -->
+                    <li class="nav-item" role="presentation" style="display: none;">
+                        <button class="nav-link" id="custom-schedule-tab" data-bs-toggle="tab" data-bs-target="#custom-schedule" type="button" role="tab">
+                            <i class="fas fa-calendar-plus"></i> Custom Schedule
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation" style="display: none;">
+                        <button class="nav-link" id="regular-schedule-tab" data-bs-toggle="tab" data-bs-target="#regular-schedule" type="button" role="tab">
+                            <i class="fas fa-calendar-week"></i> Regular Schedule
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content" id="adminTabsContent">
+                    <!-- Schedules Table -->
+                    <div class="tab-pane fade show active" id="schedules" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-calendar-alt"></i> Schedules</h2>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('custom-schedule-tab').click()"><i class="fas fa-calendar-plus"></i> Custom Schedule</button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('regular-schedule-tab').click()"><i class="fas fa-calendar-week"></i> Regular Schedule</button>
+                                </div>
+                            </div>
+
+                            <!-- Week navigation -->
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeScheduleWeek(-1)"><i class="fas fa-chevron-left"></i> Prev Week</button>
+                                <h5 class="mb-0" id="scheduleWeekLabel"></h5>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="changeScheduleWeek(1)">Next Week <i class="fas fa-chevron-right"></i></button>
+                            </div>
+
+                            <div id="scheduleWeekContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="tab-pane fade" id="users" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-users"></i> Users</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('user')"><i class="fas fa-plus"></i> Add New User</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="usersTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Password</th>
+                                            <th>Gender</th>
+                                            <th>Role</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memberships Tab -->
+                    <div class="tab-pane fade" id="memberships" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-id-card"></i> Memberships</h2>
+                            </div>
+
+                            <!-- Register / Edit Membership Form -->
+                            <div class="card mb-4" style="border-radius:12px; padding:20px; background:#f8f9fa;">
+                                <h5 class="mb-3"><i class="fas fa-plus-circle text-primary"></i> <span id="membershipFormTitle">Daftarkan Membership</span></h5>
+                                <form id="membershipForm" class="row g-3">
+                                    <input type="hidden" id="membershipEditId" value="">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Member</label>
+                                        <select id="membershipMemberId" class="form-select" required></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Paket</label>
+                                        <select id="membershipPackageId" class="form-select" required></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tanggal Mulai</label>
+                                        <input type="date" id="membershipStartDate" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Buddy (khusus paket Couple)</label>
+                                        <select id="membershipBuddyId" class="form-select" disabled>
+                                            <option value="">Tidak ada</option>
+                                        </select>
+                                        <div class="form-text">Buddy berbagi kuota sesi yang sama dengan member utama.</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Catatan Pembayaran (opsional)</label>
+                                        <input type="text" id="membershipPaymentName" class="form-control" placeholder="mis. Transfer BCA - 470k">
+                                    </div>
+                                    <div class="col-md-4 d-flex align-items-end">
+                                        <div id="membershipPackageInfo" class="text-muted small"></div>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary" id="membershipSubmitBtn"><i class="fas fa-save"></i> Daftarkan</button>
+                                        <button type="button" class="btn btn-secondary" id="membershipCancelEditBtn" style="display:none;">Batal Edit</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="membershipsTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Member</th>
+                                            <th>Buddy</th>
+                                            <th>Paket</th>
+                                            <th>Mulai</th>
+                                            <th>Berakhir</th>
+                                            <th>Total Sesi</th>
+                                            <th>Terpakai</th>
+                                            <th>Sisa</th>
+                                            <th>Status</th>
+                                            <th>Catatan</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="membershipsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bookings Table -->
+                    <div class="tab-pane fade" id="bookings" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-calendar-check"></i> Bookings</h2>
+                                <button class="btn btn-primary" onclick="$('#addBookingCard').toggle()"><i class="fas fa-plus"></i> Add New Booking</button>
+                            </div>
+
+                            <!-- Add Booking Form — runs the real booking flow (capacity + quota check) -->
+                            <div id="addBookingCard" class="card mb-4" style="display:none; border-radius:12px; padding:20px; background:#f8f9fa;">
+                                <h5 class="mb-3"><i class="fas fa-plus-circle text-primary"></i> Booking Baru</h5>
+                                <form id="addBookingForm" class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Member</label>
+                                        <select id="addBookingMemberId" class="form-select" required></select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Tanggal</label>
+                                        <input type="date" id="addBookingDate" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Kelas</label>
+                                        <select id="addBookingSlot" class="form-select" required>
+                                            <option value="">Pilih tanggal dahulu...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Booking</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table id="bookingsTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Schedule ID</th>
+                                            <th>Member</th>
+                                            <th>Booking Time</th>
+                                            <th>Status</th>
+                                            <th>Attended</th>
+                                            <th>Payment Status</th>
+                                            <th>Credits Used</th>
+                                            <th>Notes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bookingsTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Classes Table -->
+                    <div class="tab-pane fade" id="classes" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-dumbbell"></i> Classes</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('class')"><i class="fas fa-plus"></i> Add New Class</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="classesTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Duration</th>
+                                            <th>Capacity</th>
+                                            <th>Credits Required</th>
+                                            <th>Status</th>
+                                            <th>Description</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="classesTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trainers Table -->
+                    <div class="tab-pane fade" id="trainers" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-user-tie"></i> Trainers</h2>
+                                <button class="btn btn-primary" onclick="showAddModal('trainer')"><i class="fas fa-plus"></i> Add New Trainer</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="trainersTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Photo</th>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Specialization</th>
+                                            <th>Status</th>
+                                            <th>Bio</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trainersTableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Custom Schedule Tab -->
+                    <div class="tab-pane fade" id="custom-schedule" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-calendar-plus"></i> Custom Schedule</h2>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('schedules-tab').click()"><i class="fas fa-arrow-left"></i> Back to Schedules</button>
+                            </div>
+
+                            <!-- Create Custom Schedule Form -->
+                            <div class="card mb-4" style="border-radius:12px; padding:20px; background:#f8f9fa;">
+                                <h5 class="mb-3"><i class="fas fa-plus-circle text-primary"></i> Buat Jadwal Custom</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Tanggal</label>
+                                        <input type="date" id="cs-date" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Jam (HH:MM)</label>
+                                        <input type="time" id="cs-time" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Coach</label>
+                                        <select id="cs-trainer" class="form-select">
+                                            <option value="Bunda">Coach Bunda</option>
+                                            <option value="Fredy">Coach Fredy</option>
+                                            <option value="Martin">Coach Martin</option>
+                                            <option value="Vera">Coach Vera</option>
+                                            <option value="Eko">Coach Eko</option>
+                                            <option value="Alma">Coach Alma</option>
+                                            <option value="Agung">Coach Agung</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Tipe Kelas</label>
+                                        <select id="cs-class-type" class="form-select">
+                                            <option value="Reformer">Reformer</option>
+                                            <option value="Tower">Tower</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">Durasi (mnt)</label>
+                                        <input type="number" id="cs-duration" class="form-control" value="60" min="30" max="120">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">Kapasitas</label>
+                                        <input type="number" id="cs-capacity" class="form-control" value="6" min="1" max="20">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Catatan</label>
+                                        <input type="text" id="cs-notes" class="form-control" placeholder="Keterangan tambahan...">
+                                    </div>
+                                    <div class="col-md-2 d-flex align-items-end">
+                                        <button class="btn btn-primary w-100" onclick="createCustomSchedule()">
+                                            <i class="fas fa-plus"></i> Buat Jadwal
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Custom Schedules List -->
+                            <h6 class="mb-2 text-muted">Jadwal Custom Aktif</h6>
+                            <div class="table-responsive">
+                                <table id="customSchedulesTable" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Tanggal</th>
+                                            <th>Jam</th>
+                                            <th>Coach</th>
+                                            <th>Tipe Kelas</th>
+                                            <th>Durasi</th>
+                                            <th>Kapasitas</th>
+                                            <th>Catatan</th>
+                                            <th>Dibuat Oleh</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="customSchedulesTableBody">
+                                        <tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Regular Schedule Tab -->
+                    <div class="tab-pane fade" id="regular-schedule" role="tabpanel">
+                        <div class="table-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="mb-0"><i class="fas fa-calendar-week"></i> Jadwal Regular</h2>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-success fs-6">Senin – Sabtu, Otomatis Berulang</span>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('schedules-tab').click()"><i class="fas fa-arrow-left"></i> Back to Schedules</button>
+                                </div>
+                            </div>
+
+                            <!-- Day Tabs -->
+                            <ul class="nav nav-pills mb-3" id="dayTabs">
+                                <li class="nav-item"><button class="nav-link active" onclick="loadDaySchedule(1, this)">Senin</button></li>
+                                <li class="nav-item"><button class="nav-link" onclick="loadDaySchedule(2, this)">Selasa</button></li>
+                                <li class="nav-item"><button class="nav-link" onclick="loadDaySchedule(3, this)">Rabu</button></li>
+                                <li class="nav-item"><button class="nav-link" onclick="loadDaySchedule(4, this)">Kamis</button></li>
+                                <li class="nav-item"><button class="nav-link" onclick="loadDaySchedule(5, this)">Jumat</button></li>
+                                <li class="nav-item"><button class="nav-link" onclick="loadDaySchedule(6, this)">Sabtu</button></li>
+                            </ul>
+
+                            <!-- Slots Table -->
+                            <div class="table-responsive mb-4">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Jam</th>
+                                            <th>Coach</th>
+                                            <th>Tipe Kelas</th>
+                                            <th>Durasi (mnt)</th>
+                                            <th>Kapasitas</th>
+                                            <th>Status Member</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="regularSlotsTableBody">
+                                        <tr><td colspan="7" class="text-center text-muted">Pilih hari di atas</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Add Slot Form -->
+                            <div class="card" style="border-radius:12px; padding:20px; background:#f8f9fa;">
+                                <h6 class="mb-3"><i class="fas fa-plus-circle text-primary"></i> Tambah Slot Baru</h6>
+                                <input type="hidden" id="rs-day" value="1">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-2">
+                                        <label class="form-label">Jam (HH:MM)</label>
+                                        <input type="time" id="rs-time" class="form-control">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Coach</label>
+                                        <select id="rs-trainer" class="form-select">
+                                            <option value="Bunda">Coach Bunda</option>
+                                            <option value="Fredy">Coach Fredy</option>
+                                            <option value="Martin">Coach Martin</option>
+                                            <option value="Vera">Coach Vera</option>
+                                            <option value="Eko">Coach Eko</option>
+                                            <option value="Alma">Coach Alma</option>
+                                            <option value="Agung">Coach Agung</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label">Tipe Kelas</label>
+                                        <select id="rs-classtype" class="form-select">
+                                            <option value="Reformer">Reformer</option>
+                                            <option value="Tower">Tower</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">Durasi</label>
+                                        <input type="number" id="rs-duration" class="form-control" value="60" min="30" max="120">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <label class="form-label">Kapasitas</label>
+                                        <input type="number" id="rs-capacity" class="form-control" value="6" min="1" max="20">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-primary w-100" onclick="addRegularSlot()">
+                                            <i class="fas fa-plus"></i> Tambah
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{> footer}}
+
+    <!-- CRUD Modal -->
+    <div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="crudModalTitle">Add New</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="crudForm">
+                        <input type="hidden" id="recordId">
+                        <input type="hidden" id="recordType">
+                        <div id="formFields"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveRecord()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Modal (schedule "Edit" action: add/remove members only) -->
+    <div class="modal fade" id="memberModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="memberModalTitle">Kelola Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="memberSearchInput" class="form-control mb-3" placeholder="Cari nama atau email member...">
+                    <div id="memberChecklist" class="list-group" style="max-height: 320px; overflow-y: auto;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveMemberModal()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    
+    <!-- Load Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    
+    <script>
+        // ===== Tab <-> URL query param (?view=...) =====
+        const TAB_VIEW_SLUGS = {
+            'schedules-tab': 'schedule',
+            'users-tab': 'users',
+            'memberships-tab': 'memberships',
+            'bookings-tab': 'bookings',
+            'classes-tab': 'classes',
+            'trainers-tab': 'trainers',
+            'custom-schedule-tab': 'custom-schedule',
+            'regular-schedule-tab': 'regular-schedule'
+        };
+        const VIEW_SLUG_TO_TAB = Object.fromEntries(Object.entries(TAB_VIEW_SLUGS).map(([tabId, slug]) => [slug, tabId]));
+
+        function activateTabFromQuery() {
+            const view = new URLSearchParams(location.search).get('view');
+            const tabId = view && VIEW_SLUG_TO_TAB[view];
+            const tabEl = tabId && document.getElementById(tabId);
+            if (tabEl) new bootstrap.Tab(tabEl).show();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('#adminTabs button[data-bs-toggle="tab"]').forEach(btn => {
+                btn.addEventListener('shown.bs.tab', function(e) {
+                    const slug = TAB_VIEW_SLUGS[e.target.id];
+                    if (!slug) return;
+                    const url = new URL(location.href);
+                    url.searchParams.set('view', slug);
+                    history.replaceState(null, '', url);
+
+                    // Custom/Regular Schedule aren't in the visible nav anymore (reached via
+                    // buttons inside Schedules instead) — Bootstrap still deactivates the
+                    // Schedules nav-link when they're shown, so re-highlight it with a separate
+                    // class rather than Bootstrap's own "active" — mutating that directly makes
+                    // Bootstrap think Schedules is already showing, so a later click to actually
+                    // go back to it silently no-ops.
+                    const isScheduleSubTab = e.target.id === 'custom-schedule-tab' || e.target.id === 'regular-schedule-tab';
+                    document.getElementById('schedules-tab').classList.toggle('schedules-group-active', isScheduleSubTab);
+                });
+            });
+        });
+
+        // Initialize dashboard when DOM is ready
+        $(document).ready(function() {
+            console.log('=== Initializing Dashboard ===');
+            console.log('jQuery:', typeof jQuery !== 'undefined' ? '✓' : '✗');
+            loadAdminData();
+        });
+
+        function loadAdminData() {
+            console.log('=== Fetching Admin Data ===');
+            $.ajax({
+                url: '/api/admin/data',
+                method: 'GET',
+                success: function(response) {
+                    console.log('Data fetched successfully', response);
+                    if (response.success) {
+                        const data = response.data;
+                        
+                        // Store data globally for form dropdowns
+                        window.adminData = data;
+                        
+                        // Update statistics
+                        $('#totalUsers').text(data.stats.totalUsers);
+                        $('#totalBookings').text(data.stats.totalBookings);
+                        $('#totalClasses').text(data.stats.totalClasses);
+                        $('#totalSchedules').text(data.stats.totalSchedules);
+                        $('#totalTrainers').text(data.stats.totalTrainers);
+                        
+                        // Populate Users table
+                        data.users.forEach(user => {
+                            const roleClass = user.role === 'admin' ? 'status-active' : 'bg-secondary';
+                            $('#usersTableBody').append(`
+                                <tr>
+                                    <td>${user.id}</td>
+                                    <td>${user.name}</td>
+                                    <td>${user.email}</td>
+                                    <td>${user.phone}</td>
+                                    <td>${user.password}</td>
+                                    <td>${user.gender || '-'}</td>
+                                    <td><span class="badge ${roleClass}">${user.role}</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("user", ${JSON.stringify(user)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('user', '${user.id}', '${user.name}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Memberships tab (registration form + subscriptions table)
+                        renderMemberships(data.users, data.membershipPackages, data.subscriptions);
+
+                        // Populate Add Booking form's member dropdown
+                        initAddBookingForm(data.users);
+
+                        // Populate Bookings table
+                        const usersByIdForBookings = Object.fromEntries(data.users.map(u => [u.id.toString(), u]));
+                        data.bookings.forEach(booking => {
+                            let statusClass = 'status-confirmed';
+                            if (booking.status === 'Completed') statusClass = 'status-completed';
+                            if (booking.status === 'Cancelled') statusClass = 'status-cancelled';
+
+                            const paymentClass = booking.payment_status === 'Paid' ? 'status-paid' : 'status-pending';
+                            const member = usersByIdForBookings[booking.user_id];
+                            const memberLabel = member ? `${member.name} (#${booking.user_id})` : booking.user_id;
+                            const cancelBtn = booking.status === 'Confirmed'
+                                ? `<button class="btn btn-sm btn-danger" onclick="adminCancelBooking('${booking.id}')"><i class="fas fa-ban"></i> Cancel</button>`
+                                : '';
+                            const actionHTML = `<button class="btn btn-sm btn-warning" onclick='editRecord("booking", ${JSON.stringify(booking)})'><i class="fas fa-edit"></i></button> ${cancelBtn}`;
+
+                            $('#bookingsTableBody').append(`
+                                <tr>
+                                    <td>${booking.id}</td>
+                                    <td>${booking.schedule_id}</td>
+                                    <td>${memberLabel}</td>
+                                    <td>${booking.booking_time}</td>
+                                    <td><span class="badge ${statusClass}">${booking.status}</span></td>
+                                    <td>${booking.attended === '1' ? 'Yes' : 'No'}</td>
+                                    <td><span class="badge ${paymentClass}">${booking.payment_status}</span></td>
+                                    <td>${booking.credits_used}</td>
+                                    <td>${booking.notes}</td>
+                                    <td>${actionHTML}</td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Classes table
+                        data.classes.forEach(cls => {
+                            const statusClass = cls.status === 'Active' ? 'status-active' : 'status-inactive';
+                            $('#classesTableBody').append(`
+                                <tr>
+                                    <td>${cls.id}</td>
+                                    <td>${cls.name}</td>
+                                    <td>${cls.duration} min</td>
+                                    <td>${cls.capacity}</td>
+                                    <td>${cls.credits_required}</td>
+                                    <td><span class="badge ${statusClass}">${cls.status}</span></td>
+                                    <td>${cls.description}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("class", ${JSON.stringify(cls)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('class', '${cls.id}', '${cls.name}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        // Populate Schedules week view (Senin-Sabtu, past days/times disabled)
+                        renderScheduleWeek();
+                        
+                        // Populate Trainers table
+                        data.trainers.forEach(trainer => {
+                            const statusClass = trainer.status === 'Active' ? 'status-active' : 'status-inactive';
+                            $('#trainersTableBody').append(`
+                                <tr>
+                                    <td>${trainer.image ? `<img src="${trainer.image}" alt="${trainer.name}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : '-'}</td>
+                                    <td>${trainer.id}</td>
+                                    <td>${trainer.name}</td>
+                                    <td>${trainer.email}</td>
+                                    <td>${trainer.phone}</td>
+                                    <td>${trainer.specialization}</td>
+                                    <td><span class="badge ${statusClass}">${trainer.status}</span></td>
+                                    <td>${trainer.bio}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" onclick='editRecord("trainer", ${JSON.stringify(trainer)})'><i class="fas fa-edit"></i></button>
+                                        <button class="btn btn-sm btn-danger" onclick="deleteRecord('trainer', '${trainer.id}', '${trainer.name}')"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                        
+                        console.log('✓ Tables loaded successfully (using simple tables without DataTables)');
+                        
+                        // Hide loading spinner and show content
+                        $('#loadingSpinner').hide();
+                        $('#statsSection').show();
+                        $('#tabsSection').show();
+                        activateTabFromQuery();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr, status, error);
+                    $('#loadingSpinner').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Error loading data: ${error}
+                            <br><small>Status: ${xhr.status} ${xhr.statusText}</small>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Form field definitions for each entity type
+        const formFields = {
+            user: [
+                { name: 'name', label: 'Name', type: 'text', required: true },
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'phone', label: 'Phone', type: 'text', required: false },
+                { name: 'address', label: 'Address', type: 'text', required: false },
+                { name: 'instagram', label: 'Instagram', type: 'text', required: false },
+                { name: 'password', label: 'Password', type: 'password', required: false },
+                { name: 'gender', label: 'Gender', type: 'select', options: ['L', 'P'], required: false },
+                { name: 'role', label: 'Role', type: 'select', options: ['member', 'admin'], required: true }
+            ],
+            booking: [
+                { name: 'schedule_id', label: 'Schedule', type: 'select-dynamic', source: 'schedules', required: true },
+                { name: 'user_id', label: 'User', type: 'select-dynamic', source: 'users', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Confirmed', 'Completed', 'Cancelled'], required: true },
+                { name: 'attended', label: 'Attended', type: 'select', options: ['0', '1'], required: true },
+                { name: 'payment_status', label: 'Payment Status', type: 'select', options: ['Pending', 'Paid'], required: true },
+                { name: 'credits_used', label: 'Credits Used', type: 'number', required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', required: false }
+            ],
+            class: [
+                { name: 'name', label: 'Class Name', type: 'text', required: true },
+                { name: 'duration', label: 'Duration (minutes)', type: 'number', required: true },
+                { name: 'capacity', label: 'Capacity', type: 'number', required: true },
+                { name: 'price', label: 'Price', type: 'number', required: true },
+                { name: 'credits_required', label: 'Credits Required', type: 'number', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true },
+                { name: 'description', label: 'Description', type: 'textarea', required: false }
+            ],
+            schedule: [
+                { name: 'schedule_time', label: 'Schedule Time', type: 'datetime-local', required: true },
+                { name: 'trainer_id', label: 'Trainer', type: 'select-dynamic', source: 'trainers', required: true },
+                { name: 'class_id', label: 'Class', type: 'select-dynamic', source: 'classes', required: true },
+                { name: 'assigned_users', label: 'Assign Users', type: 'multiselect-dynamic', source: 'users', required: false },
+                { name: 'gender_restriction', label: 'Gender Restriction', type: 'select', options: ['', 'M', 'F'], required: false },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Completed', 'Cancelled'], required: true },
+                { name: 'notes', label: 'Notes', type: 'textarea', required: false }
+            ],
+            trainer: [
+                { name: 'name', label: 'Name', type: 'text', required: true },
+                { name: 'email', label: 'Email', type: 'email', required: true },
+                { name: 'phone', label: 'Phone', type: 'text', required: true },
+                { name: 'specialization', label: 'Specialization', type: 'text', required: true },
+                { name: 'status', label: 'Status', type: 'select', options: ['Active', 'Inactive'], required: true },
+                { name: 'bio', label: 'Bio', type: 'textarea', required: false }
+            ]
+        };
+        
+        // Cancel a member's booking on their behalf — frees their seat, marks the booking
+        // Cancelled, and refunds the session to their membership, same as a member cancelling it.
+        function adminCancelBooking(bookingId) {
+            if (!confirm('Batalkan booking ini? Kuota member akan dikembalikan otomatis.')) return;
+            $.ajax({
+                url: '/api/schedule/admin/cancel',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ bookingId }),
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Gagal membatalkan booking');
+                    }
+                },
+                error: function(xhr) {
+                    alert(xhr.responseJSON?.message || 'Gagal membatalkan booking');
+                }
+            });
+        }
+
+        // ===== Add Booking form (Bookings tab) =====
+        // Mirrors the member account page's own slot-building logic (regular template + custom
+        // schedules for the chosen date, overlaid with live seat counts) so admin can book into
+        // any class a member could — including slots nobody has booked into yet.
+        function initAddBookingForm(users) {
+            $('#addBookingMemberId').html('<option value="">Pilih member...</option>' +
+                users.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join(''));
+
+            if (!$('#addBookingDate').val()) {
+                $('#addBookingDate').val(new Date().toISOString().split('T')[0]);
+            }
+            loadAddBookingSlots($('#addBookingDate').val());
+
+            $('#addBookingDate').off('change').on('change', function() {
+                loadAddBookingSlots($(this).val());
+            });
+
+            $('#addBookingForm').off('submit').on('submit', function(e) {
+                e.preventDefault();
+                const payload = {
+                    userId: $('#addBookingMemberId').val(),
+                    sid: $('#addBookingSlot').val()
+                };
+                if (!payload.userId || !payload.sid) {
+                    alert('Pilih member dan kelas terlebih dahulu');
+                    return;
+                }
+                $.ajax({
+                    url: '/api/schedule/admin/book',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert(response.message || 'Gagal membuat booking');
+                        }
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.message || 'Gagal membuat booking');
+                    }
+                });
+            });
+        }
+
+        async function loadAddBookingSlots(dateStr) {
+            const slotSelect = $('#addBookingSlot');
+            if (!dateStr) {
+                slotSelect.html('<option value="">Pilih tanggal dahulu...</option>');
+                return;
+            }
+            slotSelect.html('<option value="">Memuat kelas...</option>');
+
+            try {
+                const [regularRes, realRes] = await Promise.all([
+                    $.get('/api/schedule/regular'),
+                    $.get(`/api/schedule?date=${dateStr}`)
+                ]);
+
+                const dayOfWeek = new Date(dateStr + 'T00:00:00').getDay();
+                const realBySid = Object.fromEntries((realRes.schedule || []).map(s => [s.sid, s]));
+
+                const slots = (regularRes.slots || [])
+                    .filter(s => s.day === dayOfWeek)
+                    .map((s, index) => {
+                        const sid = `REG-${dateStr}-${index}`;
+                        const real = realBySid[sid];
+                        const used = real ? parseInt(real.scap, 10) || 0 : 0;
+                        const capacity = parseInt(s.capacity, 10) || 6;
+                        return { sid, time: s.time, label: `${s.time} - ${s.classType} (Coach ${s.trainer}) [${used}/${capacity}]`, full: used >= capacity };
+                    })
+                    .sort((a, b) => a.time.localeCompare(b.time));
+
+                if (slots.length === 0) {
+                    slotSelect.html('<option value="">Tidak ada kelas reguler pada tanggal ini</option>');
+                    return;
+                }
+
+                slotSelect.html('<option value="">Pilih kelas...</option>' +
+                    slots.map(s => `<option value="${s.sid}" ${s.full ? 'disabled' : ''}>${s.label}${s.full ? ' - PENUH' : ''}</option>`).join(''));
+            } catch (err) {
+                slotSelect.html('<option value="">Gagal memuat kelas</option>');
+            }
+        }
+
+        // ===== Memberships tab =====
+        function renderMemberships(users, packages, subscriptions) {
+            const usersById = Object.fromEntries(users.map(u => [u.id.toString(), u]));
+            const packagesById = Object.fromEntries((packages || []).map(p => [p.id.toString(), p]));
+
+            // Member dropdown
+            $('#membershipMemberId').html('<option value="">Pilih member...</option>' +
+                users.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join(''));
+
+            // Buddy dropdown (Couple packages only — shares the same session pool)
+            $('#membershipBuddyId').html('<option value="">Tidak ada</option>' +
+                users.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join(''));
+
+            // Package dropdown — Trial's "1 sesi" isn't a normal fixed pool: it's 1 session per
+            // coach, so it's clarified separately rather than looking like a single-use credit.
+            const sesiLabelFor = p => p.name.trim().toLowerCase() === 'trial'
+                ? `${p.credit || 1} sesi per coach`
+                : (p.credit ? `${p.credit} sesi` : '-');
+
+            $('#membershipPackageId').html('<option value="">Pilih paket...</option>' +
+                (packages || []).map(p => {
+                    const validLabel = p.valid_days ? `${p.valid_days} hari` : 'tanpa expire';
+                    return `<option value="${p.id}">${p.name} — ${sesiLabelFor(p)} (${validLabel})</option>`;
+                }).join(''));
+            $('#membershipPackageId').off('change').on('change', function() {
+                const pkg = packagesById[$(this).val()];
+
+                // Buddy only makes sense for Couple packages — disable it otherwise so no stale
+                // buddy value gets submitted alongside a non-Couple package.
+                const isCouple = !!pkg && pkg.name.toLowerCase().includes('couple');
+                $('#membershipBuddyId').prop('disabled', !isCouple);
+                if (!isCouple) $('#membershipBuddyId').val('');
+
+                if (!pkg) { $('#membershipPackageInfo').text(''); return; }
+                const validLabel = pkg.valid_days ? `berlaku ${pkg.valid_days} hari` : 'tidak ada tanggal kadaluarsa';
+                $('#membershipPackageInfo').text(`Rp ${parseInt(pkg.price || 0).toLocaleString('id-ID')} • ${sesiLabelFor(pkg)} • ${validLabel}`);
+            });
+
+            $('#membershipStartDate').val(new Date().toISOString().split('T')[0]);
+
+            // Subscriptions table
+            const today = new Date().toISOString().split('T')[0];
+            const tbody = $('#membershipsTableBody');
+            tbody.empty();
+            (subscriptions || [])
+                .slice()
+                .sort((a, b) => (b.start_date || '').localeCompare(a.start_date || ''))
+                .forEach(sub => {
+                    const member = usersById[sub.member_id];
+                    const isExpired = !!sub.end_date && sub.end_date < today;
+                    const statusBadge = isExpired
+                        ? '<span class="badge status-inactive">Expired</span>'
+                        : '<span class="badge status-active">Active</span>';
+                    const buddyLabel = sub.buddy_member_id
+                        ? (usersById[sub.buddy_member_id]?.name || sub.buddy_name || 'Member #' + sub.buddy_member_id)
+                        : '-';
+                    tbody.append(`
+                        <tr>
+                            <td>${sub.id}</td>
+                            <td>${member ? member.name : 'Member #' + sub.member_id}</td>
+                            <td>${buddyLabel}</td>
+                            <td>${sub.package_name}</td>
+                            <td>${sub.start_date}</td>
+                            <td>${sub.end_date || 'Tidak ada'}</td>
+                            <td>${sub.total_sessions}</td>
+                            <td>${sub.used_sessions}</td>
+                            <td>${sub.remaining_sessions}</td>
+                            <td>${statusBadge}</td>
+                            <td>${sub.payment_name || ''}</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-warning" onclick='editMembership(${JSON.stringify(sub)})'><i class="fas fa-edit"></i></button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteMembership('${sub.id}', '${(member ? member.name : 'Member #' + sub.member_id).replace(/'/g, "\\'")}', '${sub.package_name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `);
+                });
+
+            // Subscription rows only store the package's name, not its id — editMembership needs
+            // this to preselect the right option in the Paket dropdown.
+            window.membershipPackageIdByName = Object.fromEntries(
+                (packages || []).map(p => [p.name.trim().toLowerCase(), p.id])
+            );
+
+            $('#membershipForm').off('submit').on('submit', function(e) {
+                e.preventDefault();
+                const editId = $('#membershipEditId').val();
+                const payload = {
+                    member_id: $('#membershipMemberId').val(),
+                    package_id: $('#membershipPackageId').val(),
+                    start_date: $('#membershipStartDate').val(),
+                    payment_name: $('#membershipPaymentName').val(),
+                    buddy_member_id: $('#membershipBuddyId').val()
+                };
+                if (!payload.member_id || !payload.package_id || !payload.start_date) {
+                    alert('Member, paket, dan tanggal mulai wajib diisi');
+                    return;
+                }
+                $.ajax({
+                    url: editId ? `/api/admin/membership/${editId}` : '/api/admin/membership',
+                    method: editId ? 'PUT' : 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(payload),
+                    success: function(response) {
+                        if (response.success) {
+                            location.reload();
+                        } else {
+                            alert(response.message || 'Gagal menyimpan membership');
+                        }
+                    },
+                    error: function(xhr) {
+                        alert(xhr.responseJSON?.message || 'Gagal menyimpan membership');
+                    }
+                });
+            });
+
+            $('#membershipCancelEditBtn').off('click').on('click', resetMembershipForm);
+        }
+
+        function resetMembershipForm() {
+            $('#membershipEditId').val('');
+            $('#membershipFormTitle').text('Daftarkan Membership');
+            $('#membershipSubmitBtn').html('<i class="fas fa-save"></i> Daftarkan');
+            $('#membershipCancelEditBtn').hide();
+            $('#membershipForm')[0].reset();
+            $('#membershipBuddyId').prop('disabled', true);
+            $('#membershipStartDate').val(new Date().toISOString().split('T')[0]);
+            $('#membershipPackageInfo').text('');
+        }
+
+        // Populate the form with an existing subscription so admin can update it — editing the
+        // start date (or switching package) recomputes the end date from the package's validity
+        // days automatically (see PUT /api/admin/membership/:id).
+        function editMembership(sub) {
+            $('#membershipEditId').val(sub.id);
+            $('#membershipFormTitle').text(`Edit Membership #${sub.id}`);
+            $('#membershipSubmitBtn').html('<i class="fas fa-save"></i> Update');
+            $('#membershipCancelEditBtn').show();
+
+            $('#membershipMemberId').val(sub.member_id);
+            const packageId = window.membershipPackageIdByName?.[(sub.package_name || '').trim().toLowerCase()] || '';
+            $('#membershipPackageId').val(packageId).trigger('change');
+            $('#membershipStartDate').val(sub.start_date);
+            $('#membershipPaymentName').val(sub.payment_name || '');
+            if (sub.buddy_member_id) {
+                $('#membershipBuddyId').prop('disabled', false).val(sub.buddy_member_id);
+            }
+
+            document.getElementById('membershipForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function deleteMembership(id, memberName, packageName) {
+            if (!confirm(`Hapus membership "${packageName}" milik ${memberName}? Booking yang sudah memakai kuota ini tidak akan terpengaruh, tapi kuota ini tidak akan bisa dipakai lagi.`)) return;
+            $.ajax({
+                url: `/api/admin/membership/${id}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Gagal menghapus membership');
+                    }
+                },
+                error: function(xhr) {
+                    alert(xhr.responseJSON?.message || 'Gagal menghapus membership');
+                }
+            });
+        }
+
+        // Show Add Modal
+        function showAddModal(type) {
+            $('#recordId').val('');
+            $('#recordType').val(type);
+            $('#crudModalTitle').text('Add New ' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            generateFormFields(type);
+            
+            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
+            modal.show();
+        }
+        
+        // Show Edit Modal
+        function editRecord(type, record) {
+            $('#recordId').val(record.id);
+            $('#recordType').val(type);
+            $('#crudModalTitle').text('Edit ' + type.charAt(0).toUpperCase() + type.slice(1));
+            
+            console.log('Editing record:', type, record);
+            
+            generateFormFields(type, record);
+            
+            const modal = new bootstrap.Modal(document.getElementById('crudModal'));
+            modal.show();
+        }
+        
+        // ===== Schedules Week View (Senin-Sabtu) =====
+        function todayStr() {
+            const d = new Date();
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function formatDateYMD(d) {
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+
+        function getMondayOf(date) {
+            const d = new Date(date);
+            const day = d.getDay(); // 0=Sun..6=Sat
+            const diff = day === 0 ? -6 : 1 - day;
+            d.setDate(d.getDate() + diff);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        }
+
+        let scheduleWeekStart = getMondayOf(new Date(sessionStorage.getItem('scheduleWeekStart') || new Date()));
+        sessionStorage.removeItem('scheduleWeekStart');
+        let scheduleWeekRenderToken = 0;
+
+        function parseScheduleDateTime(schedule) {
+            const raw = (schedule.schedule_time || '').trim();
+            const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+            if (!m) return null;
+            const [, y, mo, d, h, mi, s] = m;
+            return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s || 0));
+        }
+
+        function scheduleDateStr(schedule) {
+            const dt = parseScheduleDateTime(schedule);
+            if (!dt) return '';
+            return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+        }
+
+        function isSchedulePast(schedule) {
+            const dt = parseScheduleDateTime(schedule);
+            if (!dt) return false;
+            return dt.getTime() < Date.now();
+        }
+
+        const WEEK_DAY_NAMES = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const SHORT_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+        function renderScheduleWeek() {
+            const myToken = ++scheduleWeekRenderToken;
+            const monday = scheduleWeekStart;
+            const saturday = new Date(monday);
+            saturday.setDate(monday.getDate() + 5);
+
+            const label = monday.getMonth() === saturday.getMonth()
+                ? `${monday.getDate()} - ${saturday.getDate()} ${SHORT_MONTH_NAMES[monday.getMonth()]} ${monday.getFullYear()}`
+                : `${monday.getDate()} ${SHORT_MONTH_NAMES[monday.getMonth()]} - ${saturday.getDate()} ${SHORT_MONTH_NAMES[saturday.getMonth()]} ${saturday.getFullYear()}`;
+            $('#scheduleWeekLabel').text(label);
+
+            const todayS = todayStr();
+            let html = '';
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                const dateStr = formatDateYMD(d);
+                const isPast = dateStr < todayS;
+                const isToday = dateStr === todayS;
+                html += `
+                    <div class="schedule-day-section">
+                        <button class="schedule-day-toggle ${isPast ? 'schedule-day-past' : ''}" type="button" id="day-toggle-${i}" onclick="toggleScheduleDay(${i})" aria-expanded="${isToday}">
+                            <span>${WEEK_DAY_NAMES[i]}, ${d.getDate()} ${SHORT_MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}</span>
+                            <i class="fas fa-chevron-down chevron"></i>
+                        </button>
+                        <div class="collapse ${isToday ? 'show' : ''}" id="day-collapse-${i}">
+                            <div class="schedule-day-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Time</th>
+                                                <th>Coach</th>
+                                                <th>Class</th>
+                                                <th>Members</th>
+                                                <th>Duration</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="scheduleDayBody-${i}">
+                                            <tr><td colspan="6" class="text-center text-muted">Memuat jadwal...</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            $('#scheduleWeekContainer').html(html);
+
+            window.scheduleAssignQueue = [];
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(monday);
+                d.setDate(monday.getDate() + i);
+                renderDaySchedule(formatDateYMD(d), i, myToken);
+            }
+        }
+
+        function changeScheduleWeek(delta) {
+            scheduleWeekStart.setDate(scheduleWeekStart.getDate() + delta * 7);
+            renderScheduleWeek();
+        }
+
+        // Manual class/attribute toggle (not Bootstrap's data-bs-toggle) — this page loads
+        // Bootstrap's JS bundle twice (layout + admin.hbs), so the two duplicate data-api click
+        // listeners cancel each other out and the collapse never visibly toggles.
+        function toggleScheduleDay(i) {
+            const el = document.getElementById('day-collapse-' + i);
+            const btn = document.getElementById('day-toggle-' + i);
+            const willShow = !el.classList.contains('show');
+            el.classList.toggle('show', willShow);
+            btn.setAttribute('aria-expanded', String(willShow));
+        }
+
+        let regularSlotsCacheAdmin = null;
+
+        async function getRegularSlotsAdmin() {
+            if (regularSlotsCacheAdmin) return regularSlotsCacheAdmin;
+            try {
+                const res = await fetch('/api/schedule/regular');
+                if (res.ok) {
+                    const data = await res.json();
+                    regularSlotsCacheAdmin = data.slots || [];
+                }
+            } catch (e) { /* ignore, fall through to empty */ }
+            return regularSlotsCacheAdmin || [];
+        }
+
+        async function getCustomSlotsForDate(dateStr) {
+            try {
+                const res = await fetch(`/api/schedule/custom?date=${dateStr}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.schedules || [];
+                }
+            } catch (e) { /* ignore, fall through to empty */ }
+            return [];
+        }
+
+        function isDateTimePast(dateStr, timeStr) {
+            const [y, mo, d] = dateStr.split('-').map(Number);
+            const [h, mi] = (timeStr || '0:0').split(':').map(Number);
+            const dt = new Date(y, mo - 1, d, h || 0, mi || 0, 0);
+            return dt.getTime() < Date.now();
+        }
+
+        // Google Sheets can return time-formatted cells without a leading zero (e.g. "7:00"),
+        // so time strings must be compared numerically, not lexicographically.
+        function timeToMinutes(timeStr) {
+            const [h, m] = (timeStr || '0:0').split(':').map(Number);
+            return (h || 0) * 60 + (m || 0);
+        }
+
+        function resolveTrainerName(trainerId) {
+            const t = ((window.adminData && window.adminData.trainers) || []).find(t => String(t.id) === String(trainerId));
+            return t ? t.name : (trainerId || '-');
+        }
+
+        function resolveClassInfo(classId) {
+            return ((window.adminData && window.adminData.classes) || []).find(c => String(c.id) === String(classId)) || null;
+        }
+
+        function resolveMemberNames(membersRaw) {
+            let ids = [];
+            if (Array.isArray(membersRaw)) {
+                ids = membersRaw;
+            } else if (typeof membersRaw === 'string' && membersRaw) {
+                try {
+                    const parsed = JSON.parse(membersRaw);
+                    ids = Array.isArray(parsed) ? parsed : [];
+                } catch (e) {
+                    ids = membersRaw.split(',').map(v => v.trim()).filter(Boolean);
+                }
+            }
+            const users = (window.adminData && window.adminData.users) || [];
+            return ids.map(id => {
+                const u = users.find(u => String(u.id) === String(id));
+                return u ? u.name : id;
+            });
+        }
+
+        async function renderDaySchedule(dateStr, dayIdx, myToken) {
+            const dateObj = new Date(dateStr + 'T00:00:00');
+            const tbody = $(`#scheduleDayBody-${dayIdx}`);
+
+            const dayOfWeek = dateObj.getDay();
+            const [allRegular, customSlots] = await Promise.all([
+                getRegularSlotsAdmin(),
+                getCustomSlotsForDate(dateStr)
+            ]);
+            // Bail out if a newer week render started while we were loading
+            if (myToken !== scheduleWeekRenderToken) return;
+
+            const regularSlots = allRegular.filter(s => s.day === dayOfWeek);
+
+            const list = (window.adminData && window.adminData.schedules) || [];
+            const realIndexes = [];
+            list.forEach((s, idx) => { if (scheduleDateStr(s) === dateStr) realIndexes.push(idx); });
+
+            // Map time-of-day (minutes) -> index into window.adminData.schedules, so a Regular/Custom
+            // slot that already has a real Schedules row (members assigned) merges with it instead
+            // of showing a duplicate row.
+            const realIndexByTime = new Map();
+            realIndexes.forEach(idx => {
+                const timePart = (list[idx].schedule_time || '').split(/[ T]/)[1] || '';
+                realIndexByTime.set(timeToMinutes(timePart), idx);
+            });
+            const consumedRealIndexes = new Set();
+
+            const entries = [];
+
+            const buildTemplateRow = (slot, notesForAssign) => {
+                const past = isDateTimePast(dateStr, slot.time);
+                const existingIndex = realIndexByTime.has(timeToMinutes(slot.time)) ? realIndexByTime.get(timeToMinutes(slot.time)) : -1;
+                const queueIdx = window.scheduleAssignQueue.length;
+                window.scheduleAssignQueue.push({
+                    dateStr, time: slot.time, trainer: slot.trainer, classType: slot.classType,
+                    notes: notesForAssign, existingIndex
+                });
+
+                let coach = slot.trainer, className = slot.classType, duration = slot.duration || 60, membersText = '-';
+                if (existingIndex !== -1) {
+                    consumedRealIndexes.add(existingIndex);
+                    const schedule = list[existingIndex];
+                    coach = resolveTrainerName(schedule.trainer_id);
+                    const cls = resolveClassInfo(schedule.class_id);
+                    className = cls ? cls.name : schedule.class_id;
+                    duration = (cls && cls.duration) || slot.duration || 60;
+                    const names = resolveMemberNames(schedule.members);
+                    membersText = names.length ? names.join(', ') : '-';
+                }
+
+                entries.push({
+                    time: timeToMinutes(slot.time),
+                    html: `
+                        <tr class="${past ? 'schedule-row-past' : ''}">
+                            <td>${slot.time}</td>
+                            <td>${coach}</td>
+                            <td>${className}</td>
+                            <td>${membersText}</td>
+                            <td>${duration} mins</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" ${past ? 'disabled' : ''} onclick="openMemberModal(${queueIdx})" title="Edit"><i class="fas fa-edit"></i></button>
+                            </td>
+                        </tr>`
+                });
+            };
+
+            regularSlots.forEach(slot => buildTemplateRow(slot, `Regular: ${slot.classType} (Coach ${slot.trainer})`));
+            customSlots.forEach(slot => buildTemplateRow(slot, slot.notes || `Custom: ${slot.classType} (Coach ${slot.trainer})`));
+
+            // Real Schedules rows that don't correspond to any Regular/Custom slot (e.g. created
+            // directly via "Add New Schedule") still need to show up, routed through the same
+            // member-only edit modal.
+            realIndexes.forEach(index => {
+                if (consumedRealIndexes.has(index)) return;
+                const schedule = list[index];
+                const past = isSchedulePast(schedule);
+                const timePart = (schedule.schedule_time || '').split(/[ T]/)[1] || '';
+                const cls = resolveClassInfo(schedule.class_id);
+                const names = resolveMemberNames(schedule.members);
+                const queueIdx = window.scheduleAssignQueue.length;
+                window.scheduleAssignQueue.push({
+                    dateStr, time: timePart,
+                    trainer: resolveTrainerName(schedule.trainer_id),
+                    classType: cls ? cls.name : schedule.class_id,
+                    notes: schedule.notes, existingIndex: index
+                });
+                entries.push({
+                    time: timeToMinutes(timePart),
+                    html: `
+                        <tr class="${past ? 'schedule-row-past' : ''}">
+                            <td>${timePart}</td>
+                            <td>${resolveTrainerName(schedule.trainer_id)}</td>
+                            <td>${cls ? cls.name : schedule.class_id}</td>
+                            <td>${names.length ? names.join(', ') : '-'}</td>
+                            <td>${(cls && cls.duration) || 60} mins</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" ${past ? 'disabled' : ''} onclick="openMemberModal(${queueIdx})" title="Edit"><i class="fas fa-edit"></i></button>
+                            </td>
+                        </tr>`
+                });
+            });
+
+            if (entries.length === 0) {
+                tbody.html(`<tr><td colspan="6" class="text-center text-muted">Tidak ada jadwal pada tanggal ini</td></tr>`);
+                return;
+            }
+            entries.sort((a, b) => a.time - b.time);
+            tbody.html(entries.map(e => e.html).join(''));
+        }
+
+        function fuzzyMatch(list, needle) {
+            const n = (needle || '').trim().toLowerCase();
+            if (!n) return null;
+            return list.find(item => (item.name || '').trim().toLowerCase() === n) ||
+                list.find(item => {
+                    const name = (item.name || '').trim().toLowerCase();
+                    return name.includes(n) || n.includes(name);
+                });
+        }
+
+        // Opens the member checklist modal for a schedule slot (Regular/Custom template or a
+        // real Schedules row) — the "Edit" action in the Schedules table only adds/removes
+        // members, it doesn't touch trainer/class/time.
+        function openMemberModal(queueIdx) {
+            const slot = (window.scheduleAssignQueue || [])[queueIdx];
+            if (!slot) return;
+
+            let recordId = '', trainerId = '', classId = '', scheduleTime = '', status = 'Active', notes = slot.notes || '';
+            let selectedIds = [];
+
+            if (slot.existingIndex !== -1) {
+                const schedule = (window.adminData && window.adminData.schedules || [])[slot.existingIndex];
+                recordId = schedule.id;
+                trainerId = schedule.trainer_id;
+                classId = schedule.class_id;
+                scheduleTime = schedule.schedule_time;
+                status = schedule.status || 'Active';
+                notes = schedule.notes || '';
+                try {
+                    const parsed = JSON.parse(schedule.members || '[]');
+                    selectedIds = Array.isArray(parsed) ? parsed.map(String) : [];
+                } catch (e) { selectedIds = []; }
+            } else {
+                const trainerMatch = fuzzyMatch((window.adminData && window.adminData.trainers) || [], slot.trainer);
+                const classMatch = fuzzyMatch((window.adminData && window.adminData.classes) || [], slot.classType);
+                if (!trainerMatch || !classMatch) {
+                    alert(
+                        (!trainerMatch ? `Trainer "${slot.trainer}" ` : '') +
+                        (!trainerMatch && !classMatch ? 'dan ' : '') +
+                        (!classMatch ? `Class "${slot.classType}" ` : '') +
+                        'tidak ditemukan di data Trainers/Classes.'
+                    );
+                }
+                trainerId = trainerMatch ? trainerMatch.id : '';
+                classId = classMatch ? classMatch.id : '';
+                scheduleTime = `${slot.dateStr} ${slot.time}:00`;
+            }
+
+            window.memberModalData = { id: recordId, trainerId, classId, scheduleTime, status, notes };
+            window.memberModalSelected = new Set(selectedIds);
+
+            $('#memberModalTitle').text(`Kelola Member — ${slot.time} ${slot.trainer ? '(Coach ' + slot.trainer + ')' : ''}`);
+            $('#memberSearchInput').val('');
+            renderMemberChecklist('');
+
+            new bootstrap.Modal(document.getElementById('memberModal')).show();
+        }
+
+        function renderMemberChecklist(searchTerm) {
+            const users = (window.adminData && window.adminData.users) || [];
+            const term = (searchTerm || '').trim().toLowerCase();
+            const filtered = term
+                ? users.filter(u => (u.name || '').toLowerCase().includes(term) || (u.email || '').toLowerCase().includes(term))
+                : users;
+
+            if (filtered.length === 0) {
+                $('#memberChecklist').html('<div class="text-muted text-center p-3">Tidak ada user ditemukan</div>');
+                return;
+            }
+
+            const html = filtered.map(u => {
+                const checked = window.memberModalSelected.has(String(u.id)) ? 'checked' : '';
+                return `
+                    <label class="list-group-item d-flex align-items-center gap-2" style="cursor:pointer;">
+                        <input type="checkbox" class="form-check-input member-checkbox flex-shrink-0" value="${u.id}" ${checked}>
+                        <span>${u.name} <small class="text-muted">${u.email || ''}</small></span>
+                    </label>`;
+            }).join('');
+            $('#memberChecklist').html(html);
+
+            $('.member-checkbox').on('change', function() {
+                const id = String($(this).val());
+                if (this.checked) window.memberModalSelected.add(id);
+                else window.memberModalSelected.delete(id);
+            });
+        }
+
+        $(document).on('input', '#memberSearchInput', function() {
+            renderMemberChecklist($(this).val());
+        });
+
+        function saveMemberModal() {
+            const data = window.memberModalData;
+            if (!data) return;
+
+            const payload = {
+                schedule_time: data.scheduleTime,
+                trainer_id: data.trainerId,
+                class_id: data.classId,
+                assigned_users: Array.from(window.memberModalSelected).join(','),
+                status: data.status,
+                notes: data.notes
+            };
+
+            const isEdit = !!data.id;
+            $.ajax({
+                url: isEdit ? `/api/admin/schedule/${data.id}` : '/api/admin/schedule',
+                method: isEdit ? 'PUT' : 'POST',
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        sessionStorage.setItem('scheduleWeekStart', formatDateYMD(scheduleWeekStart));
+                        bootstrap.Modal.getInstance(document.getElementById('memberModal')).hide();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error saving members: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+
+        // Generate Form Fields
+        function generateFormFields(type, data = {}) {
+            console.log(`[generateFormFields] Type: ${type}, Data:`, data);
+            
+            const fields = formFields[type];
+            let html = '';
+            
+            fields.forEach(field => {
+                const value = data[field.name] || '';
+                const required = field.required ? 'required' : '';
+                
+                console.log(`[Field] ${field.name} = "${value}" (type: ${field.type})`);
+                
+                html += `<div class="mb-3">`;
+                html += `<label for="${field.name}" class="form-label">${field.label}</label>`;
+                
+                if (field.type === 'select') {
+                    html += `<select class="form-control" id="${field.name}" name="${field.name}" ${required}>`;
+                    html += `<option value="">Select ${field.label}</option>`;
+                    field.options.forEach(opt => {
+                        const selected = value == opt ? 'selected' : '';
+                        html += `<option value="${opt}" ${selected}>${opt}</option>`;
+                    });
+                    html += `</select>`;
+                } else if (field.type === 'select-dynamic') {
+                    // Dynamic dropdown from data source
+                    html += `<select class="form-control" id="${field.name}" name="${field.name}" ${required}>`;
+                    html += `<option value="">Select ${field.label}</option>`;
+                    
+                    if (window.adminData && window.adminData[field.source]) {
+                        window.adminData[field.source].forEach(item => {
+                            const selected = value == item.id ? 'selected' : '';
+                            
+                            // Special formatting for schedules - show schedule time
+                            let displayName;
+                            if (field.source === 'schedules') {
+                                displayName = item.schedule_time || item.stime || item.id;
+                            } else {
+                                displayName = item.name || item.title || item.id;
+                            }
+                            
+                            html += `<option value="${item.id}" ${selected}>${item.id} - ${displayName}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                } else if (field.type === 'multiselect-dynamic') {
+                    // Multi-select dropdown from data source
+                    html += `<select class="form-control" id="${field.name}" name="${field.name}" multiple size="10" ${required} style="background-color: white;">`;
+                    
+                    if (window.adminData && window.adminData[field.source]) {
+                        // Get assigned user IDs - could be from assigned_users (comma-separated),
+                        // members (JSON array string from the Schedules sheet, e.g. '["1","2"]'),
+                        // or a plain comma-separated string
+                        let selectedValues = [];
+                        if (data.assigned_users) {
+                            selectedValues = Array.isArray(data.assigned_users) ? data.assigned_users : data.assigned_users.split(',').map(v => v.trim());
+                        } else if (data.members && typeof data.members === 'string') {
+                            try {
+                                const parsed = JSON.parse(data.members);
+                                selectedValues = Array.isArray(parsed) ? parsed.map(String) : [];
+                            } catch (e) {
+                                selectedValues = data.members.split(',').map(v => v.trim()).filter(Boolean);
+                            }
+                        } else if (Array.isArray(data.members)) {
+                            selectedValues = data.members.map(String);
+                        } else if (value) {
+                            selectedValues = Array.isArray(value) ? value : value.split(',').map(v => v.trim());
+                        }
+                        
+                        console.log('Selected user IDs for multiselect:', selectedValues);
+                        
+                        window.adminData[field.source].forEach(item => {
+                            const isSelected = selectedValues.includes(String(item.id));
+                            const selectedAttr = isSelected ? 'selected' : '';
+                            const classAttr = isSelected ? 'class="user-assigned"' : '';
+                            const displayName = item.name || item.title || item.id;
+                            html += `<option value="${item.id}" ${selectedAttr} ${classAttr}>${item.id} - ${displayName}</option>`;
+                        });
+                    }
+                    html += `</select>`;
+                    html += `<small class="form-text text-muted">Hold Ctrl/Cmd to select multiple users. <strong style="color: #0d6efd;">■ Blue = Currently assigned members</strong></small>`;
+                } else if (field.type === 'textarea') {
+                    html += `<textarea class="form-control" id="${field.name}" name="${field.name}" rows="3" ${required}>${value}</textarea>`;
+                } else if (field.type === 'datetime-local') {
+                    // Convert datetime format from "YYYY-MM-DD HH:MM:SS" to "YYYY-MM-DDTHH:MM"
+                    let inputValue = value;
+                    console.log(`[DateTime Debug] Field: ${field.name}, Original Value: "${value}", Type: ${typeof value}`);
+                    
+                    if (value && value.includes(' ')) {
+                        // Format: "2025-12-20 16:00:00" or "2025-12-20 8:00:00" -> "2025-12-20T16:00" or "2025-12-20T08:00"
+                        const [datePart, timePart] = value.split(' ');
+                        
+                        // Parse time parts and pad with zeros if needed
+                        const timeComponents = timePart.split(':');
+                        const hours = timeComponents[0].padStart(2, '0');
+                        const minutes = timeComponents[1].padStart(2, '0');
+                        
+                        inputValue = `${datePart}T${hours}:${minutes}`;
+                        console.log(`[DateTime Debug] Converted Value: "${inputValue}"`);
+                    } else {
+                        console.log(`[DateTime Debug] No conversion needed or empty value`);
+                    }
+                    
+                    html += `<input type="${field.type}" class="form-control" id="${field.name}" name="${field.name}" value="${inputValue}" ${required}>`;
+                } else {
+                    // For edit mode on password field, don't show existing value
+                    const inputValue = field.name === 'password' && data.id ? '' : value;
+                    const placeholder = field.name === 'password' && data.id ? 'Leave empty to keep current password' : '';
+                    const readonlyAttr = field.readonly ? 'readonly style="background-color: #e9ecef;"' : '';
+                    html += `<input type="${field.type}" class="form-control" id="${field.name}" name="${field.name}" value="${inputValue}" placeholder="${placeholder}" ${required} ${readonlyAttr}>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            $('#formFields').html(html);
+            
+            // Add event listener for class_id change to auto-fill members
+            $('#class_id').on('change', function() {
+                const classId = $(this).val();
+                if (classId && window.adminData && window.adminData.classes) {
+                    const selectedClass = window.adminData.classes.find(c => c.id == classId);
+                    if (selectedClass && selectedClass.capacity) {
+                        $('#members').val(selectedClass.capacity);
+                        console.log('Auto-filled members with capacity:', selectedClass.capacity);
+                    }
+                }
+            });
+            
+            // Add event listener for assigned_users to validate capacity
+            if (type === 'schedule') {
+                $('#assigned_users').on('change', function() {
+                    const selectedUsers = $(this).val() || [];
+                    const classId = $('#class_id').val();
+                    
+                    if (classId && window.adminData && window.adminData.classes) {
+                        const selectedClass = window.adminData.classes.find(c => c.id == classId);
+                        if (selectedClass && selectedClass.capacity) {
+                            const capacity = parseInt(selectedClass.capacity);
+                            const selectedCount = selectedUsers.length;
+                            
+                            if (selectedCount > capacity) {
+                                alert(`⚠️ WARNING!\n\nYou have selected ${selectedCount} users, but the class capacity is only ${capacity}.\n\nPlease remove ${selectedCount - capacity} user(s) to match the capacity limit.`);
+                                
+                                // Show visual warning
+                                $(this).css('border', '3px solid red');
+                                $(this).next('small').html(`<strong style="color: red;">⚠️ CAPACITY EXCEEDED! Selected: ${selectedCount}/${capacity} - Remove ${selectedCount - capacity} user(s)</strong>`);
+                            } else if (selectedCount === capacity) {
+                                // At capacity - show yellow warning
+                                $(this).css('border', '2px solid #ffc107');
+                                $(this).next('small').html(`<strong style="color: #ffc107;">⚠️ FULL! Selected: ${selectedCount}/${capacity} users</strong>`);
+                            } else {
+                                // Under capacity - show normal
+                                $(this).css('border', '1px solid #ced4da');
+                                $(this).next('small').html(`Hold Ctrl/Cmd to select multiple users. <strong style="color: #0d6efd;">■ Blue = Currently assigned members</strong> | <strong style="color: #28a745;">Selected: ${selectedCount}/${capacity}</strong>`);
+                            }
+                        }
+                    }
+                });
+                
+                // Trigger initial check if editing
+                if (data.id) {
+                    setTimeout(() => $('#assigned_users').trigger('change'), 100);
+                }
+            }
+        }
+        
+        // Save Record (Create or Update)
+        function saveRecord() {
+            const type = $('#recordType').val();
+            const id = $('#recordId').val();
+            const isEdit = id !== '';
+            
+            // Special validation for schedule
+            if (type === 'schedule') {
+                const selectedUsers = $('#assigned_users').val() || [];
+                const classId = $('#class_id').val();
+                
+                if (classId && window.adminData && window.adminData.classes) {
+                    const selectedClass = window.adminData.classes.find(c => c.id == classId);
+                    if (selectedClass && selectedClass.capacity) {
+                        const capacity = parseInt(selectedClass.capacity);
+                        const selectedCount = selectedUsers.length;
+                        
+                        if (selectedCount > capacity) {
+                            alert(`❌ CANNOT SAVE!\n\nYou have assigned ${selectedCount} users, but the class capacity is only ${capacity}.\n\nPlease remove ${selectedCount - capacity} user(s) before saving.`);
+                            $('#assigned_users').css('border', '3px solid red').focus();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // Collect form data
+            const formData = {};
+            $('#crudForm').find('input, select, textarea').each(function() {
+                const name = $(this).attr('name');
+                if (name && name !== '') {
+                    // Handle multi-select
+                    if ($(this).attr('multiple')) {
+                        const selectedValues = $(this).val();
+                        formData[name] = selectedValues ? selectedValues.join(',') : '';
+                    } else {
+                        formData[name] = $(this).val();
+                    }
+                }
+            });
+            
+            // Validate required fields
+            let isValid = true;
+            $('#crudForm').find('[required]').each(function() {
+                if (!$(this).val() || ($(this).attr('multiple') && $(this).val().length === 0)) {
+                    $(this).addClass('is-invalid');
+                    isValid = false;
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill all required fields');
+                return;
+            }
+            
+            // Bookings route through dedicated endpoints that keep the Schedules seat count and
+            // member quota in sync with whatever this form changes (see schedule.js) — a raw
+            // generic write here would silently desync them from the actual booking record.
+            let url, method, payload = formData;
+            if (type === 'booking') {
+                if (isEdit) {
+                    url = `/api/schedule/admin/booking/${id}`;
+                    method = 'PUT';
+                } else {
+                    url = '/api/schedule/admin/book';
+                    method = 'POST';
+                    payload = { sid: formData.schedule_id, userId: formData.user_id };
+                }
+            } else {
+                url = isEdit ? `/api/admin/${type}/${id}` : `/api/admin/${type}`;
+                method = isEdit ? 'PUT' : 'POST';
+            }
+
+            $.ajax({
+                url: url,
+                method: method,
+                data: JSON.stringify(payload),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(isEdit ? 'Record updated successfully' : 'Record created successfully');
+                        bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
+                        if (type === 'schedule' && typeof scheduleWeekStart !== 'undefined') {
+                            sessionStorage.setItem('scheduleWeekStart', formatDateYMD(scheduleWeekStart));
+                        }
+                        // Reload page to refresh data
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Save error:', xhr, status, error);
+                    alert('Error saving record: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+        
+        // Delete Record
+        function deleteRecord(type, id, name) {
+            if (!confirm(`Are you sure you want to delete this ${type}: ${name}?`)) {
+                return;
+            }
+            
+            $.ajax({
+                url: `/api/admin/${type}/${id}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Record deleted successfully');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Delete error:', xhr, status, error);
+                    alert('Error deleting record: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+        // ===== Custom Schedule Functions =====
+        async function loadCustomSchedules() {
+            try {
+                const res = await fetch('/api/schedule/custom/all');
+                if (!res.ok) return;
+                const data = await res.json();
+                const tbody = document.getElementById('customSchedulesTableBody');
+                if (!data.schedules || data.schedules.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="10" class="text-center text-muted">Belum ada jadwal custom</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.schedules.map(s => `
+                    <tr>
+                        <td><small>${s.id}</small></td>
+                        <td>${s.date}</td>
+                        <td>${s.time}</td>
+                        <td>${s.trainer}</td>
+                        <td><span class="badge bg-info">${s.classType}</span></td>
+                        <td>${s.duration} mnt</td>
+                        <td>${s.capacity}</td>
+                        <td>${s.notes || '-'}</td>
+                        <td><small>${s.createdBy || '-'}</small></td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteCustomSchedule('${s.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error('Error loading custom schedules:', e);
+            }
+        }
+
+        async function createCustomSchedule() {
+            const date = document.getElementById('cs-date').value;
+            const time = document.getElementById('cs-time').value;
+            const trainer = document.getElementById('cs-trainer').value;
+            const classType = document.getElementById('cs-class-type').value;
+            const duration = document.getElementById('cs-duration').value;
+            const capacity = document.getElementById('cs-capacity').value;
+            const notes = document.getElementById('cs-notes').value;
+
+            if (!date || !time) {
+                alert('Tanggal dan jam wajib diisi!');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/schedule/custom', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date, time, trainer, classType, duration, capacity, notes })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Jadwal custom berhasil dibuat!');
+                    loadCustomSchedules();
+                    document.getElementById('cs-date').value = '';
+                    document.getElementById('cs-time').value = '';
+                    document.getElementById('cs-notes').value = '';
+                } else {
+                    alert('Gagal: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function deleteCustomSchedule(id) {
+            if (!confirm('Hapus jadwal custom ini?')) return;
+            try {
+                const res = await fetch(`/api/schedule/custom/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Jadwal dihapus!');
+                    loadCustomSchedules();
+                    if (typeof renderScheduleWeek !== 'undefined') renderScheduleWeek();
+                } else {
+                    alert('Gagal: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        document.getElementById('custom-schedule-tab').addEventListener('click', loadCustomSchedules);
+        document.getElementById('regular-schedule-tab').addEventListener('click', () => loadDaySchedule(1, document.querySelector('#dayTabs .nav-link.active')));
+
+        // ===== Regular Schedule Functions =====
+        let regularScheduleAll = [];
+        let currentDay = 1;
+
+        async function loadAllRegularSlots() {
+            try {
+                const res = await fetch('/api/schedule/regular?all=1');
+                if (res.ok) {
+                    const data = await res.json();
+                    regularScheduleAll = data.slots || [];
+                }
+            } catch(e) {
+                console.error('Error loading regular schedule:', e);
+            }
+        }
+
+        function loadDaySchedule(day, btn) {
+            currentDay = day;
+            document.getElementById('rs-day').value = day;
+            // Update active pill
+            document.querySelectorAll('#dayTabs .nav-link').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+
+            const daySlots = regularScheduleAll.filter(s => s.day === day)
+                .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+
+            const tbody = document.getElementById('regularSlotsTableBody');
+            if (daySlots.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Tidak ada jadwal. Tambah slot baru di bawah.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = daySlots.map(s => `
+                <tr>
+                    <td><strong>${s.time}</strong></td>
+                    <td>Coach ${s.trainer}</td>
+                    <td><span class="badge ${s.classType === 'Tower' ? 'bg-info' : 'bg-primary'}">${s.classType}</span></td>
+                    <td>${s.duration || 60} mnt</td>
+                    <td>${s.capacity || 6} orang</td>
+                    <td>
+                        <span class="badge ${s.visible ? 'bg-success' : 'bg-secondary'}">${s.visible ? 'Tampil' : 'Disembunyikan'}</span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm ${s.visible ? 'btn-outline-secondary' : 'btn-outline-success'}" onclick="toggleRegularSlotVisible('${s.id}', ${!s.visible})">
+                            <i class="fas ${s.visible ? 'fa-eye-slash' : 'fa-eye'}"></i> ${s.visible ? 'Sembunyikan' : 'Tampilkan'}
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteRegularSlot('${s.id}')">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function addRegularSlot() {
+            const day      = parseInt(document.getElementById('rs-day').value);
+            const time     = document.getElementById('rs-time').value;
+            const trainer  = document.getElementById('rs-trainer').value;
+            const classType= document.getElementById('rs-classtype').value;
+            const duration = document.getElementById('rs-duration').value;
+            const capacity = document.getElementById('rs-capacity').value;
+
+            if (!time) { alert('Jam wajib diisi!'); return; }
+
+            // Check duplicate
+            if (regularScheduleAll.some(s => s.day === day && s.time === time)) {
+                alert(`Sudah ada jadwal jam ${time} di hari ini!`);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/schedule/regular', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ day, time, trainer, classType, duration, capacity })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Optimistic update
+                    regularScheduleAll.push({ id: data.id, day, time, trainer, classType, duration, capacity, visible: true });
+                    loadDaySchedule(day, null);
+                    document.getElementById('rs-time').value = '';
+                    alert(`Slot ${time} berhasil ditambahkan!`);
+                } else {
+                    alert('Gagal: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function toggleRegularSlotVisible(id, visible) {
+            try {
+                const res = await fetch(`/api/schedule/regular/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ visible })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const slot = regularScheduleAll.find(s => s.id === id);
+                    if (slot) slot.visible = visible;
+                    loadDaySchedule(currentDay, null);
+                } else {
+                    alert('Gagal: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        async function deleteRegularSlot(id) {
+            if (!confirm('Hapus slot jadwal regular ini?')) return;
+            try {
+                const res = await fetch(`/api/schedule/regular/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    regularScheduleAll = regularScheduleAll.filter(s => s.id !== id);
+                    loadDaySchedule(currentDay, null);
+                    alert('Slot berhasil dihapus!');
+                } else {
+                    alert('Gagal: ' + (data.error || 'Unknown error'));
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // Pre-load regular schedule when admin page loads
+        loadAllRegularSlots();
+    </script>
+</body>
+</html>

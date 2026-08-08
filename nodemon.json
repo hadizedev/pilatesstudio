@@ -1,0 +1,22 @@
+{
+  "watch": [
+    "app.js",
+    "routes/**/*.js",
+    "middleware/**/*.js",
+    "utils/**/*.js",
+    "views/**/*.hbs",
+    "public/**/*"
+  ],
+  "ext": "js,json,hbs,css,html",
+  "ignore": [
+    "node_modules/**",
+    "*.log",
+    "credentials.json"
+  ],
+  "delay": "1000",
+  "verbose": true,
+  "restartable": "rs",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

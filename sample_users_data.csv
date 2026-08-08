@@ -1,0 +1,4 @@
+email,password,name,phone,membership_type,membership_status,registered_date,profile_picture,total_credits
+test@pilatestudio.com,$2b$10$b8Snvgo367vuKvtUL34cQ.JCMumICcnrxtn2XA3/s1PuUKoNnu.RS,Test User,08123456789,Reguler,Active,19/12/2025,,10
+stellaa@example.com,stellaa123,Stellaa,08198765432,Premium,Active,01/12/2025,https://i.pravatar.cc/150?img=1,20
+admin@pilatestudio.com,admin123,Admin User,08112345678,Premium,Active,15/11/2025,https://i.pravatar.cc/150?img=5,50

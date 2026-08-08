@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DataTables Test</title>
+</head>
+<body>
+    <h1>Testing DataTables Loading...</h1>
+    <div id="results"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(test, status) {
+            results.innerHTML += `<p><strong>${test}:</strong> ${status}</p>`;
+        }
+        
+        // Test jQuery
+        addResult('jQuery loaded', typeof jQuery !== 'undefined' ? '✅ YES' : '❌ NO');
+        
+        // Test $ shorthand
+        addResult('$ available', typeof $ !== 'undefined' ? '✅ YES' : '❌ NO');
+        
+        // Test DataTable function (lowercase d)
+        addResult('$.fn.dataTable', typeof $.fn.dataTable !== 'undefined' ? '✅ YES' : '❌ NO');
+        
+        // Test DataTable function (capital D)
+        addResult('$.fn.DataTable', typeof $.fn.DataTable !== 'undefined' ? '✅ YES' : '❌ NO');
+        
+        // Console logs
+        console.log('jQuery:', typeof jQuery);
+        console.log('$:', typeof $);
+        console.log('$.fn.dataTable:', typeof $.fn.dataTable);
+        console.log('$.fn.DataTable:', typeof $.fn.DataTable);
+        
+        if (typeof $.fn.dataTable !== 'undefined') {
+            results.innerHTML += '<h2 style="color: green;">✅ DataTables is loaded correctly!</h2>';
+            results.innerHTML += '<p>You can use .dataTable() or .DataTable() to initialize tables.</p>';
+        } else {
+            results.innerHTML += '<h2 style="color: red;">❌ DataTables failed to load!</h2>';
+            results.innerHTML += '<p>Check your network connection or try disabling browser extensions.</p>';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<div class="hero">
+  <h1>{{heading}}</h1>
+  <p>{{description}}</p>
+</div>
+
+<section style="background: white; padding: 2rem; border-radius: 10px; margin-top: 2rem;">
+  <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Informasi Kontak</h2>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+    <div>
+      <h3 style="color: #3498db; margin-bottom: 0.5rem;">📍 Alamat</h3>
+      <p style="color: #666;">
+        Jl. Pilates No. 123<br>
+        Jakarta Selatan 12345<br>
+        Indonesia
+      </p>
+    </div>
+    
+    <div>
+      <h3 style="color: #3498db; margin-bottom: 0.5rem;">📞 Telepon</h3>
+      <p style="color: #666;">
+        (021) 1234-5678<br>
+        +62 812-3456-7890
+      </p>
+    </div>
+    
+    <div>
+      <h3 style="color: #3498db; margin-bottom: 0.5rem;">✉️ Email</h3>
+      <p style="color: #666;">
+        info@pilatestudio.com<br>
+        support@pilatestudio.com
+      </p>
+    </div>
+  </div>
+
+  <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px;">
+    <h3 style="color: #2c3e50; margin-bottom: 1rem;">Jam Operasional</h3>
+    <p style="color: #666; margin-bottom: 0.5rem;"><strong>Senin - Jumat:</strong> 06:00 - 21:00</p>
+    <p style="color: #666; margin-bottom: 0.5rem;"><strong>Sabtu:</strong> 08:00 - 18:00</p>
+    <p style="color: #666;"><strong>Minggu:</strong> Tutup</p>
+  </div>
+</section>
+
+<section style="background: white; padding: 2rem; border-radius: 10px; margin-top: 2rem;">
+  <h2 style="color: #2c3e50; margin-bottom: 1.5rem;">Kirim Pesan</h2>
+  <form id="contactForm" style="display: flex; flex-direction: column; gap: 1rem;">
+    <div>
+      <label for="name" style="display: block; margin-bottom: 0.5rem; color: #2c3e50; font-weight: 500;">Nama</label>
+      <input type="text" id="name" name="name" required 
+             style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;">
+    </div>
+    
+    <div>
+      <label for="email" style="display: block; margin-bottom: 0.5rem; color: #2c3e50; font-weight: 500;">Email</label>
+      <input type="email" id="email" name="email" required 
+             style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;">
+    </div>
+    
+    <div>
+      <label for="message" style="display: block; margin-bottom: 0.5rem; color: #2c3e50; font-weight: 500;">Pesan</label>
+      <textarea id="message" name="message" rows="5" required 
+                style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; resize: vertical;"></textarea>
+    </div>
+    
+    <button type="submit" class="btn" style="align-self: flex-start;">Kirim Pesan</button>
+  </form>
+</section>
