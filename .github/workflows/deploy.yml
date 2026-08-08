@@ -1,0 +1,52 @@
+name: Deploy to Biznet VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+
+          set -e  # stop kalau ada error
+
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          cd /var/www/pilatesstudio
+
+          echo "Pull latest code..."
+          git fetch origin
+          git reset --hard origin/main
+
+          echo "Install dependencies..."
+          npm install --omit=dev
+
+          echo "Restarting PM2..."
+          if pm2 describe pilatesstudio > /dev/null 2>&1; then
+            pm2 restart pilatesstudio
+          else
+            pm2 start app.js --name pilatesstudio
+          fi
+
+          pm2 save
+
+          echo "Deploy finished successfully 🚀"
+
+          EOF
