@@ -1,15 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const { google } = require('googleapis');
-const path = require('path');
 const bcrypt = require('bcryptjs');
 
 const serviceAccountEmail = 'pilatestudiostella@pilatestudio-stella.iam.gserviceaccount.com';
 const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '1TQCQYvenGeGQUT7pQe9osdX5dXO00piDMXEV6GzOQ98';
 
-// Setup Google Sheets authentication — credentials.json is gitignored and never committed.
+// Credentials come from env vars (not credentials.json, which is gitignored and never deployed).
+const credentials = {
+    type: process.env.GOOGLE_SERVICE_ACCOUNT_TYPE,
+    project_id: process.env.GOOGLE_PROJECT_ID,
+    private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+    client_email: process.env.GOOGLE_CLIENT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    client_id: process.env.GOOGLE_CLIENT_ID,
+    auth_uri: process.env.GOOGLE_AUTH_URI,
+    token_uri: process.env.GOOGLE_TOKEN_URI,
+    auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_CERT_URL,
+    client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL
+};
+
 const auth = new google.auth.GoogleAuth({
-    keyFile: path.join(__dirname, '../../credentials.json'),
+    credentials: credentials,
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
 });
 
