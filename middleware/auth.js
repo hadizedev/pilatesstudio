@@ -29,7 +29,8 @@ const requireAdmin = (req, res, next) => {
                 title: 'Akses Ditolak',
                 heading: '403 - Akses Ditolak',
                 message: 'Anda tidak memiliki akses ke halaman ini. Hanya admin yang dapat mengakses dashboard admin.',
-                user: req.session.user
+                user: req.session.user,
+                layout: false // error.hbs is a full standalone document (own <html>/header/footer)
             });
         }
     } else {
@@ -55,7 +56,8 @@ const requireTrainer = (req, res, next) => {
             title: 'Akses Ditolak',
             heading: '403 - Akses Ditolak',
             message: 'Halaman ini hanya untuk akun coach.',
-            user: req.session.user
+            user: req.session.user,
+            layout: false // error.hbs is a full standalone document (own <html>/header/footer)
         });
     } else {
         res.redirect('/login');

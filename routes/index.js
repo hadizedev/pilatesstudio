@@ -114,7 +114,8 @@ router.get('/admin', requireAdmin, (req, res) => {
   res.render('admin', {
     title: 'Admin Dashboard',
     heading: 'Admin Dashboard',
-    user: req.session.user
+    user: req.session.user,
+    layout: false // admin.hbs is a full standalone document (own <html>/header/footer)
   });
 });
 
