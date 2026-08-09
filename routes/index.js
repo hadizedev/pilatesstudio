@@ -4,12 +4,29 @@ const { requireAuth, requireAdmin, requireTrainer, requirePartnerTrainer, checkA
 const googleSheets = require('../utils/googleSheets');
 
 // Home page
-router.get('/', (req, res) => {
-  res.render('index', {
-    title: 'Home',
-    heading: 'Selamat Datang di Pilate Studio',
-    description: 'Temukan keseimbangan tubuh dan pikiran Anda dengan kelas pilates profesional kami'
-  });
+router.get('/', async (req, res) => {
+  try {
+    const homepageData = await googleSheets.getAllHomepageData();
+    res.render('index', {
+      title: 'Home - Pilate Studio',
+      ...homepageData
+    });
+  } catch (error) {
+    console.error('Error loading homepage:', error);
+    // Fallback to empty sections if Google Sheets fails, so the page still renders
+    res.render('index', {
+      title: 'Home - Pilate Studio',
+      banner: null,
+      about: null,
+      teachers: [],
+      testimonials: [],
+      classes: [],
+      contact: null,
+      faq: [],
+      colors: {},
+      sectionSettings: {}
+    });
+  }
 });
 
 // About page
