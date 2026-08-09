@@ -15,12 +15,17 @@
       <!-- Left Sidebar - Calendar & Status -->
       <div class="col-lg-4 col-md-5 mb-4">
         <!-- User Greeting -->
-        <div class="user-greeting mb-3" style="background: transparent; padding: 15px 0; display: flex; align-items: center;">
-          <i class="fi fi-rs-user" style="color: #4a3829; font-size: 24px; margin-right: 10px;"></i>
-          <div>
-            <p style="margin: 0; color: #4a3829; font-size: 14px;">Hello,</p>
-            <h4 style="margin: 0; color: #4a3829; font-weight: 600; font-size: 20px;">{{user.name}}</h4>
+        <div class="user-greeting mb-3" style="background: transparent; padding: 15px 0; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center;">
+            <i class="fi fi-rs-user" style="color: #4a3829; font-size: 24px; margin-right: 10px;"></i>
+            <div>
+              <p style="margin: 0; color: #4a3829; font-size: 14px;">Hello,</p>
+              <h4 style="margin: 0; color: #4a3829; font-weight: 600; font-size: 20px;">{{user.name}}</h4>
+            </div>
           </div>
+          <button id="open-change-password-btn" style="background: transparent; border: 1px solid #4a3829; color: #4a3829; padding: 6px 14px; border-radius: 20px; font-size: 12px; cursor: pointer; white-space: nowrap;">
+            <i class="fi fi-rs-lock"></i> Ganti Password
+          </button>
         </div>
 
         <!-- Calendar Card -->
@@ -33,9 +38,9 @@
           <!-- Mini Calendar -->
           <div class="mini-calendar" style="background: white; border-radius: 15px; padding: 15px;">
             <div class="calendar-header" style="display: flex; justify-content-between; align-items: center; margin-bottom: 15px;">
-              <button id="prev-month" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #8b6f47;">‹</button>
-              <span id="current-month-year" style="font-weight: 600; color: #4a3829;">December 2025</span>
-              <button id="next-month" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #8b6f47;">›</button>
+              <button id="prev-week" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #8b6f47;">‹</button>
+              <span style="font-weight: 600; color: #4a3829;">Week</span>
+              <button id="next-week" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #8b6f47;">›</button>
             </div>
             <div class="calendar-days" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;">
               <div style="font-size: 11px; color: #666; font-weight: 600;">Sun</div>
@@ -58,10 +63,8 @@
 
         <!-- Booking Status Card -->
         <div class="status-card" style="background: #f5f0e8; border: 2px solid #4a3829; border-radius: 25px; padding: 25px; margin-bottom: 20px;">
-          <h6 style="color: #4a3829; font-weight: 600; margin-bottom: 5px;">Membership Status</h6>
-          <p style="color: #666; font-size: 13px; margin-bottom: 5px;">Expired Date:</p>
-          <p id="expired-date-display" style="font-size: 16px; font-weight: 600; margin-bottom: 15px;">{{user.expired_date}}</p>
-          <h6 style="color: #4a3829; font-weight: 600; margin-bottom: 15px; margin-top: 20px;" id="status-class-type">Reguler</h6>
+          <h6 style="color: #4a3829; font-weight: 600; margin-bottom: 15px;">Kuota Booking</h6>
+          <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Sisa kelas yang bisa Anda booking</p>
           <div class="status-info" style="background: white; border-radius: 12px; padding: 15px;">
             <div class="d-flex justify-content-between mb-2">
               <span style="color: #666; font-size: 13px;">Kuota Total :</span>
@@ -71,16 +74,20 @@
               <span style="color: #666; font-size: 13px;">Terpakai :</span>
               <span style="color: #4a3829; font-weight: 600;" id="status-used">0</span>
             </div>
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between mb-2">
               <span style="color: #666; font-size: 13px;">Sisa :</span>
               <span style="color: #8b6f47; font-weight: 600;" id="status-remaining">0</span>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span style="color: #666; font-size: 13px;">Berlaku hingga :</span>
+              <span style="color: #4a3829; font-weight: 600;" id="status-expiry">-</span>
             </div>
           </div>
         </div>
 
         <!-- Chat with Admin Button -->
         <div class="text-center">
-            <a href="https://wa.me/6282121121328" target="_blank" style="text-decoration: none; display: block;">
+            <a href="https://wa.me/6287822282068" target="_blank" style="text-decoration: none; display: block;">
             <button style="background: #4a3829; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-weight: 600; cursor: pointer; width: 100%;">
               <i class="fi fi-brands-whatsapp" style="margin-right: 8px;"></i>Chat with Admin
             </button>
@@ -208,20 +215,10 @@
     <!-- Date & Time -->
     <h4 id="booking-datetime" style="color: #4a3829; margin-bottom: 20px; font-size: 18px; font-weight: 600;">Sabtu, 27 Desember 2025<br>Jam 07.00</h4>
     
-    <!-- Credits Info -->
-    <div style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 15px; padding: 15px; margin-bottom: 20px;">
-      <p style="color: #2e7d32; margin: 0; font-size: 14px;">
-        <i class="fas fa-coins"></i> Credits Required: <span id="booking-credits-required" style="font-weight: bold;">-</span>
-      </p>
-      <p style="color: #2e7d32; margin: 5px 0 0 0; font-size: 14px;">
-        <i class="fas fa-wallet"></i> Your Credits: <span id="booking-credits-available" style="font-weight: bold;">-</span>
-      </p>
-    </div>
-    
     <!-- Warning Message -->
     <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 15px; padding: 20px; margin-bottom: 25px;">
       <h2 style="color: #856404; margin: 0 0 10px 0; font-size: 22px; font-weight: 700;">PERHATIAN!!!</h2>
-      <p style="color: #856404; margin: 0; font-size: 14px; line-height: 1.6;">Pembatalan jadwal maksimal H-3!<br>Apakah kamu yakin akan mengambil kelas ini?</p>
+      <p style="color: #856404; margin: 0; font-size: 14px; line-height: 1.6;">Kelas dapat dibatalkan maksimal 3 jam sebelum kelas dimulai.<br>Apakah kamu yakin akan mengambil kelas ini?</p>
     </div>
     
     <!-- Action Buttons -->
@@ -236,6 +233,40 @@
   </div>
 </div>
 
+<!-- Change Password Modal -->
+<div id="change-password-modal" class="booking-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;">
+  <div class="booking-modal-content" style="background: white; border-radius: 30px; padding: 40px; max-width: 420px; width: 90%; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.4);">
+    <h3 style="color: #4a3829; margin-bottom: 20px; font-size: 22px; font-weight: 700; text-align: center;">Ganti Password</h3>
+
+    <form id="change-password-form">
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; color: #4a3829; font-size: 14px; margin-bottom: 5px; font-weight: 600;">Password Saat Ini</label>
+        <input type="password" id="cp-current" required style="width: 100%; padding: 12px 15px; border: 2px solid #e0d5c5; border-radius: 15px; font-size: 14px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; color: #4a3829; font-size: 14px; margin-bottom: 5px; font-weight: 600;">Password Baru</label>
+        <input type="password" id="cp-new" required minlength="6" style="width: 100%; padding: 12px 15px; border: 2px solid #e0d5c5; border-radius: 15px; font-size: 14px;">
+      </div>
+      <div style="margin-bottom: 25px;">
+        <label style="display: block; color: #4a3829; font-size: 14px; margin-bottom: 5px; font-weight: 600;">Konfirmasi Password Baru</label>
+        <input type="password" id="cp-confirm" required minlength="6" style="width: 100%; padding: 12px 15px; border: 2px solid #e0d5c5; border-radius: 15px; font-size: 14px;">
+      </div>
+
+      <div style="display: flex; gap: 15px; justify-content: center;">
+        <button type="submit" id="cp-submit-btn" style="background: #4a3829; color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 16px; flex: 1;">
+          Simpan
+        </button>
+        <button type="button" id="close-change-password-btn" style="background: #6c757d; color: white; border: none; padding: 12px 35px; border-radius: 25px; font-weight: 600; cursor: pointer; font-size: 16px; flex: 1;">
+          Batal
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast Notifications -->
+<div id="toast-container" style="position: fixed; top: 90px; right: 20px; z-index: 20000; display: flex; flex-direction: column; gap: 10px; max-width: 90vw;"></div>
+
 <style>
   .tab-btn.active {
     background: #d4c5b0 !important;
@@ -244,12 +275,10 @@
   
   .calendar-date {
     cursor: pointer;
-    padding: 4px;
+    padding: 8px;
     border-radius: 50%;
     font-size: 14px;
     transition: all 0.3s ease;
-    width: 32px;
-    height: 32px;
   }
   
   .calendar-date:hover {
@@ -327,6 +356,47 @@
     background: rgba(0,0,0,0.1);
   }
 
+  .toast {
+    background: #2e7d32;
+    color: white;
+    padding: 14px 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .toast.error {
+    background: #d32f2f;
+  }
+
+  .btn-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.45);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btn-spin 0.7s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  @keyframes btn-spin {
+    to { transform: rotate(360deg); }
+  }
+
   @media (max-width: 768px) {
     .account-area {
       padding: 80px 0 20px 0 !important;
@@ -349,50 +419,90 @@
 
 <script>
 // Initialize date and classes data
-let selectedDate = new Date(); // Current date - today
-let currentWeekStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1); // Start at first day of current month
+let selectedDate = new Date(); // Current date
+let currentWeekStart = new Date(selectedDate);
+currentWeekStart.setDate(selectedDate.getDate() - selectedDate.getDay());
 let modalCurrentMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1); // Current month
 let currentTab = 'upcoming'; // upcoming or history
 let classesData = [];
+let quotaRemaining = null; // member's remaining booking quota; null until first fetched
 
 // API endpoints (adjust based on your backend)
-const API_BASE = '/api/admin/data';
+const API_BASE = '/api';
 
-// Check if user membership is expired
-const userExpiredDate = '{{user.expired_date}}';
-let isUserExpired = false;
+// Toast notification (top-right), used instead of alert() for booking/cancel feedback
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type === 'error' ? ' error' : '');
+  const icon = type === 'error' ? 'fi-rs-cross-circle' : 'fi-rs-check-circle';
+  toast.innerHTML = `<i class="fi ${icon}"></i><span>${message}</span>`;
+  container.appendChild(toast);
 
-if (userExpiredDate && userExpiredDate !== '') {
-  const expiredDate = new Date(userExpiredDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  expiredDate.setHours(0, 0, 0, 0);
-  
-  isUserExpired = expiredDate < today;
-  
-  // Update expired date color based on status
-  const expiredDateElement = document.getElementById('expired-date-display');
-  if (expiredDateElement) {
-    if (isUserExpired) {
-      expiredDateElement.style.color = '#d32f2f'; // Red if expired
-    } else {
-      expiredDateElement.style.color = '#000000'; // Black if not expired
-    }
-  }
-  
-  console.log('User expired check:', {
-    expiredDate: userExpiredDate,
-    today: today.toISOString().split('T')[0],
-    isExpired: isUserExpired
-  });
-  
-  // Show alert if expired
-  if (isUserExpired) {
-    setTimeout(() => {
-      alert('⚠️ PERHATIAN!\n\nMembership Anda telah expired pada ' + userExpiredDate + '.\n\nAnda tidak dapat melakukan booking class.\nSilakan hubungi admin untuk perpanjangan membership.');
-    }, 500);
-  }
+  requestAnimationFrame(() => toast.classList.add('show'));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
 }
+
+// ===== Change Password =====
+document.getElementById('open-change-password-btn').addEventListener('click', function() {
+  document.getElementById('change-password-form').reset();
+  document.getElementById('change-password-modal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+});
+
+function closeChangePasswordModal() {
+  document.getElementById('change-password-modal').classList.remove('show');
+  document.body.style.overflow = 'auto';
+}
+
+document.getElementById('close-change-password-btn').addEventListener('click', closeChangePasswordModal);
+document.getElementById('change-password-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeChangePasswordModal();
+});
+
+document.getElementById('change-password-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const currentPassword = document.getElementById('cp-current').value;
+  const newPassword = document.getElementById('cp-new').value;
+  const confirmPassword = document.getElementById('cp-confirm').value;
+
+  if (newPassword !== confirmPassword) {
+    showToast('Konfirmasi password baru tidak cocok', 'error');
+    return;
+  }
+  if (newPassword.length < 6) {
+    showToast('Password baru minimal 6 karakter', 'error');
+    return;
+  }
+
+  const submitBtn = document.getElementById('cp-submit-btn');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Menyimpan...';
+
+  try {
+    const res = await fetch('/api/schedule/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword, newPassword })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Password berhasil diubah');
+      closeChangePasswordModal();
+    } else {
+      showToast(data.message || 'Gagal mengubah password', 'error');
+    }
+  } catch (err) {
+    showToast('Terjadi kesalahan, coba lagi', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  }
+});
 
 // Helper function to format date to YYYY-MM-DD without timezone issues
 function formatDateToString(date) {
@@ -402,176 +512,183 @@ function formatDateToString(date) {
   return `${year}-${month}-${day}`;
 }
 
-// Cache for trainers and classes data (fetched once)
-let trainersCache = null;
-let classesCache = null;
+// Fallback regular schedule (used if API unavailable)
+const FALLBACK_REGULAR_SLOTS = [
+  { day:1, time:'07:00', trainer:'Bunda',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:1, time:'08:00', trainer:'Bunda',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:1, time:'09:00', trainer:'Bunda',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:1, time:'17:00', trainer:'Fredy',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:1, time:'18:15', trainer:'Fredy',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:1, time:'19:30', trainer:'Fredy',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:2, time:'08:15', trainer:'Vera',   classType:'Reformer', duration:'60', capacity:'6' },
+  { day:2, time:'09:30', trainer:'Vera',   classType:'Reformer', duration:'60', capacity:'6' },
+  { day:2, time:'17:00', trainer:'Eko',    classType:'Tower',    duration:'60', capacity:'6' },
+  { day:2, time:'18:15', trainer:'Eko',    classType:'Tower',    duration:'60', capacity:'6' },
+  { day:2, time:'19:30', trainer:'Eko',    classType:'Tower',    duration:'60', capacity:'6' },
+  { day:3, time:'07:00', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:3, time:'08:15', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:3, time:'09:30', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:3, time:'17:00', trainer:'Alma',   classType:'Tower',    duration:'60', capacity:'6' },
+  { day:3, time:'18:15', trainer:'Alma',   classType:'Reformer', duration:'60', capacity:'6' },
+  { day:3, time:'19:30', trainer:'Alma',   classType:'Reformer', duration:'60', capacity:'6' },
+  { day:4, time:'07:00', trainer:'Bunda',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:4, time:'08:00', trainer:'Bunda',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:4, time:'09:00', trainer:'Bunda',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:4, time:'17:00', trainer:'Agung',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:4, time:'18:15', trainer:'Agung',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:4, time:'19:30', trainer:'Agung',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:5, time:'07:00', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:5, time:'08:15', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:5, time:'09:30', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:5, time:'17:00', trainer:'Fredy',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:5, time:'18:15', trainer:'Fredy',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:5, time:'19:30', trainer:'Fredy',  classType:'Reformer', duration:'60', capacity:'6' },
+  { day:6, time:'07:00', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:6, time:'08:15', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+  { day:6, time:'09:30', trainer:'Martin', classType:'Reformer', duration:'60', capacity:'6' },
+];
 
-// Fetch trainers and classes lookup data (once)
-async function fetchLookupData() {
-  if (trainersCache && classesCache) return;
-  
-  try {
-    const [trainersRes, classesRes] = await Promise.all([
-      fetch(`${API_BASE}/trainers`),
-      fetch(`${API_BASE}/classes`)
-    ]);
-    
-    const trainersData = await trainersRes.json();
-    const classesDataRes = await classesRes.json();
-    
-    if (trainersData.success) trainersCache = trainersData.data;
-    if (classesDataRes.success) classesCache = classesDataRes.data;
-  } catch (error) {
-    console.error('Error fetching lookup data:', error);
-    trainersCache = trainersCache || [];
-    classesCache = classesCache || [];
-  }
-}
+let regularSlotsCache = null;
 
-// Fetch schedule data from admin API
-async function fetchSchedule(date, isHistory = false) {
-  const dateStr = formatDateToString(date);
-  console.log('Fetching schedule for date:', dateStr, 'isHistory:', isHistory);
-  
-  // Show loading
-  const listContainer = document.getElementById('classes-list');
-  listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fi fi-rs-spinner" style="font-size: 32px; display: block; margin-bottom: 10px;"></i>Loading schedules...</div>';
-  
+async function getRegularSlots() {
+  if (regularSlotsCache) return regularSlotsCache;
   try {
-    // Ensure lookup data is loaded
-    await fetchLookupData();
-    
-    if (isHistory) {
-      // History still uses the old schedule API
-      const response = await fetch('/api/schedule/history');
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = await response.json();
-      classesData = (data.schedule || []).map(s => {
-        s.isPast = true;
-        s.isBookable = false;
-        return s;
-      });
-      renderClasses();
-      updateStatusCard();
-      return;
+    const res = await fetch(`${API_BASE}/schedule/regular`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.slots && data.slots.length > 0) {
+        regularSlotsCache = data.slots;
+        return regularSlotsCache;
+      }
     }
-    
-    // Fetch schedules with week filter
-    const response = await fetch(`${API_BASE}/schedules?date=${dateStr}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    
-    // Also fetch user's bookings to check booked status
-    let userBookedSids = [];
-    try {
-      const bookingsRes = await fetch(`/api/schedule?date=${dateStr}`);
-      if (bookingsRes.ok) {
-        const bookingsData = await bookingsRes.json();
-        userBookedSids = (bookingsData.schedule || [])
-          .filter(s => s.booked === '1' || s.bookclass === 'booked')
-          .map(s => s.sid);
-      }
-    } catch (e) { console.log('Could not fetch user bookings:', e); }
-    
-    // Filter schedules for the selected date only
-    const schedulesForDate = (data.data || []).filter(s => {
-      if (!s.schedule_time) return false;
-      if (!s.id) {
-        console.warn('Schedule missing ID, skipping:', s);
-        return false;
-      }
-      const st = new Date(s.schedule_time);
-      if (isNaN(st.getTime())) return false;
-      const stDateStr = formatDateToString(st);
-      return stDateStr === dateStr && (s.status === 'Active' || s.status === '');
-    });
-    
-    // Build enriched schedule objects
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const now = new Date();
-    const selectedDateOnly = new Date(selectedDate);
-    selectedDateOnly.setHours(0, 0, 0, 0);
-    const sevenDaysLater = new Date(today);
-    sevenDaysLater.setDate(today.getDate() + 7);
-    sevenDaysLater.setHours(0, 0, 0, 0);
-    const isBookableDate = selectedDateOnly.getTime() >= today.getTime() && selectedDateOnly.getTime() <= sevenDaysLater.getTime();
-    
-    classesData = schedulesForDate.map(s => {
-      const trainer = (trainersCache || []).find(t => t.id === s.trainer_id) || {};
-      const classInfo = (classesCache || []).find(c => c.id === s.class_id) || {};
-      
-      let membersArray = [];
-      if (s.members && s.members.trim()) {
-        try { 
-          membersArray = JSON.parse(s.members); 
-        } catch(e) { 
-          // Not valid JSON — treat as comma-separated string
-          membersArray = s.members.split(',').map(m => m.trim()).filter(m => m !== '');
-        }
-      }
-      
-      const classDateTime = new Date(s.schedule_time);
-      const duration = parseInt(classInfo.duration) || 60;
-      const classEndTime = new Date(classDateTime.getTime() + duration * 60000);
-      
-      let isPast = false;
-      let isRunning = false;
-      if (selectedDateOnly.getTime() === today.getTime()) {
-        isPast = classEndTime <= now;
-        isRunning = classDateTime <= now && now < classEndTime;
-      } else if (selectedDateOnly < today) {
-        isPast = true;
-      }
-      
-      const isBooked = userBookedSids.includes(s.id);
-      
-      // Debug: log schedule id
-      if (!s.id) {
-        console.warn('Schedule missing ID:', s);
-      }
-      
-      return {
-        sid: s.id,
-        stime: s.schedule_time,
-        strain: s.trainer_id,
-        sclass: s.class_id,
-        smember: s.members,
-        sgender: s.gender_restriction || '',
-        snotes: s.notes || '',
-        aname: trainer.name || '',
-        aimg: trainer.image || '',
-        cname: classInfo.name || '',
-        cdur: classInfo.duration || '60',
-        ccap: classInfo.capacity || '6',
-        scap: membersArray.length,
-        booked: isBooked ? '1' : '0',
-        bookclass: isBooked ? 'booked' : '',
-        isPast: isPast || isRunning,
-        isBookable: isBookableDate && !isPast && !isRunning,
-        credits_required: classInfo.credits_required || 1,
-        credit_available: window.userCredits || 0
-      };
-    });
-    
-    renderScheduleGrid();
-    updateStatusCard();
-    
-  } catch (error) {
-    console.error('Error fetching schedule:', error);
-    classesData = [];
-    renderScheduleGrid();
-    updateStatusCard();
-  }
+  } catch (e) {}
+  return FALLBACK_REGULAR_SLOTS;
 }
 
-// No more fallback data - schedule list comes from the database via API
+function buildRegularSchedule(date, allSlots) {
+  const dateStr = formatDateToString(date);
+  const dayOfWeek = date.getDay();
+  const slots = allSlots.filter(s => s.day === dayOfWeek);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const selectedDateOnly = new Date(date); selectedDateOnly.setHours(0,0,0,0);
+  const sevenDaysLater = new Date(today); sevenDaysLater.setDate(today.getDate() + 7);
+  const isBookableDate = selectedDateOnly >= today && selectedDateOnly <= sevenDaysLater;
+  const now = new Date();
 
-// Helper: resolve trainer image URL (API may return just filename like "u-3.webp")
-function resolveTrainerImage(img) {
-  if (!img) return 'https://homepilatesstudio.com/uploads/users/u-156.webp';
-  if (img.startsWith('http://') || img.startsWith('https://')) return img;
-  return `https://homepilatesstudio.com/uploads/${img}`;
+  return slots.map((slot, index) => {
+    const [h, m] = slot.time.split(':');
+    const classDateTime = new Date(date);
+    classDateTime.setHours(parseInt(h), parseInt(m || 0), 0, 0);
+    const classEndTime = new Date(classDateTime.getTime() + parseInt(slot.duration || 60) * 60000);
+    let isPast = false;
+    if (selectedDateOnly.getTime() === today.getTime()) { isPast = classEndTime <= now; }
+    else if (selectedDateOnly < today) { isPast = true; }
+    // Booking closes 1 hour before the class starts (e.g. a 17:00 class stops taking new
+    // bookings at 16:00) — separate from isPast, which only fires once the class has ended.
+    const isClosingSoon = !isPast && (classDateTime.getTime() - now.getTime()) <= 60 * 60 * 1000;
+    return {
+      sid: `REG-${dateStr}-${index}`,
+      stime: `${dateStr} ${slot.time}:00`,
+      snotes: slot.classType, aname: `Coach ${slot.trainer}`,
+      aimg: `/images/trainers/default.svg`, cname: 'Reguler',
+      cdur: slot.duration || '60', ccap: slot.capacity || '6',
+      scap: 0, sgender: '', booked: '0', bookclass: '',
+      isRegular: true, isCustom: false, isLocked: false,
+      isPast: isPast, isClosingSoon: isClosingSoon, isBookable: isBookableDate && !isPast,
+    };
+  });
+}
+
+// Google Sheets can return time-formatted cells without a leading zero (e.g. "7:00" not "07:00"),
+// so `stime` strings must be parsed and compared numerically, not with localeCompare.
+function parseStimeMs(stime) {
+  const m = (stime || '').match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!m) return 0;
+  const [, y, mo, d, h, mi, s] = m;
+  return new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s || 0)).getTime();
+}
+
+// filterByDate: when in the History tab, false shows the member's entire booking history
+// (newest first, the default view); true narrows it to whichever date is selected on the
+// calendar. Ignored on the Upcoming tab, which is always scoped to the selected date.
+async function fetchSchedule(date, isHistory = false, filterByDate = true) {
+  const dateStr = formatDateToString(date);
+
+  if (isHistory) {
+    try {
+      const response = await fetch(`${API_BASE}/schedule/history`);
+      if (response.ok) {
+        const data = await response.json();
+        // History rows are always in the past — mark them so renderClasses shows the
+        // non-interactive "Selesai" state instead of Book Now/Cancel Book.
+        let historyClasses = (data.schedule || []).map(s => ({ ...s, isPast: true, isBookable: false }));
+        if (filterByDate) {
+          historyClasses = historyClasses.filter(s => (s.stime || '').startsWith(dateStr));
+        }
+        classesData = historyClasses; // already sorted newest-first by the server
+      } else {
+        classesData = [];
+      }
+    } catch (err) {
+      classesData = [];
+    }
+    renderClasses();
+    updateStatusCard();
+    return;
+  }
+
+  const allSlots = await getRegularSlots();
+  const regularClasses = buildRegularSchedule(date, allSlots);
+
+  let customClasses = [];
+  try {
+    const response = await fetch(`${API_BASE}/schedule/custom?date=${dateStr}`);
+    if (response.ok) {
+      const data = await response.json();
+      const today = new Date(); today.setHours(0,0,0,0);
+      const selDate = new Date(date); selDate.setHours(0,0,0,0);
+      customClasses = (data.schedules || []).map((s, index) => {
+        const [h, m] = s.time.split(':');
+        const classDateTime = new Date(date);
+        classDateTime.setHours(parseInt(h), parseInt(m || 0), 0, 0);
+        const classEndTime = new Date(classDateTime.getTime() + parseInt(s.duration || 60) * 60000);
+        const now = new Date();
+        const isPast = selDate < today || (selDate.getTime() === today.getTime() && classEndTime <= now);
+        return {
+          sid: s.sid, stime: `${dateStr} ${s.time}:00`, snotes: s.classType,
+          aname: `Coach ${s.trainer}`, aimg: `/images/trainers/default.svg`,
+          cname: 'Special', cdur: s.duration || '60', ccap: s.capacity || '6',
+          scap: 0, sgender: '', booked: '0', bookclass: '',
+          isRegular: false, isCustom: true, isLocked: true,
+          isPast: isPast, isBookable: false, customNotes: s.notes,
+        };
+      });
+    }
+  } catch (err) {}
+
+  // The regular/custom slots above are built from templates and always report booked:'0' —
+  // they don't know about bookings already made against the materialized Schedules row for
+  // this date. Overlay the real per-user booked state (and live seat count) so an already-booked
+  // slot shows "Cancel Book" instead of "Book Now" (re-clicking Book Now on it 400s server-side).
+  try {
+    const realResponse = await fetch(`${API_BASE}/schedule?date=${dateStr}`);
+    if (realResponse.ok) {
+      const realData = await realResponse.json();
+      const realBySid = new Map((realData.schedule || []).map(s => [s.sid, s]));
+      regularClasses.forEach(rc => {
+        const match = realBySid.get(rc.sid);
+        if (match) {
+          rc.scap = match.scap;
+          rc.booked = match.booked;
+          rc.bookclass = match.bookclass;
+        }
+      });
+    }
+  } catch (err) {}
+
+  classesData = [...regularClasses, ...customClasses].sort((a, b) => parseStimeMs(a.stime) - parseStimeMs(b.stime));
+  renderClasses();
+  updateStatusCard();
 }
 
 // Format date
@@ -592,41 +709,14 @@ function renderCalendar() {
   datesContainer.innerHTML = '';
   
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
   
-  // Get current month being displayed
-  const year = currentWeekStart.getFullYear();
-  const month = currentWeekStart.getMonth();
-  
-  // Update month-year display
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  document.getElementById('current-month-year').textContent = `${months[month]} ${year}`;
-  
-  // Get first day of month and number of days
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-  
-  // Add previous month's trailing days (dimmed)
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const prevMonthDate = new Date(year, month - 1, daysInPrevMonth - i);
-    const dateDiv = document.createElement('div');
-    dateDiv.className = 'calendar-date';
-    dateDiv.textContent = daysInPrevMonth - i;
-    dateDiv.style.opacity = '0.3';
-    dateDiv.style.cursor = 'default';
-    
-    datesContainer.appendChild(dateDiv);
-  }
-  
-  // Add current month's days
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    date.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(currentWeekStart);
+    date.setDate(currentWeekStart.getDate() + i);
     
     const dateDiv = document.createElement('div');
     dateDiv.className = 'calendar-date';
-    dateDiv.textContent = day;
+    dateDiv.textContent = date.getDate();
     
     if (date.toDateString() === selectedDate.toDateString()) {
       dateDiv.classList.add('selected');
@@ -640,23 +730,8 @@ function renderCalendar() {
       selectedDate = date;
       renderCalendar();
       updateCalendarTitle();
-      fetchSchedule(selectedDate, currentTab === 'history');
+      fetchSchedule(selectedDate, currentTab === 'history'); // Fetch new data
     };
-    
-    datesContainer.appendChild(dateDiv);
-  }
-  
-  // Add next month's leading days (dimmed)
-  const totalCells = firstDay + daysInMonth;
-  const remainingCells = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
-  
-  for (let day = 1; day <= remainingCells; day++) {
-    const nextMonthDate = new Date(year, month + 1, day);
-    const dateDiv = document.createElement('div');
-    dateDiv.className = 'calendar-date';
-    dateDiv.textContent = day;
-    dateDiv.style.opacity = '0.3';
-    dateDiv.style.cursor = 'default';
     
     datesContainer.appendChild(dateDiv);
   }
@@ -667,217 +742,211 @@ function updateCalendarTitle() {
   document.getElementById('calendar-title').textContent = formatDate(selectedDate);
 }
 
-// Render schedule grid - shows all time slots 08:00 to 16:00
-function renderScheduleGrid() {
-  const listContainer = document.getElementById('classes-list');
-  listContainer.innerHTML = '';
-  
-  // If history tab, use old card-based rendering
-  if (currentTab === 'history') {
-    renderClasses();
-    return;
-  }
-  
-  const timeSlots = [8, 9, 10, 11, 12, 13, 14, 15, 16]; // 08:00 - 16:00
-  const dateStr = formatDateToString(selectedDate);
-  const dayIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][selectedDate.getDay()];
-  const monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][selectedDate.getMonth()];
-  
-  timeSlots.forEach(hour => {
-    const hourStr = hour.toString().padStart(2, '0');
-    
-    // Find schedule(s) matching this hour
-    const matchingSchedules = classesData.filter(s => {
-      const sDate = new Date(s.stime);
-      return sDate.getHours() === hour;
-    });
-    
-    const hasSchedule = matchingSchedules.length > 0;
-    
-    if (hasSchedule) {
-      // Render each schedule at this hour
-      matchingSchedules.forEach(schedule => {
-        const card = createScheduleCard(schedule, dayIndo, monthShort);
-        listContainer.appendChild(card);
-      });
-    } else {
-      // Render disabled/empty slot
-      const emptyCard = document.createElement('div');
-      emptyCard.className = 'class-card disabled-slot';
-      emptyCard.style = 'background: #f0ece5; border: 2px dashed #c4b8a8; border-radius: 25px; padding: 20px 25px; margin-bottom: 10px; opacity: 0.6;';
-      
-      emptyCard.innerHTML = `
-        <div class="row align-items-center">
-          <div class="col-md-9">
-            <div class="d-flex align-items-center">
-              <div class="time-badge" style="background: #9d8c7a; color: white; border-radius: 15px; padding: 12px; text-align: center; min-width: 80px; margin-right: 20px;">
-                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 3px;">${dayIndo}</div>
-                <div style="font-size: 10px; background: #b5a594; border-radius: 10px; padding: 3px 8px; margin-bottom: 5px; display: inline-block;">${selectedDate.getDate()} ${monthShort}</div>
-                <div style="font-size: 20px; font-weight: bold;">${hourStr}.00</div>
-              </div>
-              <div class="class-info">
-                <h5 style="color: #999; font-weight: 500; margin: 0; font-size: 16px;">Tidak ada jadwal</h5>
-                <p style="color: #bbb; font-size: 13px; margin: 5px 0 0;">No schedule available at this time</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3 text-end">
-            <button disabled style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: not-allowed; width: 100%; font-size: 13px;">
-              Not Available
-            </button>
-          </div>
-        </div>
-      `;
-      
-      listContainer.appendChild(emptyCard);
-    }
-  });
-
-  attachCardEventListeners();
-}
-
-// Create a schedule card for an active time slot
-function createScheduleCard(schedule, dayIndo, monthShort) {
-  // Validate schedule has required ID
-  if (!schedule.sid) {
-    console.error('Schedule missing sid:', schedule);
-    return document.createElement('div'); // Return empty div
-  }
-  
-  const card = document.createElement('div');
-  card.className = 'class-card';
-  card.style = 'background: white; border: 2px solid #4a3829; border-radius: 25px; padding: 25px; margin-bottom: 10px;';
-  
-  const scheduleDate = new Date(schedule.stime);
-  const hours = scheduleDate.getHours().toString().padStart(2, '0');
-  const minutes = scheduleDate.getMinutes().toString().padStart(2, '0');
-  const timeStr = `${hours}.${minutes}`;
-  
-  const classNotes = schedule.snotes ? schedule.snotes.replace(/\n/g, ' ').trim() : '';
-  const fullClassName = `${schedule.cname} ${classNotes}`.trim();
-  
-  const slotsUsed = parseInt(schedule.scap) || 0;
-  const slotsTotal = parseInt(schedule.ccap) || 6;
-  const slotsDisplay = `${slotsUsed}/${slotsTotal}`;
-  
-  const isBooked = schedule.booked === "1" || schedule.bookclass === "booked";
-  const isFull = slotsUsed >= slotsTotal;
-  const isPast = schedule.isPast === true;
-  const isBookable = schedule.isBookable !== false;
-  
-  let genderIcon = 'fi-rs-briefcase';
-  let genderText = 'All Class';
-  let genderColor = '#8b6f47';
-  
-  if (schedule.sgender === 'F') {
-    genderIcon = 'fi-rs-venus';
-    genderText = 'Female Only';
-    genderColor = '#e91e63';
-  } else if (schedule.sgender === '') {
-    genderText = 'Mixed Class';
-  }
-  
-  let buttonHTML = '';
-  if (isUserExpired) {
-    buttonHTML = `<button class="expired-btn" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Membership Expired</button>`;
-  } else if (isBooked) {
-    buttonHTML = `<button class="cancel-btn" data-sid="${schedule.sid}" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Cancel Book</button>`;
-  } else if (isPast) {
-    buttonHTML = `<button class="past-btn" style="background: #9e9e9e; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Selesai</button>`;
-  } else if (isFull) {
-    buttonHTML = `<button disabled style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: not-allowed; width: 100%;">Full</button>`;
-  } else if (!isBookable) {
-    buttonHTML = `<button class="future-btn" style="background: #ff9800; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Terlalu Jauh</button>`;
-  } else {
-    buttonHTML = `<button class="book-btn" data-sid="${schedule.sid}" style="background: #4a3829; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">Book Now</button>`;
-  }
-  
-  card.innerHTML = `
-    <div class="row align-items-center">
-      <div class="col-md-9">
-        <div class="d-flex align-items-start">
-          <div class="time-badge" style="background: #4a3829; color: white; border-radius: 15px; padding: 15px; text-align: center; min-width: 100px; margin-right: 20px;">
-            <div style="font-size: 11px; opacity: 0.8; margin-bottom: 3px;">${dayIndo}</div>
-            <div style="font-size: 10px; background: #8b6f47; border-radius: 10px; padding: 3px 8px; margin-bottom: 5px; display: inline-block;">${scheduleDate.getDate()} ${monthShort}</div>
-            <div style="font-size: 20px; font-weight: bold;">${timeStr}</div>
-            <div style="font-size: 11px; margin-top: 3px;">${schedule.cdur} mins</div>
-          </div>
-          <div class="class-info">
-            <h5 style="color: #4a3829; font-weight: 600; margin-bottom: 5px; font-size: 18px;">${fullClassName}</h5>
-            <div class="class-meta" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
-              <div style="display: flex; align-items: center; width: 100%;">
-                <i class="fi fi-rs-user" style="color: #8b6f47; margin-right: 5px;"></i>
-                <span style="color: #666; font-size: 14px;">${schedule.aname}</span>
-              </div>
-              <div style="display: flex; align-items: center; width: 100%;">
-                <i class="fi ${genderIcon}" style="color: ${genderColor}; margin-right: 5px;"></i>
-                <span style="color: ${genderColor}; font-size: 14px;">${genderText}</span>
-              </div>
-              <div style="display: flex; align-items: center; width: 100%;">
-                <span style="background: ${isFull ? '#ffebee' : '#e8f5e9'}; color: ${isFull ? '#c62828' : '#2e7d32'}; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">${slotsDisplay}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 text-end">
-        ${buttonHTML}
-      </div>
-    </div>
-  `;
-  
-  return card;
-}
-
-// Render classes for history tab (card-based, no time grid)
+// Render classes from API data
 function renderClasses() {
   const listContainer = document.getElementById('classes-list');
   listContainer.innerHTML = '';
   
   if (classesData.length === 0) {
-    listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fi fi-rs-calendar-xmark" style="font-size: 48px; margin-bottom: 15px; display: block;"></i><strong>No classes available</strong></div>';
+    listContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;"><i class="fi fi-rs-calendar-xmark" style="font-size: 48px; margin-bottom: 15px; display: block;"></i><strong>No classes available for the selected date</strong></div>';
     return;
   }
   
   classesData.forEach((schedule) => {
+    const card = document.createElement('div');
+    card.className = 'class-card';
+
+    // Parse schedule time
     const scheduleDate = new Date(schedule.stime);
+    const hours = scheduleDate.getHours().toString().padStart(2, '0');
+    const minutes = scheduleDate.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}.${minutes}`;
+
     const dayIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][scheduleDate.getDay()];
     const monthShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][scheduleDate.getMonth()];
-    const card = createScheduleCard(schedule, dayIndo, monthShort);
+
+    // Parse class name and level from snotes
+    const classNotes = schedule.snotes ? schedule.snotes.replace(/\n/g, ' ').trim() : '';
+    const fullClassName = schedule.isCustom
+      ? `✨ ${schedule.cname} ${classNotes}`.trim()
+      : `${schedule.cname} ${classNotes}`;
+
+    // Calculate slots
+    const slotsUsed = parseInt(schedule.scap) || 0;
+    const slotsTotal = parseInt(schedule.ccap) || 6;
+    const slotsDisplay = `${slotsUsed}/${slotsTotal}`;
+
+    const isBooked = schedule.booked === "1" || schedule.bookclass === "booked";
+    const isFull = slotsUsed >= slotsTotal;
+    const isPast = schedule.isPast === true;
+    const isClosingSoon = schedule.isClosingSoon === true;
+    const isBookable = schedule.isBookable !== false;
+
+    card.style = isPast
+      ? 'background: #ececec; border: 2px solid #bbbbbb; border-radius: 25px; padding: 25px; margin-bottom: 15px; opacity: 0.75;'
+      : 'background: white; border: 2px solid #4a3829; border-radius: 25px; padding: 25px; margin-bottom: 15px;';
+    const timeBadgeColor = isPast ? '#9e9e9e' : '#4a3829';
+    
+    // Gender display — no badge shown when the class has no gender restriction
+    let genderIcon = '';
+    let genderText = '';
+    let genderColor = '#8b6f47';
+
+    if (schedule.sgender === 'F') {
+      genderIcon = 'fi-rs-venus';
+      genderText = 'Female Only';
+      genderColor = '#e91e63';
+    } else if (schedule.sgender === 'M') {
+      genderIcon = 'fi-rs-mars';
+      genderText = 'Male Only';
+    }
+    
+    const isLocked = schedule.isLocked === true;
+
+    // Determine button state — isPast is checked before isBooked so a class that's already
+    // happened is never left clickable as "Cancel Book" just because the member attended it.
+    let buttonHTML = '';
+    if (isLocked) {
+      buttonHTML = `
+        <div style="text-align:center;">
+          <span style="background: #6b2a2a; color: white; padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; display:inline-block; margin-bottom:6px;">
+            🔒 Special Class
+          </span>
+          <div style="font-size:11px; color:#888;">Jadwal Khusus</div>
+        </div>
+      `;
+    } else if (isPast) {
+      buttonHTML = `
+        <span style="background: #9e9e9e; color: white; padding: 10px 25px; border-radius: 20px; font-weight: 600; display: inline-block; width: 100%; text-align: center; cursor: not-allowed;">
+          Selesai
+        </span>
+      `;
+    } else if (isBooked) {
+      buttonHTML = `
+        <button class="cancel-btn" data-sid="${schedule.sid}" style="background: #d32f2f; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
+          Cancel Book
+        </button>
+      `;
+    } else if (isFull) {
+      buttonHTML = `
+        <button class="book-btn" disabled style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: not-allowed; width: 100%;">
+          Full
+        </button>
+      `;
+    } else if (isClosingSoon) {
+      buttonHTML = `
+        <span style="background: #9e9e9e; color: white; padding: 10px 25px; border-radius: 20px; font-weight: 600; display: inline-block; width: 100%; text-align: center; cursor: not-allowed;">
+          Booking Ditutup
+        </span>
+      `;
+    } else if (!isBookable) {
+      buttonHTML = `
+        <button class="future-btn" style="background: #ff9800; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
+          Terlalu Jauh
+        </button>
+      `;
+    } else if (quotaRemaining !== null && quotaRemaining <= 0) {
+      buttonHTML = `
+        <button class="quota-btn" style="background: #ccc; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
+          Kuota Habis
+        </button>
+      `;
+    } else {
+      buttonHTML = `
+        <button class="book-btn" data-sid="${schedule.sid}" style="background: #4a3829; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: 600; cursor: pointer; width: 100%;">
+          Book Now
+        </button>
+      `;
+    }
+    
+    card.innerHTML = `
+      <div class="row align-items-center">
+        <div class="col-md-9">
+          <div class="d-flex align-items-start">
+            <div class="time-badge" style="background: ${timeBadgeColor}; color: white; border-radius: 15px; padding: 15px; text-align: center; min-width: 100px; margin-right: 20px;">
+              <div style="font-size: 11px; opacity: 0.8; margin-bottom: 3px;">${dayIndo}</div>
+              <div style="font-size: 10px; background: #8b6f47; border-radius: 10px; padding: 3px 8px; margin-bottom: 5px; display: inline-block;">${scheduleDate.getDate()} ${monthShort}</div>
+              <div style="font-size: 20px; font-weight: bold;">${timeStr}</div>
+              <div style="font-size: 11px; margin-top: 3px;">${schedule.cdur} mins</div>
+            </div>
+            
+            <div class="class-info">
+              <h5 style="color: #4a3829; font-weight: 600; margin-bottom: 5px; font-size: 18px;">${fullClassName}</h5>
+              <div class="class-meta" style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+                <div style="display: flex; align-items: center; width: 100%;">
+                  <i class="fi fi-rs-user" style="color: #8b6f47; margin-right: 5px;"></i>
+                  <span style="color: #666; font-size: 14px;">${schedule.aname}</span>
+                </div>
+                ${genderText ? `
+                <div style="display: flex; align-items: center; width: 100%;">
+                  <i class="fi ${genderIcon}" style="color: ${genderColor}; margin-right: 5px;"></i>
+                  <span style="color: ${genderColor}; font-size: 14px;">${genderText}</span>
+                </div>` : ''}
+                <div style="display: flex; align-items: center; width: 100%;">
+                  <span style="background: ${isFull ? '#ffebee' : '#e8f5e9'}; color: ${isFull ? '#c62828' : '#2e7d32'}; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;">${slotsDisplay}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3 text-end">
+          ${buttonHTML}
+        </div>
+      </div>
+    `;
+    
     listContainer.appendChild(card);
   });
   
-  attachCardEventListeners();
-}
-
-// Attach event listeners to schedule cards
-function attachCardEventListeners() {
-  const bookButtons = document.querySelectorAll('.book-btn:not([disabled])');
-  console.log('Attaching listeners to', bookButtons.length, 'book buttons');
-  
-  bookButtons.forEach(btn => {
-    const sid = btn.dataset.sid;
-    console.log('Book button found with sid:', sid);
-    btn.addEventListener('click', () => handleBookClass(sid));
+  // Add event listeners to book buttons
+  document.querySelectorAll('.book-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => handleBookClass(btn.dataset.sid));
   });
   
   document.querySelectorAll('.cancel-btn').forEach(btn => {
-    btn.addEventListener('click', () => handleCancelBook(btn.dataset.sid));
+    btn.addEventListener('click', () => handleCancelBook(btn.dataset.sid, btn));
   });
   
-  document.querySelectorAll('.past-btn').forEach(btn => {
-    btn.addEventListener('click', () => { alert('Kelas sudah selesai!'); });
-  });
-  
-  document.querySelectorAll('.expired-btn').forEach(btn => {
+  // Add event listeners for future class buttons
+  document.querySelectorAll('.future-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      alert('⚠️ Membership Anda telah expired!\n\nAnda tidak dapat melakukan booking class.\nSilakan hubungi admin untuk perpanjangan membership melalui WhatsApp.');
+      showToast('Kelas hanya bisa dibooking maksimal 8 hari kedepan!', 'error');
     });
   });
-  
-  document.querySelectorAll('.future-btn').forEach(btn => {
-    btn.addEventListener('click', () => { alert('Kelas hanya bisa dibooking maksimal 8 hari kedepan!'); });
+
+  // Add event listeners for quota-exhausted buttons
+  document.querySelectorAll('.quota-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      showToast('Kuota booking Anda sudah habis. Silakan hubungi admin untuk mendaftarkan paket membership.', 'error');
+    });
   });
+}
+
+// Fetch and display the member's real booking quota (derived from their active membership
+// subscriptions, not from any single class's capacity)
+function formatExpiryDate(dateStr) {
+  if (!dateStr) return '-';
+  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const [year, month, day] = dateStr.split('-').map(Number);
+  if (!year || !month || !day) return '-';
+  return `${day} ${months[month - 1]} ${year}`;
+}
+
+async function updateStatusCard() {
+  try {
+    const response = await fetch(`${API_BASE}/schedule/quota`);
+    if (!response.ok) return;
+    const quota = await response.json();
+    quotaRemaining = quota.remaining;
+    document.getElementById('status-total').textContent = quota.total;
+    document.getElementById('status-used').textContent = quota.used;
+    document.getElementById('status-remaining').textContent = quota.remaining;
+    document.getElementById('status-expiry').textContent = formatExpiryDate(quota.expiryDate);
+    // Book Now buttons render before this (async) fetch resolves, so re-render now that quota
+    // is known to make sure they correctly reflect the current balance.
+    renderClasses();
+  } catch (err) {}
 }
 
 // Show booking confirmation modal
@@ -885,17 +954,10 @@ let pendingBookingSid = null;
 let pendingBookingData = null;
 
 function showBookingModal(sid) {
-  console.log('showBookingModal called with sid:', sid);
-  
   // Find the class data
   const classData = classesData.find(c => c.sid === sid);
-  if (!classData) {
-    console.error('Class data not found for sid:', sid);
-    alert('Error: Class data not found');
-    return;
-  }
+  if (!classData) return;
   
-  console.log('Found class data:', classData);
   pendingBookingSid = sid;
   pendingBookingData = classData;
   
@@ -909,17 +971,11 @@ function showBookingModal(sid) {
   const monthIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][scheduleDate.getMonth()];
   
   // Update modal content
-  document.getElementById('booking-trainer-img').src = resolveTrainerImage(classData.aimg);
+  document.getElementById('booking-trainer-img').src = classData.aimg || 'https://homepilatesstudio.com/uploads/users/u-156.webp';
   document.getElementById('booking-class-name').textContent = classData.cname || 'Class';
   document.getElementById('booking-class-type').textContent = classData.snotes ? classData.snotes.replace(/\n/g, ' ').trim() : '';
   document.getElementById('booking-trainer-name').textContent = `Trainer : ${classData.aname || 'Unknown'}`;
   document.getElementById('booking-datetime').innerHTML = `${dayIndo}, ${scheduleDate.getDate()} ${monthIndo} ${scheduleDate.getFullYear()}<br>Jam ${timeStr}`;
-  
-  // Update credits info
-  const creditsRequired = classData.credits_required || 1;
-  const creditsAvailable = classData.credit_available || 0;
-  document.getElementById('booking-credits-required').textContent = creditsRequired;
-  document.getElementById('booking-credits-available').textContent = creditsAvailable;
   
   // Show modal
   document.getElementById('booking-modal').classList.add('show');
@@ -933,141 +989,85 @@ function closeBookingModal() {
   pendingBookingData = null;
 }
 
-// Fetch user's credit available information
-async function fetchUserCredits() {
-  try {
-    const response = await fetch('/api/schedule/user/profile');
-    if (!response.ok) {
-      console.error('Failed to fetch user profile:', response.status);
-      return null;
-    }
-    const data = await response.json();
-    console.log('User profile data:', data);
-    
-    // Store credit_available in global variable for use in showBookingModal
-    window.userCredits = data.user ? (data.user.credit_available || 0) : 0;
-    
-    return data;
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
-    return null;
-  }
-}
-
-// Update status card with user credit data
-function updateStatusCard() {
-  // For now, show class-related info
-  // Credit display will be updated separately via fetchUserCredits
-  if (classesData.length > 0) {
-    const firstClass = classesData[0];
-    document.getElementById('status-class-type').textContent = firstClass.cname || 'Reguler';
-  } else {
-    document.getElementById('status-class-type').textContent = '-';
-  }
-}
-
 // Handle book class - now opens modal instead of using confirm
 function handleBookClass(sid) {
-  // Check if user membership is expired
-  if (isUserExpired) {
-    alert('⚠️ Membership Anda telah expired!\n\nAnda tidak dapat melakukan booking class.\nSilakan hubungi admin untuk perpanjangan membership.');
-    return;
-  }
   showBookingModal(sid);
 }
 
 // Handle cancel booking
-async function handleCancelBook(sid) {
-  console.log('handleCancelBook called with sid:', sid);
+async function handleCancelBook(sid, btn) {
   if (!confirm('Are you sure you want to cancel this booking?')) return;
-  
+
+  const originalHTML = btn ? btn.innerHTML : null;
+  if (btn) {
+    btn.disabled = true;
+    btn.style.cursor = 'not-allowed';
+    btn.innerHTML = '<span class="btn-spinner"></span>Membatalkan...';
+  }
+
   try {
-    const requestBody = { sid };
-    console.log('Sending cancel request:', requestBody);
-    
-    const response = await fetch('/api/schedule/cancel', {
+    const response = await fetch(`${API_BASE}/schedule/cancel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({ sid })
     });
-    
+
     const result = await response.json();
-    
+
     if (result.success) {
-      alert('Booking cancelled successfully!');
-      
-      // Refresh user credits after cancellation
-      const userProfile = await fetchUserCredits();
-      if (userProfile && userProfile.user) {
-        const user = userProfile.user;
-        const totalCredits = parseInt(user.credits) || 0;
-        const creditAvailable = parseInt(user.credit_available) || 0;
-        const creditsUsed = parseInt(user.credits_used) || 0;
-        
-        document.getElementById('status-total').textContent = totalCredits;
-        document.getElementById('status-used').textContent = creditsUsed;
-        document.getElementById('status-remaining').textContent = Math.max(0, creditAvailable);
-      }
-      
+      showToast('Booking berhasil dibatalkan.', 'success');
       fetchSchedule(selectedDate, currentTab === 'history');
     } else {
-      alert(result.message || 'Failed to cancel booking');
+      showToast(result.message || 'Gagal membatalkan booking.', 'error');
+      if (btn) { btn.disabled = false; btn.style.cursor = 'pointer'; btn.innerHTML = originalHTML; }
     }
   } catch (error) {
     console.error('Error cancelling booking:', error);
-    alert('Failed to cancel booking. Please try again.');
+    showToast('Gagal membatalkan booking. Silakan coba lagi.', 'error');
+    if (btn) { btn.disabled = false; btn.style.cursor = 'pointer'; btn.innerHTML = originalHTML; }
   }
 }
 
 // Confirm booking button handler
 document.getElementById('confirm-booking-btn').addEventListener('click', async () => {
-  if (!pendingBookingSid) {
-    console.error('No pending booking sid');
-    alert('Error: No schedule selected');
-    return;
-  }
-  
-  // Store sid in local variable BEFORE closing modal (which sets pendingBookingSid to null)
+  if (!pendingBookingSid) return;
   const sidToBook = pendingBookingSid;
-  console.log('Confirming booking for sid:', sidToBook);
-  
-  closeBookingModal();
-  
+
+  const confirmBtn = document.getElementById('confirm-booking-btn');
+  const cancelBtn = document.getElementById('cancel-booking-btn');
+  const originalHTML = confirmBtn.innerHTML;
+  confirmBtn.disabled = true;
+  confirmBtn.style.cursor = 'not-allowed';
+  confirmBtn.innerHTML = '<span class="btn-spinner"></span>Booking...';
+  cancelBtn.disabled = true;
+  cancelBtn.style.cursor = 'not-allowed';
+
   try {
-    const requestBody = { sid: sidToBook };
-    console.log('Sending booking request:', requestBody);
-    
-    const response = await fetch('/api/schedule/book', {
+    const response = await fetch(`${API_BASE}/schedule/book`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({ sid: sidToBook })
     });
-    
+
     const result = await response.json();
-    
+
+    closeBookingModal();
     if (result.success) {
-      alert('Class booked successfully!');
-      
-      // Refresh user credits after booking
-      const userProfile = await fetchUserCredits();
-      if (userProfile && userProfile.user) {
-        const user = userProfile.user;
-        const totalCredits = parseInt(user.credits) || 0;
-        const creditAvailable = parseInt(user.credit_available) || 0;
-        const creditsUsed = parseInt(user.credits_used) || 0;
-        
-        document.getElementById('status-total').textContent = totalCredits;
-        document.getElementById('status-used').textContent = creditsUsed;
-        document.getElementById('status-remaining').textContent = Math.max(0, creditAvailable);
-      }
-      
+      showToast('Kelas berhasil dibooking!', 'success');
       fetchSchedule(selectedDate, currentTab === 'history');
     } else {
-      alert(result.message || 'Failed to book class');
+      showToast(result.message || 'Gagal booking kelas.', 'error');
     }
   } catch (error) {
     console.error('Error booking class:', error);
-    alert('Failed to book class. Please try again.');
+    closeBookingModal();
+    showToast('Gagal booking kelas. Silakan coba lagi.', 'error');
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.style.cursor = 'pointer';
+    confirmBtn.innerHTML = originalHTML;
+    cancelBtn.disabled = false;
+    cancelBtn.style.cursor = 'pointer';
   }
 });
 
@@ -1126,8 +1126,9 @@ function renderModalCalendar() {
       selectedDate = currentDate;
       modalCurrentMonth = new Date(year, month, 1);
       
-      // Update mini calendar to show month of selected date
-      currentWeekStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      // Update mini calendar to show week of selected date
+      currentWeekStart = new Date(selectedDate);
+      currentWeekStart.setDate(selectedDate.getDate() - selectedDate.getDay());
       
       renderCalendar();
       updateCalendarTitle();
@@ -1165,13 +1166,13 @@ function closeCalendarModal() {
 }
 
 // Event listeners
-document.getElementById('prev-month').addEventListener('click', () => {
-  currentWeekStart.setMonth(currentWeekStart.getMonth() - 1);
+document.getElementById('prev-week').addEventListener('click', () => {
+  currentWeekStart.setDate(currentWeekStart.getDate() - 7);
   renderCalendar();
 });
 
-document.getElementById('next-month').addEventListener('click', () => {
-  currentWeekStart.setMonth(currentWeekStart.getMonth() + 1);
+document.getElementById('next-week').addEventListener('click', () => {
+  currentWeekStart.setDate(currentWeekStart.getDate() + 7);
   renderCalendar();
 });
 
@@ -1212,36 +1213,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     this.style.background = '#d4c5b0';
     this.style.color = '#4a3829';
     
-    // Fetch data based on tab
-    fetchSchedule(selectedDate, currentTab === 'history');
+    // Fetch data based on tab — switching to History defaults to showing all history, not
+    // scoped to whatever date happened to be selected on the calendar.
+    fetchSchedule(selectedDate, currentTab === 'history', false);
   });
 });
 
 // Initialize - fetch data on page load
-async function initializePage() {
-  renderCalendar();
-  updateCalendarTitle();
-  
-  // Fetch user credits information
-  const userProfile = await fetchUserCredits();
-  if (userProfile && userProfile.user) {
-    const user = userProfile.user;
-    console.log('Updating status card with user data:', user);
-    
-    // Update credit display
-    const totalCredits = parseInt(user.credits) || 0;
-    const creditAvailable = parseInt(user.credit_available) || 0;
-    const creditsUsed = parseInt(user.credits_used) || 0;
-    
-    document.getElementById('status-total').textContent = totalCredits;
-    document.getElementById('status-used').textContent = creditsUsed;
-    document.getElementById('status-remaining').textContent = Math.max(0, creditAvailable);
-  }
-  
-  fetchSchedule(selectedDate, false); // Load upcoming classes for today
-}
-
-// Call initialization
-initializePage();
+renderCalendar();
+updateCalendarTitle();
+fetchSchedule(selectedDate, false); // Load upcoming classes for today
 
 </script>

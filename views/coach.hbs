@@ -1,0 +1,99 @@
+<!-- Coach Dashboard -->
+<section class="coach-area" style="background: linear-gradient(180deg, #8b7355 0%, #d4c5b0 50%, #e8dcc8 100%); min-height: 100vh; padding: 100px 0 40px 0;">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between flex-wrap mb-4" style="gap: 15px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        {{#if user.image}}
+          <img src="{{user.image}}" alt="{{user.name}}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #4a3829;">
+        {{/if}}
+        <div>
+          <p style="margin: 0; color: #4a3829; font-size: 14px;">Hello,</p>
+          <h4 style="margin: 0; color: #4a3829; font-weight: 600; font-size: 22px;">Coach {{user.name}}</h4>
+        </div>
+      </div>
+      <div class="d-flex align-items-center" style="gap: 10px; background: #f5f0e8; border: 2px solid #4a3829; border-radius: 20px; padding: 8px 15px;">
+        <button id="cw-prev" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #8b6f47;">‹</button>
+        <span id="cw-label" style="font-weight: 600; color: #4a3829; min-width: 180px; text-align: center;">Memuat...</span>
+        <button id="cw-next" style="border: none; background: transparent; cursor: pointer; font-size: 20px; color: #8b6f47;">›</button>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 15px; font-size: 13px; color: #4a3829;">
+      <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 14px; border-radius: 4px; background: #4a3829; display: inline-block;"></span> Jadwal saya</span>
+      <span style="display: inline-flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 14px; border-radius: 4px; background: #cbbfae; display: inline-block;"></span> Coach lain</span>
+    </div>
+
+    <div id="cw-grid" style="display: grid; grid-template-columns: repeat(6, minmax(160px, 1fr)); gap: 12px; overflow-x: auto;">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</section>
+
+<style>
+  .cw-day-col { background: #f5f0e8; border: 2px solid #4a3829; border-radius: 20px; padding: 12px; min-width: 160px; }
+  .cw-day-header { text-align: center; color: #4a3829; font-weight: 700; font-size: 13px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #d4c5b0; }
+  .cw-slot { border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; font-size: 12px; }
+  .cw-slot.mine { background: #4a3829; color: #fff; }
+  .cw-slot.other { background: #e2d8c8; color: #6b5a45; }
+  .cw-slot-time { font-weight: 700; font-size: 13px; }
+  .cw-slot-coach { opacity: 0.85; }
+  .cw-slot-members { margin-top: 4px; font-size: 11px; opacity: 0.9; }
+</style>
+
+<script>
+function cwMondayOf(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+function cwFormatYMD(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+const CW_DAY_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const CW_MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+let cwWeekStart = cwMondayOf(new Date());
+
+async function cwLoadWeek() {
+  const start = cwFormatYMD(cwWeekStart);
+  const end = new Date(cwWeekStart); end.setDate(end.getDate() + 5);
+  const label = cwWeekStart.getMonth() === end.getMonth()
+    ? `${cwWeekStart.getDate()} - ${end.getDate()} ${CW_MONTH_NAMES[cwWeekStart.getMonth()]} ${cwWeekStart.getFullYear()}`
+    : `${cwWeekStart.getDate()} ${CW_MONTH_NAMES[cwWeekStart.getMonth()]} - ${end.getDate()} ${CW_MONTH_NAMES[end.getMonth()]} ${end.getFullYear()}`;
+  document.getElementById('cw-label').textContent = label;
+
+  const grid = document.getElementById('cw-grid');
+  grid.innerHTML = '<p style="color:#4a3829;">Memuat jadwal...</p>';
+
+  try {
+    const res = await fetch(`/api/schedule/coach-week?start=${start}`);
+    const data = await res.json();
+    if (!res.ok) { grid.innerHTML = `<p style="color:#a33;">${data.error || 'Gagal memuat jadwal'}</p>`; return; }
+
+    grid.innerHTML = data.days.map(day => {
+      const d = new Date(day.date + 'T00:00:00');
+      const header = `${CW_DAY_NAMES[day.dayOfWeek]}<br>${d.getDate()} ${CW_MONTH_NAMES[d.getMonth()]}`;
+      const slotsHtml = day.slots.length
+        ? day.slots.map(s => `
+            <div class="cw-slot ${s.isMine ? 'mine' : 'other'}">
+              <div class="cw-slot-time">${s.time} · ${s.classType}</div>
+              <div class="cw-slot-coach">${s.isMine ? 'Anda' : s.coachName}</div>
+              <div>${s.bookedCount}/${s.capacity} booked</div>
+              ${s.isMine && s.members && s.members.length ? `<div class="cw-slot-members">${s.members.join(', ')}</div>` : ''}
+            </div>`).join('')
+        : '<p style="color:#9c8b76; font-size:12px; text-align:center;">Tidak ada kelas</p>';
+      return `<div class="cw-day-col"><div class="cw-day-header">${header}</div>${slotsHtml}</div>`;
+    }).join('');
+  } catch (e) {
+    grid.innerHTML = '<p style="color:#a33;">Terjadi kesalahan saat memuat jadwal.</p>';
+  }
+}
+
+document.getElementById('cw-prev').addEventListener('click', () => { cwWeekStart.setDate(cwWeekStart.getDate() - 7); cwLoadWeek(); });
+document.getElementById('cw-next').addEventListener('click', () => { cwWeekStart.setDate(cwWeekStart.getDate() + 7); cwLoadWeek(); });
+
+cwLoadWeek();
+</script>

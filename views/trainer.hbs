@@ -1,0 +1,439 @@
+<style>
+  .trainer-hero {
+    background: url('/images/texture-class.webp') center;
+    background-size: cover;
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+
+  .trainer-hero .subtitle {
+    font-size: 1.1rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #a05a3f;
+    margin-bottom: 0.5rem;
+  }
+
+  .trainer-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #3d1f1f;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .trainer-hero h1 span {
+    font-weight: 400;
+    font-size: 2rem;
+    display: block;
+    text-transform: none;
+  }
+
+  /* Trainer Section */
+  .trainer-section {
+    padding: 60px 0 80px;
+    background-color: #f4f0e6;
+  }
+
+  .trainer-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .trainer-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+
+  /* Photo */
+  .trainer-photo {
+    width: 130px;
+    min-width: 130px;
+    height: 130px;
+    overflow: hidden;
+    flex-shrink: 0;
+    align-self: center;
+    margin: 16px;
+    border-radius: 14px;
+  }
+
+  .trainer-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 14px;
+  }
+
+  /* Name block */
+  .trainer-name-block {
+    background: #6b2a2a;
+    color: #fff;
+    padding: 18px 28px;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+  }
+
+  .trainer-name-block .coach-label {
+    font-size: 0.85rem;
+    font-style: italic;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #f0c8a0;
+    margin-bottom: 2px;
+  }
+
+  .trainer-name-block h2 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    line-height: 1.1;
+    margin: 0;
+  }
+
+  /* Schedule block */
+  .trainer-schedule {
+    padding: 18px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    flex: 1;
+  }
+
+  .schedule-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .schedule-type-badge {
+    background: #f5e6e0;
+    color: #6b2a2a;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+
+  .schedule-type-badge.tower {
+    background: #e0ecf5;
+    color: #1a4a6b;
+  }
+
+  .schedule-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .schedule-days {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #3d1f1f;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .schedule-times {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: #555;
+    flex-wrap: wrap;
+  }
+
+  .schedule-times i {
+    color: #a05a3f;
+    font-size: 0.85rem;
+  }
+
+  .time-item {
+    font-weight: 600;
+    color: #3d1f1f;
+  }
+
+  .time-sep {
+    color: #aaa;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .trainer-hero h1 {
+      font-size: 2.5rem;
+    }
+
+    .trainer-card {
+      flex-wrap: wrap;
+    }
+
+    .trainer-name-block {
+      min-width: 140px;
+      padding: 14px 20px;
+    }
+
+    .trainer-name-block h2 {
+      font-size: 1.4rem;
+    }
+
+    .trainer-photo {
+      width: 100px;
+      min-width: 100px;
+      height: 100px;
+    }
+
+    .trainer-schedule {
+      padding: 14px 16px;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .trainer-photo {
+      width: 85px;
+      min-width: 85px;
+      height: 85px;
+      margin: 12px;
+    }
+
+    .trainer-name-block {
+      padding: 12px 16px;
+      min-width: 120px;
+    }
+
+    .trainer-name-block h2 {
+      font-size: 1.25rem;
+    }
+  }
+</style>
+
+<!-- Hero Banner -->
+<div class="trainer-hero">
+  <p class="subtitle">Kenali</p>
+  <h1>
+    <span>Meet Our</span>
+    Coaches
+  </h1>
+</div>
+
+<!-- Trainer List -->
+<section class="trainer-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-md-12">
+
+        <!-- Coach Bunda -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-bunda.jpg" alt="Coach Bunda">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Bunda</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge">Reformer</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Senin &amp; Kamis</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">07.00</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">08.00</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">09.00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Fredy -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-fredy.jpg" alt="Coach Fredy">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Fredy</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge">Reformer</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Senin &amp; Jumat</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">17.00</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">18.15</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">19.30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Martin -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-martin.jpg" alt="Coach Martin">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Martin</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge">Reformer</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Rabu, Jumat, Sabtu</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">07.00</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">08.15</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">09.30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Vera -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-vera.jpg" alt="Coach Vera">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Vera</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge">Reformer</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Selasa</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">08.15</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">09.30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Eko -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-eko.jpg" alt="Coach Eko">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Eko</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge tower">Tower</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Selasa</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">17.00</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">18.15</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">19.30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Alma -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-alma.jpg" alt="Coach Alma">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Alma</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge tower">Tower</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Rabu</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">17.00</span>
+                </div>
+              </div>
+            </div>
+            <div class="schedule-group">
+              <span class="schedule-type-badge">Reformer</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Rabu</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">18.15</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">19.30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coach Agung -->
+        <div class="trainer-card">
+          <div class="trainer-photo">
+            <img src="/images/trainers/coach-agung.jpg" alt="Coach Agung">
+          </div>
+          <div class="trainer-name-block">
+            <span class="coach-label">Coach</span>
+            <h2>Agung</h2>
+          </div>
+          <div class="trainer-schedule">
+            <div class="schedule-group">
+              <span class="schedule-type-badge">Reformer</span>
+              <div class="schedule-detail">
+                <div class="schedule-days">Kamis</div>
+                <div class="schedule-times">
+                  <i class="fa fa-clock-o"></i>
+                  <span class="time-item">17.00</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">18.15</span>
+                  <span class="time-sep">|</span>
+                  <span class="time-item">19.30</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+

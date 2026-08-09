@@ -12,14 +12,6 @@ const requireAuth = (req, res, next) => {
 // Admin authentication middleware
 const requireAdmin = (req, res, next) => {
     if (req.session && req.session.user) {
-        // Debug logging
-        console.log('=== ADMIN CHECK ===');
-        console.log('User email:', req.session.user.email);
-        console.log('User role:', req.session.user.role);
-        console.log('Role type:', typeof req.session.user.role);
-        console.log('Is admin?:', req.session.user.role === 'admin');
-        console.log('==================');
-        
         // Check if user is admin
         if (req.session.user.role === 'admin') {
             next();
@@ -54,18 +46,26 @@ const requireAdmin = (req, res, next) => {
     }
 };
 
-// Check if user is logged in (for conditional rendering)
-const checkAuth = (req, res, next) => {
-    res.locals.isAuthenticated = !!(req.session && req.session.user);
-    res.locals.user = req.session && req.session.user ? req.session.user : null;
-    res.locals.isAdmin = req.session && req.session.user && req.session.user.role === 'admin';
-    res.locals.isTrainer = !!(req.session && req.session.trainer);
-    res.locals.trainer = req.session && req.session.trainer ? req.session.trainer : null;
-    next();
-};
-
 // Trainer authentication middleware
 const requireTrainer = (req, res, next) => {
+    if (req.session && req.session.user && req.session.user.role === 'trainer') {
+        next();
+    } else if (req.session && req.session.user) {
+        res.status(403).render('error', {
+            title: 'Akses Ditolak',
+            heading: '403 - Akses Ditolak',
+            message: 'Halaman ini hanya untuk akun coach.',
+            user: req.session.user
+        });
+    } else {
+        res.redirect('/login');
+    }
+};
+
+// Partners-portal trainer auth — the Partners feature (routes/api/partners.js) keeps its own
+// session namespace (req.session.trainer) separate from the Coach dashboard's req.session.user,
+// so it needs its own guard rather than reusing requireTrainer above.
+const requirePartnerTrainer = (req, res, next) => {
     if (req.session && req.session.trainer) {
         next();
     } else {
@@ -79,9 +79,21 @@ const requireTrainer = (req, res, next) => {
     }
 };
 
+// Check if user is logged in (for conditional rendering)
+const checkAuth = (req, res, next) => {
+    res.locals.isAuthenticated = !!(req.session && req.session.user);
+    res.locals.user = req.session && req.session.user ? req.session.user : null;
+    res.locals.isAdmin = req.session && req.session.user && req.session.user.role === 'admin';
+    res.locals.isTrainer = req.session && req.session.user && req.session.user.role === 'trainer';
+    res.locals.isPartnerTrainer = !!(req.session && req.session.trainer);
+    res.locals.partnerTrainer = req.session && req.session.trainer ? req.session.trainer : null;
+    next();
+};
+
 module.exports = {
     requireAuth,
     requireAdmin,
     requireTrainer,
+    requirePartnerTrainer,
     checkAuth
 };

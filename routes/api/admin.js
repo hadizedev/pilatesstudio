@@ -1,39 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const { google } = require('googleapis');
-require('dotenv').config();
-
-const credentials = {
-    type: process.env.GOOGLE_SERVICE_ACCOUNT_TYPE,
-    project_id: process.env.GOOGLE_PROJECT_ID,
-    private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    auth_uri: process.env.GOOGLE_AUTH_URI,
-    token_uri: process.env.GOOGLE_TOKEN_URI,
-    auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_CERT_URL,
-    client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL
-};
+const path = require('path');
+const { requireAdmin } = require('../../middleware/auth');
 
 const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '1TQCQYvenGeGQUT7pQe9osdX5dXO00piDMXEV6GzOQ98';
 
-// Setup Google Sheets authentication with write permissions
+// Setup Google Sheets authentication — credentials.json is gitignored and never committed.
 const auth = new google.auth.GoogleAuth({
-    credentials: credentials,
+    keyFile: path.join(__dirname, '../../credentials.json'),
     scopes: ['https://www.googleapis.com/auth/spreadsheets']
 });
 
 const sheets = google.sheets({ version: 'v4', auth });
 
-// Get all dashboard data
-router.get('/data', async (req, res) => {
+// RAW (not USER_ENTERED) so Sheets stores schedule_time as the literal "YYYY-MM-DD HH:MM:SS"
+// text the app expects — USER_ENTERED auto-detects it as a date/number and corrupts the column.
+async function appendRow(range, values) {
+    await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range,
+        valueInputOption: 'RAW',
+        insertDataOption: 'INSERT_ROWS',
+        resource: { values },
+    });
+}
+
+async function updateRange(range, values) {
+    await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range,
+        valueInputOption: 'RAW',
+        resource: { values },
+    });
+}
+
+function normalizeScheduleTime(v) {
+    if (!v) return null;
+    let s = String(v).replace('T', ' ');
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s)) s += ':00';
+    return s;
+}
+
+function membersFromAssignedUsers(assignedUsers) {
+    if (assignedUsers === undefined || assignedUsers === null || assignedUsers === '') return '[]';
+    return JSON.stringify(String(assignedUsers).split(',').map(v => v.trim()).filter(Boolean));
+}
+
+// Get all dashboard data (Admin only)
+router.get('/data', requireAdmin, async (req, res) => {
     try {
         // Fetch all data in parallel
-        const [usersResponse, bookingsResponse, classesResponse, transactionsResponse, schedulesResponse, trainersResponse, membershipResponse] = await Promise.all([
+        const [usersResponse, bookingsResponse, classesResponse, schedulesResponse, trainersResponse, membershipResponse, subscriptionsResponse] = await Promise.all([
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Users!A:O'
+                range: 'Users!A:Z'
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
@@ -41,11 +62,7 @@ router.get('/data', async (req, res) => {
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Classes!A:G'
-            }),
-            sheets.spreadsheets.values.get({
-                spreadsheetId: spreadsheetId,
-                range: 'Transactions!A:H'
+                range: 'Classes!A:H'
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
@@ -53,32 +70,46 @@ router.get('/data', async (req, res) => {
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Trainers!A:J'
+                range: 'Trainers!A:I'
             }),
             sheets.spreadsheets.values.get({
                 spreadsheetId: spreadsheetId,
-                range: 'Membership!A:D'
+                range: 'Membership!A:E'
+            }),
+            sheets.spreadsheets.values.get({
+                spreadsheetId: spreadsheetId,
+                range: 'Subscriptions!A:J'
             })
         ]);
 
-        // Process Users data
+        // Process Users data — looked up by header name (not fixed column position) since
+        // the Users sheet's columns have been reordered/extended by hand over time.
         const usersRows = usersResponse.data.values || [];
+        const usersHeaders = usersRows[0] || [];
+        const uCol = name => usersHeaders.findIndex(h => (h || '').toString().trim().toLowerCase() === name);
+        const uIdx = {
+            id: uCol('id'), email: uCol('email'), password: uCol('password'),
+            name: uCol('name'), phone: uCol('phone'), gender: uCol('gender'),
+            address: uCol('address'), instagram: uCol('instagram'),
+            role: uCol('role'), membership_type: uCol('membership_type'),
+            membership_status: uCol('membership_status'), registered_date: uCol('registered_date'),
+            total_credits: uCol('credits')
+        };
         const users = usersRows.slice(1).map(row => {
             return {
-                id: row[0] || '',
-                email: row[1] || '',
-                name: row[3] || '',
-                phone: row[4] || '',
-                membership_type: row[5] || '',
-                membership_status: row[6] || '',
-                registered_date: row[7] || '',
-                expired_date: row[8] || '',
-                profile_picture: row[9] || '',
-                credits: row[10] || '0',
-                credit_available: row[11] || '0',
-                gender: row[12] || '',
-                date_of_birth: row[13] || '',
-                role: row[14] || ''
+                id: row[uIdx.id] || '',
+                name: row[uIdx.name] || '',
+                email: row[uIdx.email] || '',
+                phone: row[uIdx.phone] || '',
+                password: row[uIdx.password] || '',
+                gender: uIdx.gender !== -1 ? (row[uIdx.gender] || '') : '',
+                address: uIdx.address !== -1 ? (row[uIdx.address] || '') : '',
+                instagram: uIdx.instagram !== -1 ? (row[uIdx.instagram] || '') : '',
+                role: uIdx.role !== -1 ? (row[uIdx.role] || 'member') : 'member',
+                membership_type: row[uIdx.membership_type] || '',
+                membership_status: row[uIdx.membership_status] || '',
+                registered_date: row[uIdx.registered_date] || '',
+                total_credits: row[uIdx.total_credits] || '0'
             };
         });
 
@@ -99,7 +130,8 @@ router.get('/data', async (req, res) => {
             };
         });
 
-        // Process Classes data
+        // Process Classes data — the real sheet has no price column (id, name, duration,
+        // capacity, description, credits_required, status), unlike the aspirational schema doc.
         const classesRows = classesResponse.data.values || [];
         const classes = classesRows.slice(1).map(row => {
             return {
@@ -110,21 +142,6 @@ router.get('/data', async (req, res) => {
                 description: row[4] || '',
                 credits_required: row[5] || '',
                 status: row[6] || ''
-            };
-        });
-
-        // Process Transactions data
-        const transactionsRows = transactionsResponse.data.values || [];
-        const transactions = transactionsRows.slice(1).map(row => {
-            return {
-                id: row[0] || '',
-                user_id: row[1] || '',
-                transaction_time: row[2] || '',
-                amount: row[3] || '',
-                credits_purchased: row[4] || '',
-                payment_method: row[5] || '',
-                payment_status: row[6] || '',
-                invoice_number: row[7] || ''
             };
         });
 
@@ -143,7 +160,8 @@ router.get('/data', async (req, res) => {
             };
         });
 
-        // Process Trainers data
+        // Process Trainers data — real sheet is id, name, email, password, phone,
+        // specialization, image, bio, status (9 columns; there is no joined_date column).
         const trainersRows = trainersResponse.data.values || [];
         const trainers = trainersRows.slice(1).map(row => {
             return {
@@ -154,20 +172,43 @@ router.get('/data', async (req, res) => {
                 specialization: row[5] || '',
                 image: row[6] || '',
                 bio: row[7] || '',
-                status: row[8] || '',
-                joined_date: row[9] || ''
+                status: row[8] || ''
             };
         });
 
-        // Process Membership data (A=Name, B=Price, C=Credits, D=Duration_Days - no ID column)
+        // Process Membership package catalog (packages a member can be registered for)
         const membershipRows = membershipResponse.data.values || [];
-        const membership = membershipRows.slice(1).map((row, index) => {
+        const membershipPackages = membershipRows.slice(1).map(row => {
             return {
-                id: (index + 2).toString(),  // row index in sheet (1-based + header)
-                name: row[0] || '',
-                price: row[1] || '0',
-                credits: row[2] || '0',
-                duration_days: row[3] || '0'
+                id: row[0] || '',
+                name: row[1] || '',
+                price: row[2] || '',
+                credit: row[3] || '',
+                valid_days: row[4] || ''
+            };
+        });
+
+        // Process Subscriptions (per-member membership registration history — this is what
+        // drives each member's booking quota: remaining = total_sessions - used_sessions)
+        const today = new Date().toISOString().split('T')[0];
+        const subscriptionsRows = subscriptionsResponse.data.values || [];
+        const subscriptions = subscriptionsRows.slice(1).filter(row => row[0]).map(row => {
+            const totalSessions = parseInt(row[5], 10) || 0;
+            const usedSessions = parseInt(row[6], 10) || 0;
+            const endDate = row[4] || '';
+            return {
+                id: row[0] || '',
+                member_id: row[1] || '',
+                package_name: row[2] || '',
+                start_date: row[3] || '',
+                end_date: endDate,
+                total_sessions: totalSessions,
+                used_sessions: usedSessions,
+                remaining_sessions: Math.max(0, totalSessions - usedSessions),
+                buddy_member_id: row[7] || '',
+                buddy_name: row[8] || '',
+                payment_name: row[9] || '',
+                is_expired: !!endDate && endDate < today
             };
         });
 
@@ -177,18 +218,16 @@ router.get('/data', async (req, res) => {
                 users,
                 bookings,
                 classes,
-                transactions,
                 schedules,
                 trainers,
-                membership,
+                membershipPackages,
+                subscriptions,
                 stats: {
                     totalUsers: users.length,
                     totalBookings: bookings.length,
                     totalClasses: classes.length,
-                    totalTransactions: transactions.length,
                     totalSchedules: schedules.length,
-                    totalTrainers: trainers.length,
-                    totalMembership: membership.length
+                    totalTrainers: trainers.length
                 }
             }
         });
@@ -202,1400 +241,478 @@ router.get('/data', async (req, res) => {
     }
 });
 
-// ============ INDIVIDUAL DATA ENDPOINTS ============
-
-// GET /api/admin/data/users - Get users only
-router.get('/data/users', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Users!A:O'
-        });
-
-        const rows = response.data.values || [];
-        const users = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            email: row[1] || '',
-            name: row[3] || '',
-            phone: row[4] || '',
-            membership_type: row[5] || '',
-            membership_status: row[6] || '',
-            registered_date: row[7] || '',
-            expired_date: row[8] || '',
-            profile_picture: row[9] || '',
-            credits: row[10] || '0',
-            credit_available: row[11] || '0',
-            gender: row[12] || '',
-            date_of_birth: row[13] || '',
-            role: row[14] || ''
-        }));
-
-        res.json({ success: true, data: users, total: users.length });
-    } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch users' });
-    }
-});
-
-// GET /api/admin/data/users/:id - Get specific user detail
-router.get('/data/users/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Users!A:O'
-        });
-
-        const rows = response.data.values || [];
-        const user = rows.slice(1).find(row => row[0] === id);
-
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-
-        const userData = {
-            id: user[0] || '',
-            email: user[1] || '',
-            name: user[3] || '',
-            phone: user[4] || '',
-            membership_type: user[5] || '',
-            membership_status: user[6] || '',
-            registered_date: user[7] || '',
-            expired_date: user[8] || '',
-            profile_picture: user[9] || '',
-            credits: user[10] || '0',
-            credit_available: user[11] || '0',
-            gender: user[12] || '',
-            date_of_birth: user[13] || '',
-            role: user[14] || ''
-        };
-
-        res.json({ success: true, data: userData });
-    } catch (error) {
-        console.error('Error fetching user detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch user detail' });
-    }
-});
-
-// GET /api/admin/data/schedules - Get schedules only
-// GET /api/admin/data/schedules - Get schedules only
-// Optional query: ?date=YYYY-MM-DD (filters to the Monday-Sunday week containing that date)
-router.get('/data/schedules', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Schedules!A:R'
-        });
-
-        const rows = response.data.values || [];
-        let schedules = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            schedule_time: row[1] || '',
-            trainer_id: row[2] || '',
-            class_id: row[3] || '',
-            members: row[4] || '',
-            gender_restriction: row[5] || '',
-            all_day: row[6] || '',
-            notes: row[7] || '',
-            bid: row[8] || '',
-            flag: row[9] || '',
-            cuser: row[10] || '',
-            cpid: row[11] || '',
-            ctime: row[12] || '',
-            muser: row[13] || '',
-            mpid: row[14] || '',
-            mtime: row[15] || '',
-            status: row[16] || ''
-        }));
-
-        // Filter by week (Monday-Sunday) if date parameter is provided
-        const { date } = req.query;
-        let weekStart = null;
-        let weekEnd = null;
-
-        if (date) {
-            const target = new Date(date + 'T00:00:00');
-            if (!isNaN(target.getTime())) {
-                // Calculate Monday of the week (getDay: 0=Sun,1=Mon,...,6=Sat)
-                const day = target.getDay();
-                const diffToMonday = day === 0 ? -6 : 1 - day; // Sunday goes back 6 days
-                weekStart = new Date(target);
-                weekStart.setDate(target.getDate() + diffToMonday);
-                weekStart.setHours(0, 0, 0, 0);
-
-                weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekStart.getDate() + 6); // Sunday
-                weekEnd.setHours(23, 59, 59, 999);
-
-                schedules = schedules.filter(s => {
-                    if (!s.schedule_time) return false;
-                    const st = new Date(s.schedule_time);
-                    return st >= weekStart && st <= weekEnd;
-                });
-            }
-        }
-
-        res.json({
-            success: true,
-            data: schedules,
-            total: schedules.length,
-            ...(weekStart && weekEnd ? {
-                filter: {
-                    week_start: weekStart.toISOString().split('T')[0],
-                    week_end: weekEnd.toISOString().split('T')[0]
-                }
-            } : {})
-        });
-    } catch (error) {
-        console.error('Error fetching schedules:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch schedules' });
-    }
-});
-
-// GET /api/admin/data/schedules/:id - Get specific schedule detail
-router.get('/data/schedules/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Schedules!A:R'
-        });
-
-        const rows = response.data.values || [];
-        const schedule = rows.slice(1).find(row => row[0] === id);
-
-        if (!schedule) {
-            return res.status(404).json({ success: false, message: 'Schedule not found' });
-        }
-
-        const scheduleData = {
-            id: schedule[0] || '',
-            schedule_time: schedule[1] || '',
-            trainer_id: schedule[2] || '',
-            class_id: schedule[3] || '',
-            members: schedule[4] || '',
-            gender_restriction: schedule[5] || '',
-            all_day: schedule[6] || '',
-            notes: schedule[7] || '',
-            bid: schedule[8] || '',
-            flag: schedule[9] || '',
-            cuser: schedule[10] || '',
-            cpid: schedule[11] || '',
-            ctime: schedule[12] || '',
-            muser: schedule[13] || '',
-            mpid: schedule[14] || '',
-            mtime: schedule[15] || '',
-            status: schedule[16] || ''
-        };
-
-        res.json({ success: true, data: scheduleData });
-    } catch (error) {
-        console.error('Error fetching schedule detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch schedule detail' });
-    }
-});
-
-// GET /api/admin/data/classes - Get classes only
-router.get('/data/classes', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Classes!A:G'
-        });
-
-        const rows = response.data.values || [];
-        const classes = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            name: row[1] || '',
-            duration: row[2] || '',
-            capacity: row[3] || '',
-            description: row[4] || '',
-            credits_required: row[5] || '',
-            status: row[6] || ''
-        }));
-
-        res.json({ success: true, data: classes, total: classes.length });
-    } catch (error) {
-        console.error('Error fetching classes:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch classes' });
-    }
-});
-
-// GET /api/admin/data/classes/:id - Get specific class detail
-router.get('/data/classes/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Classes!A:G'
-        });
-
-        const rows = response.data.values || [];
-        const classItem = rows.slice(1).find(row => row[0] === id);
-
-        if (!classItem) {
-            return res.status(404).json({ success: false, message: 'Class not found' });
-        }
-
-        const classData = {
-            id: classItem[0] || '',
-            name: classItem[1] || '',
-            duration: classItem[2] || '',
-            capacity: classItem[3] || '',
-            description: classItem[4] || '',
-            credits_required: classItem[5] || '',
-            status: classItem[6] || ''
-        };
-
-        res.json({ success: true, data: classData });
-    } catch (error) {
-        console.error('Error fetching class detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch class detail' });
-    }
-});
-
-// GET /api/admin/data/bookings - Get bookings only
-router.get('/data/bookings', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Bookings!A:J'
-        });
-
-        const rows = response.data.values || [];
-        const bookings = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            schedule_id: row[1] || '',
-            user_id: row[2] || '',
-            booking_time: row[3] || '',
-            status: row[4] || '',
-            attended: row[5] || '0',
-            cancelled_time: row[6] || '',
-            notes: row[7] || '',
-            payment_status: row[8] || '',
-            credits_used: row[9] || '0'
-        }));
-
-        res.json({ success: true, data: bookings, total: bookings.length });
-    } catch (error) {
-        console.error('Error fetching bookings:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch bookings' });
-    }
-});
-
-// GET /api/admin/data/bookings/:id - Get specific booking detail
-router.get('/data/bookings/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Bookings!A:J'
-        });
-
-        const rows = response.data.values || [];
-        const booking = rows.slice(1).find(row => row[0] === id);
-
-        if (!booking) {
-            return res.status(404).json({ success: false, message: 'Booking not found' });
-        }
-
-        const bookingData = {
-            id: booking[0] || '',
-            schedule_id: booking[1] || '',
-            user_id: booking[2] || '',
-            booking_time: booking[3] || '',
-            status: booking[4] || '',
-            attended: booking[5] || '0',
-            cancelled_time: booking[6] || '',
-            notes: booking[7] || '',
-            payment_status: booking[8] || '',
-            credits_used: booking[9] || '0'
-        };
-
-        res.json({ success: true, data: bookingData });
-    } catch (error) {
-        console.error('Error fetching booking detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch booking detail' });
-    }
-});
-
-// GET /api/admin/data/trainers - Get trainers only
-router.get('/data/trainers', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Trainers!A:J'
-        });
-
-        const rows = response.data.values || [];
-        const trainers = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            name: row[1] || '',
-            email: row[2] || '',
-            phone: row[4] || '',
-            specialization: row[5] || '',
-            image: row[6] || '',
-            bio: row[7] || '',
-            status: row[8] || '',
-            joined_date: row[9] || ''
-        }));
-
-        res.json({ success: true, data: trainers, total: trainers.length });
-    } catch (error) {
-        console.error('Error fetching trainers:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch trainers' });
-    }
-});
-
-// GET /api/admin/data/trainers/:id - Get specific trainer detail
-router.get('/data/trainers/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Trainers!A:J'
-        });
-
-        const rows = response.data.values || [];
-        const trainer = rows.slice(1).find(row => row[0] === id);
-
-        if (!trainer) {
-            return res.status(404).json({ success: false, message: 'Trainer not found' });
-        }
-
-        const trainerData = {
-            id: trainer[0] || '',
-            name: trainer[1] || '',
-            email: trainer[2] || '',
-            phone: trainer[4] || '',
-            specialization: trainer[5] || '',
-            image: trainer[6] || '',
-            bio: trainer[7] || '',
-            status: trainer[8] || '',
-            joined_date: trainer[9] || ''
-        };
-
-        res.json({ success: true, data: trainerData });
-    } catch (error) {
-        console.error('Error fetching trainer detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch trainer detail' });
-    }
-});
-
-// GET /api/admin/data/transactions - Get transactions only
-router.get('/data/transactions', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Transactions!A:H'
-        });
-
-        const rows = response.data.values || [];
-        const transactions = rows.slice(1).map(row => ({
-            id: row[0] || '',
-            user_id: row[1] || '',
-            transaction_time: row[2] || '',
-            amount: row[3] || '',
-            credits_purchased: row[4] || '',
-            payment_method: row[5] || '',
-            payment_status: row[6] || '',
-            invoice_number: row[7] || ''
-        }));
-
-        res.json({ success: true, data: transactions, total: transactions.length });
-    } catch (error) {
-        console.error('Error fetching transactions:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch transactions' });
-    }
-});
-
-// GET /api/admin/data/transactions/:id - Get specific transaction detail
-router.get('/data/transactions/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Transactions!A:H'
-        });
-
-        const rows = response.data.values || [];
-        const transaction = rows.slice(1).find(row => row[0] === id);
-
-        if (!transaction) {
-            return res.status(404).json({ success: false, message: 'Transaction not found' });
-        }
-
-        const transactionData = {
-            id: transaction[0] || '',
-            user_id: transaction[1] || '',
-            transaction_time: transaction[2] || '',
-            amount: transaction[3] || '',
-            credits_purchased: transaction[4] || '',
-            payment_method: transaction[5] || '',
-            payment_status: transaction[6] || '',
-            invoice_number: transaction[7] || ''
-        };
-
-        res.json({ success: true, data: transactionData });
-    } catch (error) {
-        console.error('Error fetching transaction detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch transaction detail' });
-    }
-});
-
-// GET /api/admin/data/membership - Get membership plans only
-router.get('/data/membership', async (req, res) => {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Membership!A:D'
-        });
-
-        const rows = response.data.values || [];
-        const membership = rows.slice(1).map((row, index) => ({
-            id: (index + 2).toString(),  // row index in sheet
-            name: row[0] || '',
-            price: row[1] || '0',
-            credits: row[2] || '0',
-            duration_days: row[3] || '0'
-        }));
-
-        res.json({ success: true, data: membership, total: membership.length });
-    } catch (error) {
-        console.error('Error fetching membership:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch membership' });
-    }
-});
-
-// GET /api/admin/data/membership/:id - Get specific membership detail (id = row number)
-router.get('/data/membership/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const rowNumber = parseInt(id);
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Membership!A${rowNumber}:D${rowNumber}`
-        });
-
-        const rows = response.data.values || [];
-        if (!rows[0]) {
-            return res.status(404).json({ success: false, message: 'Membership not found' });
-        }
-
-        const item = rows[0];
-        const membershipData = {
-            id: id,
-            name: item[0] || '',
-            price: item[1] || '0',
-            credits: item[2] || '0',
-            duration_days: item[3] || '0'
-        };
-
-        res.json({ success: true, data: membershipData });
-    } catch (error) {
-        console.error('Error fetching membership detail:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch membership detail' });
-    }
-});
-
-// GET /api/admin/data/stats - Get summary counts only (lightweight)
-router.get('/data/stats', async (req, res) => {
-    try {
-        const [usersRes, bookingsRes, classesRes, transactionsRes, schedulesRes, trainersRes, membershipRes] = await Promise.all([
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Bookings!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Classes!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Transactions!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Schedules!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Trainers!A:A' }),
-            sheets.spreadsheets.values.get({ spreadsheetId, range: 'Membership!A:A' })
-        ]);
-
-        res.json({
-            success: true,
-            data: {
-                totalUsers: Math.max((usersRes.data.values || []).length - 1, 0),
-                totalBookings: Math.max((bookingsRes.data.values || []).length - 1, 0),
-                totalClasses: Math.max((classesRes.data.values || []).length - 1, 0),
-                totalTransactions: Math.max((transactionsRes.data.values || []).length - 1, 0),
-                totalSchedules: Math.max((schedulesRes.data.values || []).length - 1, 0),
-                totalTrainers: Math.max((trainersRes.data.values || []).length - 1, 0),
-                totalMembership: Math.max((membershipRes.data.values || []).length - 1, 0)
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching stats:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch stats' });
-    }
-});
-
-// ============ CRUD OPERATIONS ============
-
-// Helper function: Get next ID for a sheet
-async function getNextId(sheetName) {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `${sheetName}!A:A`
-        });
-        
-        const values = response.data.values || [];
-        if (values.length <= 1) return '1'; // Only header or empty
-        
-        // Get numeric IDs and find the max
-        const ids = values.slice(1)
-            .map(row => parseInt(row[0]))
-            .filter(id => !isNaN(id));
-        
-        return (Math.max(...ids, 0) + 1).toString();
-    } catch (error) {
-        console.error('Error getting next ID:', error);
-        throw error;
-    }
-}
-
-// Helper function: Find row index by ID
-async function findRowIndexById(sheetName, id) {
-    try {
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `${sheetName}!A:A`
-        });
-        
-        const values = response.data.values || [];
-        const rowIndex = values.findIndex(row => row[0] == id);
-        
-        return rowIndex === -1 ? -1 : rowIndex + 1; // +1 for 1-based indexing
-    } catch (error) {
-        console.error('Error finding row:', error);
-        throw error;
-    }
-}
-
-// Helper function: Append row to sheet
-async function appendRow(sheetName, values) {
-    try {
-        const response = await sheets.spreadsheets.values.append({
-            spreadsheetId: spreadsheetId,
-            range: `${sheetName}!A:Z`,
-            valueInputOption: 'RAW',
-            insertDataOption: 'INSERT_ROWS',
-            resource: {
-                values: [values],
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error appending row:', error);
-        throw error;
-    }
-}
-
-// Helper function: Update row in sheet
-async function updateRow(sheetName, rowNumber, values) {
-    try {
-        const cols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').slice(0, values.length);
-        const range = `${sheetName}!A${rowNumber}:${cols[values.length - 1]}${rowNumber}`;
-        
-        const response = await sheets.spreadsheets.values.update({
-            spreadsheetId: spreadsheetId,
-            range: range,
-            valueInputOption: 'RAW',
-            resource: {
-                values: [values],
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error updating row:', error);
-        throw error;
-    }
-}
-
-// Helper function: Delete row from sheet
-async function deleteRow(sheetName, rowNumber) {
-    try {
-        const spreadsheet = await sheets.spreadsheets.get({
-            spreadsheetId: spreadsheetId,
-        });
-        
-        const sheet = spreadsheet.data.sheets.find(s => s.properties.title === sheetName);
-        if (!sheet) throw new Error(`Sheet ${sheetName} not found`);
-        
-        const sheetId = sheet.properties.sheetId;
-        
-        const response = await sheets.spreadsheets.batchUpdate({
-            spreadsheetId: spreadsheetId,
-            resource: {
-                requests: [{
-                    deleteDimension: {
-                        range: {
-                            sheetId: sheetId,
-                            dimension: 'ROWS',
-                            startIndex: rowNumber - 1,
-                            endIndex: rowNumber,
-                        },
-                    },
-                }],
-            },
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Error deleting row:', error);
-        throw error;
-    }
-}
-
-// ============ USER CRUD ============
-
-// POST /api/admin/user - Create new user
-router.post('/user', async (req, res) => {
-    try {
-        const { name, email, phone, password, membership_type, membership_status, expired_date, credits, credit_available, gender, role } = req.body;
-        
-        // Validate required fields
-        if (!name || !email || !phone || !password) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-        
-        const id = await getNextId('Users');
-        const values = [
-            id,
-            email,
-            password, // In real app, should be hashed
-            name,
-            phone,
-            membership_type,
-            membership_status,
-            new Date().toISOString().split('T')[0], // registered_date
-            expired_date,
-            '', // profile_picture
-            credits,
-            credit_available || credits, // default credit_available = credits
-            gender,
-            '', // date_of_birth
-            role || 'user'
-        ];
-        
-        await appendRow('Users', values);
-        
-        res.json({ 
-            success: true, 
-            message: 'User created successfully',
-            data: { id }
-        });
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ success: false, message: 'Error creating user: ' + error.message });
-    }
-});
-
-// PUT /api/admin/user/:id - Update user
-router.put('/user/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, email, phone, password, membership_type, membership_status, expired_date, credits, credit_available, gender, role } = req.body;
-        
-        const rowIndex = await findRowIndexById('Users', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        
-        // Get existing data to preserve fields not being updated
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Users!A${rowIndex}:O${rowIndex}`
-        });
-        
-        const existingRow = response.data.values[0] || [];
-        
-        const values = [
-            id,
-            email || existingRow[1],
-            password || existingRow[2], // If empty, keep old password
-            name || existingRow[3],
-            phone || existingRow[4],
-            membership_type || existingRow[5],
-            membership_status || existingRow[6],
-            existingRow[7], // registered_date (don't change)
-            expired_date || existingRow[8],
-            existingRow[9], // profile_picture
-            credits || existingRow[10],
-            credit_available !== undefined ? credit_available : existingRow[11],
-            gender || existingRow[12],
-            existingRow[13], // date_of_birth
-            role || existingRow[14]
-        ];
-        
-        await updateRow('Users', rowIndex, values);
-        
-        res.json({ success: true, message: 'User updated successfully' });
-    } catch (error) {
-        console.error('Error updating user:', error);
-        res.status(500).json({ success: false, message: 'Error updating user: ' + error.message });
-    }
-});
-
-// DELETE /api/admin/user/:id - Delete user
-router.delete('/user/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const rowIndex = await findRowIndexById('Users', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        
-        await deleteRow('Users', rowIndex);
-        
-        res.json({ success: true, message: 'User deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting user:', error);
-        res.status(500).json({ success: false, message: 'Error deleting user: ' + error.message });
-    }
-});
-
-// ============ BOOKING CRUD ============
-
-// POST /api/admin/booking - Create new booking
-router.post('/booking', async (req, res) => {
-    try {
-        const { schedule_id, user_id, status, attended, payment_status, credits_used, notes } = req.body;
-        
-        if (!schedule_id || !user_id) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-        
-        const id = await getNextId('Bookings');
-        const values = [
-            id,
-            schedule_id,
-            user_id,
-            new Date().toISOString(), // booking_time
-            status || 'Confirmed',
-            attended || '0',
-            '', // cancelled_time
-            notes || '',
-            payment_status || 'Pending',
-            credits_used || '0'
-        ];
-        
-        await appendRow('Bookings', values);
-        
-        res.json({ success: true, message: 'Booking created successfully', data: { id } });
-    } catch (error) {
-        console.error('Error creating booking:', error);
-        res.status(500).json({ success: false, message: 'Error creating booking: ' + error.message });
-    }
-});
-
-// PUT /api/admin/booking/:id - Update booking
-router.put('/booking/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { schedule_id, user_id, status, attended, payment_status, credits_used, notes } = req.body;
-        
-        const rowIndex = await findRowIndexById('Bookings', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Booking not found' });
-        }
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Bookings!A${rowIndex}:J${rowIndex}`
-        });
-        
-        const existingRow = response.data.values[0] || [];
-        
-        const values = [
-            id,
-            schedule_id || existingRow[1],
-            user_id || existingRow[2],
-            existingRow[3], // booking_time (don't change)
-            status || existingRow[4],
-            attended !== undefined ? attended : existingRow[5],
-            existingRow[6], // cancelled_time
-            notes !== undefined ? notes : existingRow[7],
-            payment_status || existingRow[8],
-            credits_used !== undefined ? credits_used : existingRow[9]
-        ];
-        
-        await updateRow('Bookings', rowIndex, values);
-        
-        res.json({ success: true, message: 'Booking updated successfully' });
-    } catch (error) {
-        console.error('Error updating booking:', error);
-        res.status(500).json({ success: false, message: 'Error updating booking: ' + error.message });
-    }
-});
-
-// DELETE /api/admin/booking/:id - Delete booking
-router.delete('/booking/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const rowIndex = await findRowIndexById('Bookings', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Booking not found' });
-        }
-        
-        await deleteRow('Bookings', rowIndex);
-        
-        res.json({ success: true, message: 'Booking deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting booking:', error);
-        res.status(500).json({ success: false, message: 'Error deleting booking: ' + error.message });
-    }
-});
-
-// ============ CLASS CRUD ============
-
-// POST /api/admin/class - Create new class
-router.post('/class', async (req, res) => {
-    try {
-        const { name, duration, capacity, credits_required, status, description } = req.body;
-        
-        if (!name) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-        
-        const id = await getNextId('Classes');
-        const values = [
-            id,
-            name,
-            duration || '',
-            capacity || '',
-            description || '',
-            credits_required || '0',
-            status || 'Active'
-        ];
-        
-        await appendRow('Classes', values);
-        
-        res.json({ success: true, message: 'Class created successfully', data: { id } });
-    } catch (error) {
-        console.error('Error creating class:', error);
-        res.status(500).json({ success: false, message: 'Error creating class: ' + error.message });
-    }
-});
-
-// PUT /api/admin/class/:id - Update class
-router.put('/class/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { name, duration, capacity, credits_required, status, description } = req.body;
-        
-        const rowIndex = await findRowIndexById('Classes', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Class not found' });
-        }
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Classes!A${rowIndex}:G${rowIndex}`
-        });
-        
-        const existingRow = response.data.values[0] || [];
-        
-        const values = [
-            id,
-            name || existingRow[1],
-            duration !== undefined ? duration : existingRow[2],
-            capacity !== undefined ? capacity : existingRow[3],
-            description !== undefined ? description : existingRow[4],
-            credits_required !== undefined ? credits_required : existingRow[5],
-            status || existingRow[6]
-        ];
-        
-        await updateRow('Classes', rowIndex, values);
-        
-        res.json({ success: true, message: 'Class updated successfully' });
-    } catch (error) {
-        console.error('Error updating class:', error);
-        res.status(500).json({ success: false, message: 'Error updating class: ' + error.message });
-    }
-});
-
-// DELETE /api/admin/class/:id - Delete class
-router.delete('/class/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const rowIndex = await findRowIndexById('Classes', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Class not found' });
-        }
-        
-        await deleteRow('Classes', rowIndex);
-        
-        res.json({ success: true, message: 'Class deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting class:', error);
-        res.status(500).json({ success: false, message: 'Error deleting class: ' + error.message });
-    }
-});
-
-// ============ TRANSACTION CRUD ============
-
-// POST /api/admin/transaction - Create new transaction
-router.post('/transaction', async (req, res) => {
-    try {
-        const { user_id, amount, credits_purchased, payment_method, payment_status, invoice_number } = req.body;
-        
-        if (!user_id || !amount) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-        
-        const id = await getNextId('Transactions');
-        const values = [
-            id,
-            user_id,
-            new Date().toISOString(), // transaction_time
-            amount,
-            credits_purchased || '0',
-            payment_method || 'Bank Transfer',
-            payment_status || 'Pending',
-            invoice_number || ''
-        ];
-        
-        await appendRow('Transactions', values);
-        
-        res.json({ success: true, message: 'Transaction created successfully', data: { id } });
-    } catch (error) {
-        console.error('Error creating transaction:', error);
-        res.status(500).json({ success: false, message: 'Error creating transaction: ' + error.message });
-    }
-});
-
-// PUT /api/admin/transaction/:id - Update transaction
-router.put('/transaction/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { user_id, amount, credits_purchased, payment_method, payment_status, invoice_number } = req.body;
-        
-        const rowIndex = await findRowIndexById('Transactions', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Transaction not found' });
-        }
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Transactions!A${rowIndex}:H${rowIndex}`
-        });
-        
-        const existingRow = response.data.values[0] || [];
-        
-        const values = [
-            id,
-            user_id || existingRow[1],
-            existingRow[2], // transaction_time (don't change)
-            amount || existingRow[3],
-            credits_purchased !== undefined ? credits_purchased : existingRow[4],
-            payment_method || existingRow[5],
-            payment_status || existingRow[6],
-            invoice_number || existingRow[7]
-        ];
-        
-        await updateRow('Transactions', rowIndex, values);
-        
-        res.json({ success: true, message: 'Transaction updated successfully' });
-    } catch (error) {
-        console.error('Error updating transaction:', error);
-        res.status(500).json({ success: false, message: 'Error updating transaction: ' + error.message });
-    }
-});
-
-// DELETE /api/admin/transaction/:id - Delete transaction
-router.delete('/transaction/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const rowIndex = await findRowIndexById('Transactions', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Transaction not found' });
-        }
-        
-        await deleteRow('Transactions', rowIndex);
-        
-        res.json({ success: true, message: 'Transaction deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting transaction:', error);
-        res.status(500).json({ success: false, message: 'Error deleting transaction: ' + error.message });
-    }
-});
-
-// ============ SCHEDULE CRUD ============
-
-// POST /api/admin/schedule - Create new schedule
-router.post('/schedule', async (req, res) => {
+// Create a schedule row (Admin only) — e.g. assigning a member to a Regular/Custom schedule slot
+router.post('/schedule', requireAdmin, async (req, res) => {
     try {
         const { schedule_time, trainer_id, class_id, assigned_users, gender_restriction, status, notes } = req.body;
-        
         if (!schedule_time || !trainer_id || !class_id) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
+            return res.status(400).json({ success: false, message: 'schedule_time, trainer_id, dan class_id wajib diisi' });
         }
-        
-        const id = await getNextId('Schedules');
-        const usersList = assigned_users || '';
-        
-        const values = [
+
+        const id = `SCH-${Date.now()}`;
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+        await appendRow('Schedules!A:Q', [[
             id,
-            schedule_time,
+            normalizeScheduleTime(schedule_time),
             trainer_id,
             class_id,
-            usersList, // members (assigned users)
+            membersFromAssignedUsers(assigned_users),
             gender_restriction || '',
-            '', // placeholder
+            '0',
             notes || '',
-            '', '', '', '', '', '', '', '', '',
+            '',
+            '0',
+            req.session.user.email,
+            '',
+            now,
+            req.session.user.email,
+            '',
+            now,
             status || 'Active'
-        ];
-        
-        await appendRow('Schedules', values);
-        
-        res.json({ success: true, message: 'Schedule created successfully', data: { id } });
+        ]]);
+
+        res.json({ success: true, id });
     } catch (error) {
         console.error('Error creating schedule:', error);
-        res.status(500).json({ success: false, message: 'Error creating schedule: ' + error.message });
+        res.status(500).json({ success: false, message: 'Gagal membuat schedule' });
     }
 });
 
-// PUT /api/admin/schedule/:id - Update schedule
-router.put('/schedule/:id', async (req, res) => {
+// Update a schedule row (Admin only)
+router.put('/schedule/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { schedule_time, trainer_id, class_id, assigned_users, gender_restriction, status, notes } = req.body;
-        
-        const rowIndex = await findRowIndexById('Schedules', id);
+
+        const rowsResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Schedules!A2:Q' });
+        const rows = rowsResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id);
         if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Schedule not found' });
+            return res.status(404).json({ success: false, message: 'Schedule tidak ditemukan' });
         }
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Schedules!A${rowIndex}:R${rowIndex}`
-        });
-        
-        const existingRow = response.data.values[0] || [];
-        
-        const values = [
+
+        const existing = rows[rowIndex];
+        const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+        const updatedRow = [
             id,
-            schedule_time || existingRow[1],
-            trainer_id || existingRow[2],
-            class_id || existingRow[3],
-            assigned_users !== undefined ? assigned_users : existingRow[4],
-            gender_restriction !== undefined ? gender_restriction : existingRow[5],
-            existingRow[6],
-            notes !== undefined ? notes : existingRow[7],
-            existingRow[8] || '',
-            existingRow[9] || '',
-            existingRow[10] || '',
-            existingRow[11] || '',
-            existingRow[12] || '',
-            existingRow[13] || '',
-            existingRow[14] || '',
-            existingRow[15] || '',
-            status || existingRow[16]
+            schedule_time ? normalizeScheduleTime(schedule_time) : (existing[1] || ''),
+            trainer_id || existing[2] || '',
+            class_id || existing[3] || '',
+            assigned_users !== undefined ? membersFromAssignedUsers(assigned_users) : (existing[4] || '[]'),
+            gender_restriction !== undefined ? gender_restriction : (existing[5] || ''),
+            existing[6] || '0',
+            notes !== undefined ? notes : (existing[7] || ''),
+            existing[8] || '',
+            existing[9] || '0',
+            existing[10] || '',
+            existing[11] || '',
+            existing[12] || '',
+            req.session.user.email,
+            '',
+            now,
+            status || existing[16] || 'Active'
         ];
-        
-        await updateRow('Schedules', rowIndex, values);
-        
-        res.json({ success: true, message: 'Schedule updated successfully' });
+
+        await updateRange(`Schedules!A${rowIndex + 2}:Q${rowIndex + 2}`, [updatedRow]);
+        res.json({ success: true });
     } catch (error) {
         console.error('Error updating schedule:', error);
-        res.status(500).json({ success: false, message: 'Error updating schedule: ' + error.message });
+        res.status(500).json({ success: false, message: 'Gagal mengupdate schedule' });
     }
 });
 
-// DELETE /api/admin/schedule/:id - Delete schedule
-router.delete('/schedule/:id', async (req, res) => {
+// Cancel a schedule row (Admin only) — soft delete via status column
+router.delete('/schedule/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        
-        const rowIndex = await findRowIndexById('Schedules', id);
+        const rowsResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Schedules!A2:Q' });
+        const rows = rowsResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id);
         if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Schedule not found' });
+            return res.status(404).json({ success: false, message: 'Schedule tidak ditemukan' });
         }
-        
-        await deleteRow('Schedules', rowIndex);
-        
-        res.json({ success: true, message: 'Schedule deleted successfully' });
+
+        await updateRange(`Schedules!Q${rowIndex + 2}`, [['Cancelled']]);
+        res.json({ success: true });
     } catch (error) {
         console.error('Error deleting schedule:', error);
-        res.status(500).json({ success: false, message: 'Error deleting schedule: ' + error.message });
+        res.status(500).json({ success: false, message: 'Gagal menghapus schedule' });
     }
 });
 
-// ============ MEMBERSHIP CRUD ============
+// Register a membership package for a member (Admin only) — creates a Subscriptions row, which
+// is what grants the member a booking quota (total_sessions - used_sessions on the account page).
+// Looks up a Membership catalog row by id. Returns null if not found.
+async function resolvePackage(packageId) {
+    const packagesResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Membership!A2:E' });
+    const pkgRow = (packagesResp.data.values || []).find(r => r[0] === packageId.toString());
+    if (!pkgRow) return null;
+    const [, name, price, credit, validDays] = pkgRow;
+    return { name, price, credit, validDays, isTrial: (name || '').trim().toLowerCase() === 'trial' };
+}
 
-// POST /api/admin/membership - Create new membership plan
-router.post('/membership', async (req, res) => {
+// Resolves a buddy member's display name for the Subscriptions row. Throws if the id doesn't
+// match a real user, so callers can turn that into a 400 response.
+async function resolveBuddyName(buddyMemberId) {
+    if (!buddyMemberId) return '';
+    const usersResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A:Z' });
+    const usersRows = usersResp.data.values || [];
+    const uHeaders = usersRows[0] || [];
+    const uCol = name => uHeaders.findIndex(h => (h || '').toString().trim().toLowerCase() === name);
+    const idIdx = uCol('id'), nameIdx = uCol('name');
+    const buddyRow = usersRows.slice(1).find(r => r[idIdx] === buddyMemberId.toString());
+    if (!buddyRow) throw new Error('BUDDY_NOT_FOUND');
+    return buddyRow[nameIdx] || '';
+}
+
+// A member can only ever be registered for Trial once — Drop In (or any other package) covers
+// them after that. excludeSubId lets an edit ignore the row being edited when checking itself.
+async function hasExistingTrial(memberId, excludeSubId) {
+    const subsCheckResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Subscriptions!A2:C' });
+    return (subsCheckResp.data.values || []).some(r =>
+        (!excludeSubId || r[0] !== excludeSubId.toString()) &&
+        r[1] === memberId.toString() && (r[2] || '').trim().toLowerCase() === 'trial'
+    );
+}
+
+function todayLocalStr() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function yesterdayLocalStr() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// A member may only have one real (non-Trial) active membership at a time — no stacking. An
+// active Trial is the one exception: registering a real package while a Trial is still active is
+// allowed, but forfeits (expires) that Trial immediately, since it exists only to lead into a
+// real package, not to run alongside one. excludeSubId lets an edit ignore the row being edited.
+// Returns an error message string if the new registration should be blocked, otherwise null.
+async function checkActiveMembershipAndForfeitTrial(memberId, newPackageIsTrial, excludeSubId) {
+    const subsResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Subscriptions!A2:J' });
+    const rows = subsResp.data.values || [];
+    const today = todayLocalStr();
+
+    // A buddy on someone else's active Couple package already has membership access through it
+    // (same shared quota pool — see getUserSubscriptions in schedule.js), so they count as
+    // "having an active membership" too, not just the primary member_id.
+    const activeForMember = rows
+        .map((row, idx) => ({ row, sheetRowIndex: idx }))
+        .filter(({ row }) => row[0] && (row[1] === memberId.toString() || row[7] === memberId.toString()))
+        .filter(({ row }) => !excludeSubId || row[0] !== excludeSubId.toString())
+        .filter(({ row }) => {
+            const endDate = row[4] || '';
+            const notExpired = !endDate || endDate >= today;
+            const remaining = (parseInt(row[5], 10) || 0) - (parseInt(row[6], 10) || 0);
+            return notExpired && remaining > 0;
+        });
+
+    const activeNonTrial = activeForMember.filter(({ row }) => (row[2] || '').trim().toLowerCase() !== 'trial');
+    if (activeNonTrial.length > 0) {
+        return 'Member ini masih memiliki membership aktif. Tidak bisa mendaftarkan paket baru sampai membership yang sekarang habis atau expired.';
+    }
+
+    if (newPackageIsTrial) return null; // registering Trial itself — hasExistingTrial covers that separately
+
+    const activeTrials = activeForMember.filter(({ row }) => (row[2] || '').trim().toLowerCase() === 'trial');
+    for (const { sheetRowIndex } of activeTrials) {
+        await updateRange(`Subscriptions!E${sheetRowIndex + 2}`, [[yesterdayLocalStr()]]);
+    }
+    return null;
+}
+
+// A blank Valid-days column means the package never expires (Trial, Drop In, etc.).
+function computeEndDate(startDateStr, validDays) {
+    const days = parseInt(validDays, 10);
+    if (isNaN(days) || days <= 0) return '';
+
+    // Pure local-calendar arithmetic (year/month/day components + setDate overflow), not
+    // millisecond math through toISOString() — that path silently drops a day whenever the
+    // server's local timezone is ahead of UTC.
+    const [y, m, d] = startDateStr.split('-').map(Number);
+    const end = new Date(y, m - 1, d + days);
+    const yyyy = end.getFullYear();
+    const mm = String(end.getMonth() + 1).padStart(2, '0');
+    const dd = String(end.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+router.post('/membership', requireAdmin, async (req, res) => {
     try {
-        const { name, price, credits, duration_days } = req.body;
-        
-        if (!name) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        const { member_id, package_id, start_date, payment_name, buddy_member_id } = req.body;
+        if (!member_id || !package_id || !start_date) {
+            return res.status(400).json({ success: false, message: 'member_id, package_id, dan start_date wajib diisi' });
         }
-        
-        const values = [
-            name,
-            price || '0',
-            credits || '0',
-            duration_days || '0'
-        ];
-        
-        await appendRow('Membership', values);
-        
-        res.json({ success: true, message: 'Membership created successfully' });
+        if (buddy_member_id && buddy_member_id.toString() === member_id.toString()) {
+            return res.status(400).json({ success: false, message: 'Buddy harus member yang berbeda' });
+        }
+
+        const pkg = await resolvePackage(package_id);
+        if (!pkg) {
+            return res.status(400).json({ success: false, message: 'Paket membership tidak ditemukan' });
+        }
+
+        if (pkg.isTrial && await hasExistingTrial(member_id)) {
+            return res.status(400).json({ success: false, message: 'Member ini sudah pernah menggunakan Trial sebelumnya dan tidak bisa mendaftar Trial lagi. Gunakan paket Drop In atau lainnya.' });
+        }
+
+        const activeMembershipError = await checkActiveMembershipAndForfeitTrial(member_id, pkg.isTrial);
+        if (activeMembershipError) {
+            return res.status(400).json({ success: false, message: activeMembershipError });
+        }
+
+        let buddyName;
+        try {
+            buddyName = await resolveBuddyName(buddy_member_id);
+        } catch (e) {
+            return res.status(400).json({ success: false, message: 'Buddy member tidak ditemukan' });
+        }
+
+        const endDateStr = computeEndDate(start_date, pkg.validDays);
+
+        const subsResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Subscriptions!A2:A' });
+        const existingIds = (subsResp.data.values || []).map(r => parseInt(r[0], 10)).filter(n => !isNaN(n));
+        const newId = (existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1).toString();
+
+        await appendRow('Subscriptions!A:J', [[
+            newId, member_id, pkg.name, start_date, endDateStr,
+            pkg.credit || '0', '0', buddy_member_id || '', buddyName, payment_name || ''
+        ]]);
+
+        res.json({ success: true, id: newId });
     } catch (error) {
-        console.error('Error creating membership:', error);
-        res.status(500).json({ success: false, message: 'Error creating membership: ' + error.message });
+        console.error('Error registering membership:', error);
+        res.status(500).json({ success: false, message: 'Gagal mendaftarkan membership' });
     }
 });
 
-// PUT /api/admin/membership/:id - Update membership plan (id = row number)
-router.put('/membership/:id', async (req, res) => {
+// Update an existing membership registration (Admin only). Changing the start date, or the
+// package itself, recomputes the end date from the (possibly new) package's validity days —
+// used_sessions is left untouched so editing never resets a member's usage history.
+router.put('/membership/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const rowNumber = parseInt(id);
-        const { name, price, credits, duration_days } = req.body;
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Membership!A${rowNumber}:D${rowNumber}`
-        });
-        
-        if (!response.data.values || !response.data.values[0]) {
-            return res.status(404).json({ success: false, message: 'Membership not found' });
+        const { member_id, package_id, start_date, payment_name, buddy_member_id } = req.body;
+
+        const subsResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Subscriptions!A2:J' });
+        const rows = subsResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id.toString());
+        if (rowIndex === -1) {
+            return res.status(404).json({ success: false, message: 'Membership tidak ditemukan' });
         }
-        
-        const existingRow = response.data.values[0];
-        
-        const values = [
-            name || existingRow[0],
-            price !== undefined ? price : existingRow[1],
-            credits !== undefined ? credits : existingRow[2],
-            duration_days !== undefined ? duration_days : existingRow[3]
+        const existing = rows[rowIndex];
+
+        const finalMemberId = member_id || existing[1];
+        if (buddy_member_id && buddy_member_id.toString() === finalMemberId.toString()) {
+            return res.status(400).json({ success: false, message: 'Buddy harus member yang berbeda' });
+        }
+
+        let packageName = existing[2];
+        let credit = existing[5];
+        let validDays = null;
+
+        if (package_id) {
+            const pkg = await resolvePackage(package_id);
+            if (!pkg) {
+                return res.status(400).json({ success: false, message: 'Paket membership tidak ditemukan' });
+            }
+            if (pkg.isTrial && await hasExistingTrial(finalMemberId, id)) {
+                return res.status(400).json({ success: false, message: 'Member ini sudah pernah menggunakan Trial sebelumnya dan tidak bisa mendaftar Trial lagi.' });
+            }
+            const activeMembershipError = await checkActiveMembershipAndForfeitTrial(finalMemberId, pkg.isTrial, id);
+            if (activeMembershipError) {
+                return res.status(400).json({ success: false, message: activeMembershipError });
+            }
+            packageName = pkg.name;
+            credit = pkg.credit;
+            validDays = pkg.validDays;
+        } else {
+            // Package unchanged — still need its Valid-days to recompute end_date if the start
+            // date moved. The row only stores the package's name, so match it back to the catalog.
+            const packagesResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Membership!A2:E' });
+            const pkgRow = (packagesResp.data.values || []).find(r => (r[1] || '').trim().toLowerCase() === (packageName || '').trim().toLowerCase());
+            validDays = pkgRow ? pkgRow[4] : null;
+        }
+
+        const finalStartDate = start_date || existing[3];
+        const endDateStr = (start_date || package_id) ? computeEndDate(finalStartDate, validDays) : existing[4];
+
+        let buddyId = buddy_member_id !== undefined ? buddy_member_id : existing[7];
+        let buddyName = existing[8];
+        if (buddy_member_id !== undefined) {
+            try {
+                buddyName = await resolveBuddyName(buddy_member_id);
+            } catch (e) {
+                return res.status(400).json({ success: false, message: 'Buddy member tidak ditemukan' });
+            }
+        }
+
+        const updatedRow = [
+            id, finalMemberId, packageName, finalStartDate, endDateStr,
+            credit || '0', existing[6], buddyId || '', buddyName,
+            payment_name !== undefined ? payment_name : existing[9]
         ];
-        
-        await updateRow('Membership', rowNumber, values);
-        
-        res.json({ success: true, message: 'Membership updated successfully' });
+
+        await updateRange(`Subscriptions!A${rowIndex + 2}:J${rowIndex + 2}`, [updatedRow]);
+        res.json({ success: true });
     } catch (error) {
         console.error('Error updating membership:', error);
-        res.status(500).json({ success: false, message: 'Error updating membership: ' + error.message });
+        res.status(500).json({ success: false, message: 'Gagal memperbarui membership' });
     }
 });
 
-// DELETE /api/admin/membership/:id - Delete membership plan (id = row number)
-router.delete('/membership/:id', async (req, res) => {
+// Delete a membership registration (Admin only). Removes the row outright — this only ever
+// deletes the registration record itself; it doesn't touch bookings already charged against it
+// (their sub:<id> tag just stops resolving to anything, same as any other removed subscription).
+router.delete('/membership/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const rowNumber = parseInt(id);
-        
-        await deleteRow('Membership', rowNumber);
-        
-        res.json({ success: true, message: 'Membership deleted successfully' });
+        const subsResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Subscriptions!A2:J' });
+        const rows = subsResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id.toString());
+        if (rowIndex === -1) {
+            return res.status(404).json({ success: false, message: 'Membership tidak ditemukan' });
+        }
+
+        await sheets.spreadsheets.values.clear({
+            spreadsheetId,
+            range: `Subscriptions!A${rowIndex + 2}:J${rowIndex + 2}`,
+        });
+        res.json({ success: true });
     } catch (error) {
         console.error('Error deleting membership:', error);
-        res.status(500).json({ success: false, message: 'Error deleting membership: ' + error.message });
+        res.status(500).json({ success: false, message: 'Gagal menghapus membership' });
     }
 });
 
-// POST /api/admin/membership/apply - Apply membership to a user (sync to Users table)
-router.post('/membership/apply', async (req, res) => {
+// Users sheet ID format is "RES" + 6-digit sequential (e.g. RES000308). New IDs are generated
+// by reading the highest existing numeric suffix and adding 1 — not a stored counter — so it
+// self-heals if rows are ever deleted or re-ordered.
+async function getNextUserId() {
+    const resp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A2:A' });
+    const rows = resp.data.values || [];
+    let max = 0;
+    for (const [id] of rows) {
+        const m = /^RES(\d{6})$/.exec((id || '').trim());
+        if (m) max = Math.max(max, parseInt(m[1], 10));
+    }
+    return 'RES' + String(max + 1).padStart(6, '0');
+}
+
+// Create a new member/admin account (Admin only).
+router.post('/user', requireAdmin, async (req, res) => {
     try {
-        const { membership_id, user_id } = req.body;
-        
-        if (!membership_id || !user_id) {
-            return res.status(400).json({ success: false, message: 'Missing membership_id or user_id' });
+        const { name, email, phone, address, instagram, password, gender, role } = req.body;
+        if (!name || !email) {
+            return res.status(400).json({ success: false, message: 'Nama dan email wajib diisi' });
         }
-        
-        // Get membership plan details
-        const membershipResponse = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: 'Membership!A:D'
-        });
-        const membershipRows = membershipResponse.data.values || [];
-        // membership_id is row number, so row index = membership_id - 1 (0-based)
-        const rowIdx = parseInt(membership_id) - 1; // convert to 0-based index
-        if (rowIdx < 1 || rowIdx >= membershipRows.length) {
-            return res.status(404).json({ success: false, message: 'Membership plan not found' });
+
+        const usersResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A2:I' });
+        const rows = usersResp.data.values || [];
+        if (rows.some(r => (r[3] || '').trim().toLowerCase() === email.trim().toLowerCase())) {
+            return res.status(400).json({ success: false, message: 'Email sudah terdaftar' });
         }
-        const membershipPlan = membershipRows[rowIdx];
-        
-        const planName = membershipPlan[0] || '';
-        const planCredits = parseInt(membershipPlan[2]) || 0;
-        const planDurationDays = parseInt(membershipPlan[3]) || 0;
-        
-        // Get user data
-        const userRowIndex = await findRowIndexById('Users', user_id);
-        if (userRowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'User not found' });
+
+        const newId = await getNextUserId();
+        await appendRow('Users!A:I', [[
+            newId, name, gender || '', email, phone || '', address || '', instagram || '', password || '', role || 'member'
+        ]]);
+        res.json({ success: true, id: newId });
+    } catch (error) {
+        console.error('Error creating user:', error);
+        res.status(500).json({ success: false, message: 'Gagal membuat user' });
+    }
+});
+
+// Update an existing account (Admin only).
+router.put('/user/:id', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, phone, address, instagram, password, gender, role } = req.body;
+
+        const usersResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A2:I' });
+        const rows = usersResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id);
+        if (rowIndex === -1) {
+            return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
         }
-        
-        const userResponse = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Users!A${userRowIndex}:O${userRowIndex}`
-        });
-        const existingUser = userResponse.data.values[0] || [];
-        
-        // Calculate new credits (add to existing)
-        const currentCredits = parseInt(existingUser[10]) || 0;
-        const currentCreditAvailable = parseInt(existingUser[11]) || 0;
-        const newCredits = currentCredits + planCredits;
-        const newCreditAvailable = currentCreditAvailable + planCredits;
-        
-        // Calculate new expired date (today + duration_days)
-        const today = new Date();
-        const currentExpiry = existingUser[8] ? new Date(existingUser[8]) : null;
-        
-        // If user has a future expiry date, extend from that date; otherwise from today
-        let baseDate = today;
-        if (currentExpiry && currentExpiry > today) {
-            baseDate = currentExpiry;
+
+        const existing = rows[rowIndex];
+        if (email && email.trim().toLowerCase() !== (existing[3] || '').trim().toLowerCase() &&
+            rows.some((r, i) => i !== rowIndex && (r[3] || '').trim().toLowerCase() === email.trim().toLowerCase())) {
+            return res.status(400).json({ success: false, message: 'Email sudah terdaftar' });
         }
-        
-        const newExpiry = new Date(baseDate);
-        newExpiry.setDate(newExpiry.getDate() + planDurationDays);
-        const newExpiryStr = newExpiry.toISOString().split('T')[0];
-        
-        // Update user row: membership_type (col F/5), membership_status (col G/6), expired_date (col I/8), credits (col K/10), credit_available (col L/11)
-        const updatedValues = [
-            existingUser[0],  // id
-            existingUser[1],  // email
-            existingUser[2],  // password
-            existingUser[3],  // name
-            existingUser[4],  // phone
-            planName,         // membership_type -> from plan
-            'Active',         // membership_status -> set to Active
-            existingUser[7],  // registered_date
-            newExpiryStr,     // expired_date -> calculated
-            existingUser[9],  // profile_picture
-            newCredits.toString(), // credits -> added
-            newCreditAvailable.toString(), // credit_available -> added
-            existingUser[12], // gender
-            existingUser[13], // date_of_birth
-            existingUser[14]  // role
+
+        const updatedRow = [
+            id,
+            name !== undefined && name !== '' ? name : existing[1],
+            gender !== undefined ? gender : existing[2],
+            email !== undefined && email !== '' ? email : existing[3],
+            phone !== undefined ? phone : existing[4],
+            address !== undefined ? address : existing[5],
+            instagram !== undefined ? instagram : existing[6],
+            password !== undefined && password !== '' ? password : existing[7],
+            role !== undefined && role !== '' ? role : existing[8],
         ];
-        
-        await updateRow('Users', userRowIndex, updatedValues);
-        
-        res.json({
-            success: true,
-            message: `Membership "${planName}" applied to user successfully. Credits: ${currentCredits} → ${newCredits}, Expiry: ${newExpiryStr}`,
-            data: {
-                user_id,
-                membership_name: planName,
-                credits_added: planCredits,
-                new_credits: newCredits,
-                new_credit_available: newCreditAvailable,
-                new_expired_date: newExpiryStr
+        await updateRange(`Users!A${rowIndex + 2}:I${rowIndex + 2}`, [updatedRow]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ success: false, message: 'Gagal memperbarui user' });
+    }
+});
+
+// Delete an account (Admin only).
+router.delete('/user/:id', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const usersResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Users!A2:A' });
+        const rows = usersResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id);
+        if (rowIndex === -1) {
+            return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
+        }
+
+        const meta = await sheets.spreadsheets.get({ spreadsheetId });
+        const sheetId = meta.data.sheets.find(s => s.properties.title === 'Users').properties.sheetId;
+        await sheets.spreadsheets.batchUpdate({
+            spreadsheetId,
+            requestBody: {
+                requests: [{
+                    deleteDimension: { range: { sheetId, dimension: 'ROWS', startIndex: rowIndex + 1, endIndex: rowIndex + 2 } }
+                }]
             }
         });
+        res.json({ success: true });
     } catch (error) {
-        console.error('Error applying membership:', error);
-        res.status(500).json({ success: false, message: 'Error applying membership: ' + error.message });
+        console.error('Error deleting user:', error);
+        res.status(500).json({ success: false, message: 'Gagal menghapus user' });
     }
 });
 
-// ============ TRAINER CRUD ============
-
-// POST /api/admin/trainer - Create new trainer
-router.post('/trainer', async (req, res) => {
-    try {
-        const { name, email, password, phone, specialization, status, bio } = req.body;
-        
-        if (!name || !email) {
-            return res.status(400).json({ success: false, message: 'Missing required fields' });
-        }
-        
-        const id = await getNextId('Trainers');
-        const values = [
-            id,
-            name,
-            email,
-            password || '',
-            phone || '',
-            specialization || '',
-            '', // image
-            bio || '',
-            status || 'Active',
-            new Date().toISOString().split('T')[0] // joined_date
-        ];
-        
-        await appendRow('Trainers', values);
-        
-        res.json({ success: true, message: 'Trainer created successfully', data: { id } });
-    } catch (error) {
-        console.error('Error creating trainer:', error);
-        res.status(500).json({ success: false, message: 'Error creating trainer: ' + error.message });
-    }
-});
-
-// PUT /api/admin/trainer/:id - Update trainer
-router.put('/trainer/:id', async (req, res) => {
+// Soft-delete a class (Admin only) — marks it Inactive rather than removing the row, since
+// Schedules/RegularSchedule/CustomSchedules reference classes by id and losing the row entirely
+// would break their capacity lookups.
+router.delete('/class/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, email, password, phone, specialization, status, bio } = req.body;
-        
-        const rowIndex = await findRowIndexById('Trainers', id);
+        const classesResp = await sheets.spreadsheets.values.get({ spreadsheetId, range: 'Classes!A2:G' });
+        const rows = classesResp.data.values || [];
+        const rowIndex = rows.findIndex(r => r[0] === id.toString());
         if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Trainer not found' });
+            return res.status(404).json({ success: false, message: 'Class tidak ditemukan' });
         }
-        
-        const response = await sheets.spreadsheets.values.get({
-            spreadsheetId: spreadsheetId,
-            range: `Trainers!A${rowIndex}:J${rowIndex}`
-        });
-        
-        const existingRow = response.data.values[0] || [];
-        
-        const values = [
-            id,
-            name || existingRow[1],
-            email || existingRow[2],
-            password || existingRow[3],
-            phone !== undefined ? phone : existingRow[4],
-            specialization !== undefined ? specialization : existingRow[5],
-            existingRow[6], // image
-            bio !== undefined ? bio : existingRow[7],
-            status || existingRow[8],
-            existingRow[9] // joined_date (don't change)
-        ];
-        
-        await updateRow('Trainers', rowIndex, values);
-        
-        res.json({ success: true, message: 'Trainer updated successfully' });
-    } catch (error) {
-        console.error('Error updating trainer:', error);
-        res.status(500).json({ success: false, message: 'Error updating trainer: ' + error.message });
-    }
-});
 
-// DELETE /api/admin/trainer/:id - Delete trainer
-router.delete('/trainer/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        
-        const rowIndex = await findRowIndexById('Trainers', id);
-        if (rowIndex === -1) {
-            return res.status(404).json({ success: false, message: 'Trainer not found' });
-        }
-        
-        await deleteRow('Trainers', rowIndex);
-        
-        res.json({ success: true, message: 'Trainer deleted successfully' });
+        await updateRange(`Classes!G${rowIndex + 2}`, [['Inactive']]);
+        res.json({ success: true });
     } catch (error) {
-        console.error('Error deleting trainer:', error);
-        res.status(500).json({ success: false, message: 'Error deleting trainer: ' + error.message });
+        console.error('Error deleting class:', error);
+        res.status(500).json({ success: false, message: 'Gagal menghapus class' });
     }
 });
 

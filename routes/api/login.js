@@ -1,28 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { google } = require('googleapis');
+const path = require('path');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
 
-const credentials = {
-    type: process.env.GOOGLE_SERVICE_ACCOUNT_TYPE,
-    project_id: process.env.GOOGLE_PROJECT_ID,
-    private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    client_id: process.env.GOOGLE_CLIENT_ID,
-    auth_uri: process.env.GOOGLE_AUTH_URI,
-    token_uri: process.env.GOOGLE_TOKEN_URI,
-    auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_CERT_URL,
-    client_x509_cert_url: process.env.GOOGLE_CLIENT_CERT_URL
-};
-
+const serviceAccountEmail = 'pilatestudiostella@pilatestudio-stella.iam.gserviceaccount.com';
 const spreadsheetId = process.env.GOOGLE_SHEETS_ID || '1TQCQYvenGeGQUT7pQe9osdX5dXO00piDMXEV6GzOQ98';
-const apiKeyBrevo = 'xkeysib-XXXXXXXXXXXXXXXXXXXXXX';
 
-// Setup Google Sheets authentication using fromJSON
+// Setup Google Sheets authentication — credentials.json is gitignored and never committed.
 const auth = new google.auth.GoogleAuth({
-    credentials: credentials,
+    keyFile: path.join(__dirname, '../../credentials.json'),
     scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly']
 });
 
@@ -37,7 +24,7 @@ auth.getClient().then((client) => {
     console.error('🔧 SOLUSI:');
     console.error('1. Buka Google Sheets: https://docs.google.com/spreadsheets/d/' + spreadsheetId);
     console.error('2. Klik "Share" / "Bagikan"');
-    console.error('3. Tambahkan email: ' + credentials.client_email);
+    console.error('3. Tambahkan email: ' + serviceAccountEmail);
     console.error('4. Berikan akses "Editor" atau minimal "Viewer"');
     console.error('5. Restart server setelah share');
     console.error('');
@@ -61,14 +48,14 @@ router.post('/', async (req, res) => {
         if (!isAuthorized) {
             return res.status(503).json({
                 success: false,
-                message: 'Google Sheets API belum ter-autorisasi. Silakan share spreadsheet dengan service account: ' + credentials.client_email
+                message: 'Google Sheets API belum ter-autorisasi. Silakan share spreadsheet dengan service account: ' + serviceAccountEmail
             });
         }
 
         // Get users from Google Sheets
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: spreadsheetId,
-            range: 'Users!A:Z', // Include all columns including role
+            range: 'Users!A:Z', // Wide range so newly-added columns (e.g. role) aren't silently excluded
         });
 
         const rows = response.data.values;
@@ -80,21 +67,21 @@ router.post('/', async (req, res) => {
             });
         }
 
-        // Assuming first row is header: id, email, password, name, phone, membership_type, membership_status, registered_date, expired_date, profile_picture, credits, credit_available
+        // Header lookup is case-insensitive since the Users sheet's header casing/naming
+        // has been hand-edited over time (e.g. "Email" vs "email").
         const headers = rows[0];
-        const idIndex = headers.indexOf('id');
-        const emailIndex = headers.indexOf('email');
-        const passwordIndex = headers.indexOf('password');
-        const nameIndex = headers.indexOf('name');
-        const phoneIndex = headers.indexOf('phone');
-        const membershipTypeIndex = headers.indexOf('membership_type');
-        const membershipStatusIndex = headers.indexOf('membership_status');
-        const registeredDateIndex = headers.indexOf('registered_date');
-        const expiredDateIndex = headers.indexOf('expired_date');
-        const profilePictureIndex = headers.indexOf('profile_picture');
-        const creditsIndex = headers.indexOf('credits');
-        const creditAvailableIndex = headers.indexOf('credit_available');
-        const roleIndex = headers.indexOf('role'); // Add role field
+        const col = name => headers.findIndex(h => (h || '').toString().trim().toLowerCase() === name);
+        const idIndex = col('id');
+        const emailIndex = col('email');
+        const passwordIndex = col('password');
+        const nameIndex = col('name');
+        const phoneIndex = col('phone');
+        const membershipTypeIndex = col('membership_type');
+        const membershipStatusIndex = col('membership_status');
+        const registeredDateIndex = col('registered_date');
+        const profilePictureIndex = col('profile_picture');
+        const totalCreditsIndex = col('total_credits');
+        const roleIndex = col('role'); // Add role field
 
         // Find user by email
         let userFound = null;
@@ -106,10 +93,48 @@ router.post('/', async (req, res) => {
             }
         }
 
+        // Coaches log in with the same form but live in the separate Trainers sheet — try
+        // that before giving up, so one endpoint serves both members/admins and trainers.
         if (!userFound) {
-            return res.status(401).json({
-                success: false,
-                message: 'Email atau password salah'
+            const trainerResp = await sheets.spreadsheets.values.get({
+                spreadsheetId: spreadsheetId,
+                range: 'Trainers!A2:I',
+            });
+            const trainerRows = trainerResp.data.values || [];
+            const trainerRow = trainerRows.find(r => (r[2] || '').toLowerCase() === email.toLowerCase());
+            if (!trainerRow) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Email atau password salah'
+                });
+            }
+
+            const storedTrainerPassword = trainerRow[3] || '';
+            const isTrainerPasswordValid = (storedTrainerPassword.startsWith('$2a$') || storedTrainerPassword.startsWith('$2b$'))
+                ? await bcrypt.compare(password, storedTrainerPassword)
+                : password === storedTrainerPassword;
+
+            if (!isTrainerPasswordValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Email atau password salah'
+                });
+            }
+
+            req.session.user = {
+                id: trainerRow[0],
+                email: trainerRow[2],
+                name: trainerRow[1],
+                phone: trainerRow[4],
+                image: trainerRow[6] || '',
+                role: 'trainer'
+            };
+
+            return res.json({
+                success: true,
+                message: 'Login berhasil',
+                redirectUrl: '/coach',
+                user: req.session.user
             });
         }
 
@@ -142,20 +167,10 @@ router.post('/', async (req, res) => {
             membership_type: userFound[membershipTypeIndex],
             membership_status: userFound[membershipStatusIndex],
             registered_date: userFound[registeredDateIndex],
-            expired_date: userFound[expiredDateIndex],
             profile_picture: userFound[profilePictureIndex],
-            credits: userFound[creditsIndex],
-            credit_available: userFound[creditAvailableIndex],
+            total_credits: userFound[totalCreditsIndex],
             role: userFound[roleIndex] || 'user' // Default to 'user' if role is not set
         };
-
-        // Debug logging untuk memeriksa role
-        console.log('=== LOGIN DEBUG ===');
-        console.log('Email:', userFound[emailIndex]);
-        console.log('Role from sheet:', userFound[roleIndex]);
-        console.log('Role in session:', req.session.user.role);
-        console.log('Role index:', roleIndex);
-        console.log('==================');
 
         // Redirect based on role
         const redirectUrl = req.session.user.role === 'admin' ? '/admin' : '/account';
@@ -174,14 +189,14 @@ router.post('/', async (req, res) => {
         let errorMessage = 'Terjadi kesalahan pada server';
         
         if (error.message && error.message.includes('unregistered callers')) {
-            errorMessage = 'Google Sheets belum ter-autorisasi. Silakan share spreadsheet dengan: ' + credentials.client_email;
+            errorMessage = 'Google Sheets belum ter-autorisasi. Silakan share spreadsheet dengan: ' + serviceAccountEmail;
             console.error('');
             console.error('❌ ERROR: Service account tidak punya akses ke spreadsheet');
             console.error('');
             console.error('🔧 SOLUSI:');
             console.error('1. Buka: https://docs.google.com/spreadsheets/d/' + spreadsheetId);
             console.error('2. Klik tombol "Share" (Bagikan)');
-            console.error('3. Masukkan email: ' + credentials.client_email);
+            console.error('3. Masukkan email: ' + serviceAccountEmail);
             console.error('4. Pilih role: "Editor" atau "Viewer"');
             console.error('5. Klik "Send" atau "Kirim"');
             console.error('6. Restart server ini');

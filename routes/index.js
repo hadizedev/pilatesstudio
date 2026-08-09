@@ -1,21 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { requireAuth, requireAdmin, requireTrainer, checkAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireTrainer, requirePartnerTrainer, checkAuth } = require('../middleware/auth');
 const googleSheets = require('../utils/googleSheets');
 
 // Home page
 router.get('/', async (req, res) => {
   try {
-    // Get all homepage data from Google Sheets
     const homepageData = await googleSheets.getAllHomepageData();
-    
     res.render('index', {
       title: 'Home - Pilate Studio',
       ...homepageData
     });
   } catch (error) {
     console.error('Error loading homepage:', error);
-    // Fallback to default data if Google Sheets fails
+    // Fallback to empty sections if Google Sheets fails, so the page still renders
     res.render('index', {
       title: 'Home - Pilate Studio',
       banner: null,
@@ -70,6 +68,14 @@ router.get('/classes', (req, res) => {
   });
 });
 
+// Trainer page
+router.get('/trainer', (req, res) => {
+  res.render('trainer', {
+    title: 'Our Coaches',
+    heading: 'Meet Our Coaches'
+  });
+});
+
 // Contact page
 router.get('/contact', (req, res) => {
   res.render('contact', {
@@ -81,11 +87,12 @@ router.get('/contact', (req, res) => {
 
 // Login page
 router.get('/login', (req, res) => {
-  // Redirect to account if already logged in
+  // Redirect to the right dashboard if already logged in
   if (req.session && req.session.user) {
-    return res.redirect('/account');
+    const role = req.session.user.role;
+    return res.redirect(role === 'admin' ? '/admin' : role === 'trainer' ? '/coach' : '/account');
   }
-  
+
   res.render('login', {
     title: 'Login',
     heading: 'Login',
@@ -107,8 +114,16 @@ router.get('/admin', requireAdmin, (req, res) => {
   res.render('admin', {
     title: 'Admin Dashboard',
     heading: 'Admin Dashboard',
-    user: req.session.user,
-    isAdminPage: true
+    user: req.session.user
+  });
+});
+
+// Coach Dashboard (Protected - Trainer Only)
+router.get('/coach', requireTrainer, (req, res) => {
+  res.render('coach', {
+    title: 'Coach Dashboard',
+    heading: 'Jadwal Coach',
+    user: req.session.user
   });
 });
 
@@ -158,8 +173,8 @@ router.get('/partners/login', (req, res) => {
   });
 });
 
-// Partners Dashboard (Protected - Trainer Only)
-router.get('/partners', requireTrainer, (req, res) => {
+// Partners Dashboard (Protected - Partner Trainer Only)
+router.get('/partners', requirePartnerTrainer, (req, res) => {
   res.render('partners', {
     title: 'Partner Dashboard',
     layout: 'main',
