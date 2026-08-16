@@ -1,6 +1,6 @@
 <!-- Banner Area -->
 {{#if sectionSettings.banner.enabled}}
-<section class="banner-area fullscreen relative" style="background: url({{#if banner.background_image}}{{banner.background_image}}{{else}}https://homepilatesstudio.com/uploads/website/home-banner.webp{{/if}}) center; background-size: cover;">
+<section class="banner-area fullscreen relative" style="background: url({{#if banner.background_image}}{{banner.background_image}}{{else}}/images/texture-class.webp{{/if}}) center; background-size: cover;">
   <div class="overlay overlay-bg"></div>
   <div class="container">
     <div class="row fullscreen d-flex align-items-center" style="height: 919px;">
@@ -11,7 +11,7 @@
         <p class="banner-text4">{{#if banner.tagline}}{{banner.tagline}}{{else}}Established since 2015{{/if}}</p>
       </div>
       <div class="banner-socials">
-        <a href="{{#if banner.instagram_url}}{{banner.instagram_url}}{{else}}https://www.instagram.com/home_pilates_studio{{/if}}" target="_blank" class="btn-basic">
+        <a href="{{#if banner.instagram_url}}{{banner.instagram_url}}{{else}}https://www.instagram.com/res.studiopilates/{{/if}}" target="_blank" class="btn-basic">
           <i class="fi fi-brands-instagram"></i>
         </a>
         <a href="{{#if banner.location_url}}{{banner.location_url}}{{else}}https://maps.app.goo.gl/8V99Pyg82etrUswj9{{/if}}" target="_blank" class="btn-basic">
@@ -206,7 +206,7 @@
     </div>
     <div class="mb-5">
       <h3>Studio Location</h3>
-      <iframe src="{{#if contact.map_embed_url}}{{contact.map_embed_url}}{{else}}https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3960.445005251872!2d107.59676825982162!3d-6.956717289799492!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e8e9becde3fb%3A0xae0b0b0257be584!2sHome%20Pilates%20Studio!5e0!3m2!1sen!2sid!4v1731683539835!5m2!1sen!2sid{{/if}}" width="100%" height="500px" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <iframe src="{{#if contact.map_embed_url}}{{contact.map_embed_url}}{{else}}https://maps.google.com/maps?q=-6.9621432,107.5528633&z=17&output=embed{{/if}}" width="100%" height="500px" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
     </div>
     <div class="faq-area mb-5">
       <h3>FAQ</h3>

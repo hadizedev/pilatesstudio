@@ -971,7 +971,7 @@ function showBookingModal(sid) {
   const monthIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][scheduleDate.getMonth()];
   
   // Update modal content
-  document.getElementById('booking-trainer-img').src = classData.aimg || 'https://homepilatesstudio.com/uploads/users/u-156.webp';
+  document.getElementById('booking-trainer-img').src = classData.aimg || '/images/trainers/default.svg';
   document.getElementById('booking-class-name').textContent = classData.cname || 'Class';
   document.getElementById('booking-class-type').textContent = classData.snotes ? classData.snotes.replace(/\n/g, ' ').trim() : '';
   document.getElementById('booking-trainer-name').textContent = `Trainer : ${classData.aname || 'Unknown'}`;

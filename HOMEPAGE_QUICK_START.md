@@ -26,21 +26,21 @@ Copy paste data ini ke sheet Banner (row 1 = header):
 
 ```
 id	title_line1	title_line2	subtitle	tagline	background_image	overlay_opacity	instagram_url	location_url	whatsapp_number	whatsapp_text
-1	The heaven of	PILATES	Restructure your body and mind	Established since 2015	https://homepilatesstudio.com/uploads/website/home-banner.webp	0.5	https://www.instagram.com/home_pilates_studio	https://maps.app.goo.gl/8V99Pyg82etrUswj9	6287822282068	Chat with Admin
+1	The heaven of	PILATES	Restructure your body and mind	Established since 2015	/images/texture-class.webp	0.5	https://www.instagram.com/res.studiopilates/	https://maps.app.goo.gl/8V99Pyg82etrUswj9	6287822282068	Chat with Admin
 ```
 
 #### Sheet 2: About
 ```
 id	title	title_highlight	title_color	title_color_highlight	subtitle	logo_image	reason_1	reason_2	reason_3	reason_4
-1	About Home Pilates Studio	About	#514f34	#a05a3f	Reason Why You Need Us	/images/logo.png	Need help on back ache and perfect body posture?	Want to get better balance and strenth of your body core	Want to try how to refresh the mind and better body composition?	Trained by certified trainers
+1	About Res Pilates Studio	About	#514f34	#a05a3f	Reason Why You Need Us	/images/logo.png	Need help on back ache and perfect body posture?	Want to get better balance and strenth of your body core	Want to try how to refresh the mind and better body composition?	Trained by certified trainers
 ```
 
 #### Sheet 3: Teachers
 ```
 id	name	position	image_url	order	active
-1	LEE CHING CHING	Head Teacher	https://homepilatesstudio.com/uploads/users/u-2.webp	1	TRUE
-2	KIM DAVIS	Expert Teacher - Masterclass	https://homepilatesstudio.com/uploads/users/u-3.webp	2	TRUE
-3	SHANTI	Expert Teacher - Masterclass	https://homepilatesstudio.com/uploads/users/u-5.webp	3	TRUE
+1	LEE CHING CHING	Head Teacher	/images/u-2.jpg	1	TRUE
+2	KIM DAVIS	Expert Teacher - Masterclass	/images/u-3.jpg	2	TRUE
+3	SHANTI	Expert Teacher - Masterclass	/images/u-5.jpg	3	TRUE
 ```
 
 #### Sheet 4: Testimonials
@@ -54,11 +54,11 @@ id	client_name	rating	testimonial	order	active
 #### Sheet 5: Classes
 ```
 id	class_name	description	image_url	anchor_link	order	active
-1	Reformer Class	A machine with a sliding platform and springs	https://homepilatesstudio.com/uploads/website/slider-reformer.webp	reformer	1	TRUE
-2	Wunda Chair Class	Chair with attach pedal with spring	https://homepilatesstudio.com/uploads/website/slider-wundachair.webp	wundachair	2	TRUE
-3	Wallboard Class	A wall-mounted plywood board with springs, handles, foot straps, and a rollback bar	https://homepilatesstudio.com/uploads/website/slider-wallboard.webp	wallboard	3	TRUE
-4	Therapy Program Class	Correcting the Curvature of the Spine	https://homepilatesstudio.com/uploads/website/slider-scolio.webp	scolio	4	TRUE
-5	Yoga Class	Postures and breathing exercises to promote calm and mindfulness	https://homepilatesstudio.com/uploads/website/slider-yoga.webp	yoga	5	TRUE
+1	Reformer Class	A machine with a sliding platform and springs	/images/slider-reformer.jpg	reformer	1	TRUE
+2	Wunda Chair Class	Chair with attach pedal with spring	/images/slider-wundachair.jpg	wundachair	2	TRUE
+3	Wallboard Class	A wall-mounted plywood board with springs, handles, foot straps, and a rollback bar	/images/slider-wallboard.jpg	wallboard	3	TRUE
+4	Therapy Program Class	Correcting the Curvature of the Spine	/images/slider-scolio.jpg	scolio	4	TRUE
+5	Yoga Class	Postures and breathing exercises to promote calm and mindfulness	/images/slider-yoga.jpg	yoga	5	TRUE
 ```
 
 #### Sheet 6: Contact
