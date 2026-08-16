@@ -35,7 +35,7 @@ Fitur ini memungkinkan Anda untuk mengaktifkan atau menonaktifkan section-sectio
 ## Section yang Dapat Diatur
 
 1. **Banner** - Section banner utama dengan background image
-2. **About** - Section tentang Home Pilates Studio
+2. **About** - Section tentang Res Pilates Studio
 3. **Teachers** - Section daftar instruktur/teacher
 4. **Testimonials** - Section testimoni dari client
 5. **Classes** - Section daftar kelas yang tersedia

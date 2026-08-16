@@ -30,7 +30,7 @@ Edit banner section homepage dengan field:
 
 ### 2. About Section Editor
 Edit about section dengan field:
-- **Section Title**: Judul section (default: "About Home Pilates Studio")
+- **Section Title**: Judul section (default: "About Res Pilates Studio")
 - **Highlighted Word**: Kata yang akan di-highlight dengan warna berbeda
 - **Title Color**: Warna utama judul (color picker)
 - **Highlight Color**: Warna highlight word (color picker)

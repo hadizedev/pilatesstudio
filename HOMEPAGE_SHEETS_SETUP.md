@@ -1,7 +1,7 @@
 # Homepage Google Sheets Setup Guide
 
 ## Overview
-Panduan ini menjelaskan cara setup Google Sheets sebagai database untuk homepage settings website Pilate Studio.
+Panduan ini menjelaskan cara setup Google Sheets sebagai database untuk homepage settings website Res Pilates Studio.
 
 ## Spreadsheet ID
 Setelah membuat Google Spreadsheet, tambahkan ID-nya ke environment variable atau langsung di file `utils/googleSheets.js`:
@@ -27,16 +27,16 @@ Nama Sheet: **Banner**
 | title_line2 | text | PILATES | Banner text line 2 (main title) |
 | subtitle | text | Restructure your body and mind | Banner subtitle |
 | tagline | text | Established since 2015 | Additional tagline |
-| background_image | url | https://homepilatesstudio.com/uploads/website/home-banner.webp | Banner background image URL |
+| background_image | url | /images/texture-class.webp | Banner background image URL |
 | overlay_opacity | number | 0.5 | Overlay opacity (0-1) |
-| instagram_url | url | https://www.instagram.com/home_pilates_studio | Instagram profile link |
+| instagram_url | url | https://www.instagram.com/res.studiopilates/ | Instagram profile link |
 | location_url | url | https://maps.app.goo.gl/8V99Pyg82etrUswj9 | Google Maps location link |
 | whatsapp_number | text | 6287822282068 | WhatsApp number (with country code) |
 | whatsapp_text | text | Chat with Admin | WhatsApp button text |
 
 **Sample Data Row:**
 ```
-1 | The heaven of | PILATES | Restructure your body and mind | Established since 2015 | https://homepilatesstudio.com/uploads/website/home-banner.webp | 0.5 | https://www.instagram.com/home_pilates_studio | https://maps.app.goo.gl/8V99Pyg82etrUswj9 | 6287822282068 | Chat with Admin
+1 | The heaven of | PILATES | Restructure your body and mind | Established since 2015 | /images/texture-class.webp | 0.5 | https://www.instagram.com/res.studiopilates/ | https://maps.app.goo.gl/8V99Pyg82etrUswj9 | 6287822282068 | Chat with Admin
 ```
 
 ---
@@ -47,7 +47,7 @@ Nama Sheet: **About**
 | Column Name | Type | Example Value | Description |
 |-------------|------|---------------|-------------|
 | id | number | 1 | Primary key |
-| title | text | About Home Pilates Studio | Section title |
+| title | text | About Res Pilates Studio | Section title |
 | title_highlight | text | About | Word to highlight in different color |
 | title_color | hex | #514f34 | Main title color |
 | title_color_highlight | hex | #a05a3f | Highlighted word color |
@@ -60,7 +60,7 @@ Nama Sheet: **About**
 
 **Sample Data Row:**
 ```
-1 | About Home Pilates Studio | About | #514f34 | #a05a3f | Reason Why You Need Us | /images/logo.png | Need help on back ache and perfect body posture? | Want to get better balance and strenth of your body core | Want to try how to refresh the mind and better body composition? | Trained by certified trainers
+1 | About Res Pilates Studio | About | #514f34 | #a05a3f | Reason Why You Need Us | /images/logo.png | Need help on back ache and perfect body posture? | Want to get better balance and strenth of your body core | Want to try how to refresh the mind and better body composition? | Trained by certified trainers
 ```
 
 ---
@@ -73,15 +73,15 @@ Nama Sheet: **Teachers**
 | id | number | 1 | Primary key |
 | name | text | LEE CHING CHING | Teacher name |
 | position | text | Head Teacher | Teacher position/title |
-| image_url | url | https://homepilatesstudio.com/uploads/users/u-2.webp | Profile image URL |
+| image_url | url | /images/u-2.jpg | Profile image URL |
 | order | number | 1 | Display order |
 | active | boolean | TRUE | Show/hide teacher |
 
 **Sample Data Rows:**
 ```
-1 | LEE CHING CHING | Head Teacher | https://homepilatesstudio.com/uploads/users/u-2.webp | 1 | TRUE
-2 | KIM DAVIS | Expert Teacher - Masterclass | https://homepilatesstudio.com/uploads/users/u-3.webp | 2 | TRUE
-3 | SHANTI | Expert Teacher - Masterclass | https://homepilatesstudio.com/uploads/users/u-5.webp | 3 | TRUE
+1 | LEE CHING CHING | Head Teacher | /images/u-2.jpg | 1 | TRUE
+2 | KIM DAVIS | Expert Teacher - Masterclass | /images/u-3.jpg | 2 | TRUE
+3 | SHANTI | Expert Teacher - Masterclass | /images/u-5.jpg | 3 | TRUE
 ```
 
 ---
@@ -115,18 +115,18 @@ Nama Sheet: **Classes**
 | id | number | 1 | Primary key |
 | class_name | text | Reformer Class | Class name |
 | description | text | A machine with a sliding platform and springs | Short description |
-| image_url | url | https://homepilatesstudio.com/uploads/website/slider-reformer.webp | Class image URL |
+| image_url | url | /images/slider-reformer.jpg | Class image URL |
 | anchor_link | text | reformer | Hash link for navigation |
 | order | number | 1 | Display order |
 | active | boolean | TRUE | Show/hide class |
 
 **Sample Data Rows:**
 ```
-1 | Reformer Class | A machine with a sliding platform and springs | https://homepilatesstudio.com/uploads/website/slider-reformer.webp | reformer | 1 | TRUE
-2 | Wunda Chair Class | Chair with attach pedal with spring | https://homepilatesstudio.com/uploads/website/slider-wundachair.webp | wundachair | 2 | TRUE
-3 | Wallboard Class | A wall-mounted plywood board with springs, handles, foot straps, and a rollback bar | https://homepilatesstudio.com/uploads/website/slider-wallboard.webp | wallboard | 3 | TRUE
-4 | Therapy Program Class | Correcting the Curvature of the Spine | https://homepilatesstudio.com/uploads/website/slider-scolio.webp | scolio | 4 | TRUE
-5 | Yoga Class | Postures and breathing exercises to promote calm and mindfulness | https://homepilatesstudio.com/uploads/website/slider-yoga.webp | yoga | 5 | TRUE
+1 | Reformer Class | A machine with a sliding platform and springs | /images/slider-reformer.jpg | reformer | 1 | TRUE
+2 | Wunda Chair Class | Chair with attach pedal with spring | /images/slider-wundachair.jpg | wundachair | 2 | TRUE
+3 | Wallboard Class | A wall-mounted plywood board with springs, handles, foot straps, and a rollback bar | /images/slider-wallboard.jpg | wallboard | 3 | TRUE
+4 | Therapy Program Class | Correcting the Curvature of the Spine | /images/slider-scolio.jpg | scolio | 4 | TRUE
+5 | Yoga Class | Postures and breathing exercises to promote calm and mindfulness | /images/slider-yoga.jpg | yoga | 5 | TRUE
 ```
 
 ---
